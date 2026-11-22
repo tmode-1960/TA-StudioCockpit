@@ -13,7 +13,7 @@ a = Analysis(
         ('web/gallery_module.js', 'web'),
         ('web/style.css', 'web'),
         ('web/favicon.ico', 'web'),
-        ('workflows/TA-FLEXMOD-LLM_v2.91.json', 'workflows'),
+        ('workflows/TA-FLEXMOD-LLM_v2.92.json', 'workflows'),
         ('workflows/discord_gif/*.json', 'workflows/discord_gif'),
         ('app.ico', '.'),
     ],
