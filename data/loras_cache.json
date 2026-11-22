@@ -1,0 +1,388 @@
+{
+  "loras": [
+    {
+      "name": "ZIT_Midjourney_Luneva_Cinematic_v1_r128",
+      "strength": 0.35,
+      "clipStrength": 0.35,
+      "active": false,
+      "trigger": "",
+      "category": "zimage"
+    },
+    {
+      "name": "ta_zimage_charcoal_dark_style_v2_000001750",
+      "strength": 0.65,
+      "clipStrength": 0.65,
+      "active": false,
+      "trigger": "",
+      "category": "zimage"
+    },
+    {
+      "name": "cm_bubblegum_zit",
+      "strength": 0.75,
+      "clipStrength": 0.75,
+      "active": false,
+      "trigger": "cm_bubblegum",
+      "category": "zimage"
+    },
+    {
+      "name": "cm_oldman_zit",
+      "strength": 0.75,
+      "clipStrength": 0.75,
+      "active": false,
+      "trigger": "cm_oldman",
+      "category": "zimage"
+    },
+    {
+      "name": "cm_bubblegum_krea2",
+      "strength": 0.75,
+      "clipStrength": 0.75,
+      "active": true,
+      "trigger": "cm_bubblegum",
+      "category": "krea2"
+    },
+    {
+      "name": "cm_oldman_krea2",
+      "strength": 0.75,
+      "clipStrength": 0.75,
+      "active": true,
+      "trigger": "cm_oldman",
+      "category": "krea2"
+    },
+    {
+      "name": "animatediff_style_h3.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "other"
+    },
+    {
+      "name": "flux/HORROR_lora.TA_trained.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "HORROR",
+      "category": "flux"
+    },
+    {
+      "name": "flux/Wraith_BW_Flux.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "Wraith_BW",
+      "category": "flux"
+    },
+    {
+      "name": "krea2/Cartoon_Ladies_2.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/ChiaroscuroFantasyKrea2Raw.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/Colorful Burst - Krea2.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/DarkGhibliKrea2Raw.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/Krea_2_zidiusArt_Melancholy_v2.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/RealisticSnapshotKrea2V2.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/anime-sketch-style-krea-krea-2-base-epoch-05.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/bob_krea_epoch_10.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/cm_scandes.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/krea2-masterpieces-v51.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/krea2_darkbrush.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/krea2_dotmatrix.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/krea2_kidsdrawing.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/krea2_neondrip.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/krea2_rainywindow.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/krea2_retroanime.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/krea2_softwatercolor.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/krea2_style_reference.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/krea2_sunsetblur.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/krea2_turbo_lora_rank_64_bf16.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/krea2_vintagetarot.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "krea2/realism_engine_krea2_v3.1.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "krea2"
+    },
+    {
+      "name": "minimax_h3/MiniMax-H3-Ref2VA-Acc-8Step.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "minimax"
+    },
+    {
+      "name": "minimax_h3/minimax_h3_DMAD_4step_full_lora_avg_rank_39_bf16.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "minimax"
+    },
+    {
+      "name": "minimax_h3/minimax_h3_PDMD_DMAD_4step_r256_add_fro1_turbo_lora.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "minimax"
+    },
+    {
+      "name": "minimax_h3/minimax_h3_fl2v_turbo_8step_v1.0_768p_comfyui_bf16.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "minimax"
+    },
+    {
+      "name": "minimax_h3/minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "minimax"
+    },
+    {
+      "name": "minimax_h3/minimax_h3_ref2v_lightx2v_turbo_4step_v0.1_resized_avg_rank_20_bf16.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "minimax"
+    },
+    {
+      "name": "minimax_h3/minimax_h3_taomate_3step_lora_avg_rank_19_bf16.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "minimax"
+    },
+    {
+      "name": "minimax_h3/minimax_h3_turbo_4step_comfyui_pruned.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "minimax"
+    },
+    {
+      "name": "minimax_h3/minimax_h3_turbo_v4_step600_ema_pruned_comfyui.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "minimax"
+    },
+    {
+      "name": "minimax_h3/minimax_h3_turbo_v4_step600_pruned_comfyui.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "minimax"
+    },
+    {
+      "name": "moss/blurred_moss_v1_MOSS.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "moss"
+    },
+    {
+      "name": "moss/duffyArt_v1.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "moss"
+    },
+    {
+      "name": "moss/mtg_style_moss_v1_MOSS_copy.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "moss"
+    },
+    {
+      "name": "qwen/elusarcas-qwen2-1-detailer-v1.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "qwen"
+    },
+    {
+      "name": "zimage/ta_zimage_nfsw_cunts_v1.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "zimage"
+    },
+    {
+      "name": "zimage/ta_zimage_nsfw_bbw_01.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "zimage"
+    },
+    {
+      "name": "zimage/ta_zimage_spaceship_v1.safetensors",
+      "strength": 1.0,
+      "clipStrength": 1.0,
+      "active": false,
+      "trigger": "",
+      "category": "zimage"
+    }
+  ]
+}

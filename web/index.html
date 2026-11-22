@@ -1,0 +1,2074 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>thomo.ART StudioCockpit v0.89 (FLEXMOD Edition)</title>
+  <link rel="icon" href="/favicon.ico">
+  <script>
+    (function () {
+      try {
+        var b = localStorage.getItem("tAStudio.themeBase") || "midnight";
+        var a = localStorage.getItem("tAStudio.themeAccent") || "violet";
+        document.documentElement.setAttribute("data-theme", b);
+        document.documentElement.setAttribute("data-accent", a);
+        if (a === "custom") {
+          var c = localStorage.getItem("tAStudio.themeCustomAccent");
+          if (c && /^#[0-9a-fA-F]{6}$/.test(c)) {
+            var r = parseInt(c.slice(1, 3), 16), g = parseInt(c.slice(3, 5), 16), bl = parseInt(c.slice(5, 7), 16);
+            document.documentElement.style.setProperty("--accent", c);
+            document.documentElement.style.setProperty("--accent-rgb", r + ", " + g + ", " + bl);
+          }
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="/style.css?v=0.76">
+</head>
+<body>
+
+  <!-- Top Header Bar -->
+  <header>
+    <div class="brand">
+      <span class="logo">🎨</span>
+      <span class="brand-thomo">thomo.ART</span>
+      <b class="brand-title">StudioCockpit</b>
+      <span class="brand-badge brand-badge-clickable" id="brandVersion" title="Klicken, um nach Updates auf GitHub zu suchen">v0.88</span>
+      <button type="button" class="brand-badge brand-badge-update" id="btnUpdateBadge" style="display:none;" title="Neues Update verfügbar – klicken zum Installieren">⬆️ Update</button>
+      <span class="brand-badge brand-badge-wf" id="brandWf" title="Verwendeter ComfyUI Workflow" data-i18n-title="brand_wf_title">WF v2.91</span>
+    </div>
+
+    <nav class="studio-nav" id="studioNav" aria-label="Studio-Module">
+      <button type="button" class="studio-nav-btn active" data-module="image" data-gif-i18n="nav_images">🎨 Bilder</button>
+      <button type="button" class="studio-nav-btn" data-module="gallery" data-i18n="nav_gallery">🖼️ Galerie</button>
+      <button type="button" class="studio-nav-btn" data-module="gif" data-gif-i18n="nav_gif">👾 DiscordGIF</button>
+    </nav>
+
+    <div class="spacer"></div>
+
+    <div class="hw-badge-wrap" id="hwBadgeWrap">
+      <button type="button" class="hw-badge" id="hwBadge" aria-expanded="false" aria-controls="hwPopover" title="GPU- &amp; VRAM-Details anzeigen" data-i18n-title="gpu_toggle_title">
+        <span class="gpu-icon">⚡</span>
+        <span id="gpuText" data-i18n="gpu_checking">GPU…</span>
+        <span class="hw-caret" aria-hidden="true">▾</span>
+      </button>
+      <div class="hw-popover" id="hwPopover" hidden role="region" aria-label="GPU-Details">
+        <div class="hw-popover-title" id="hwPopoverTitle">—</div>
+        <div class="hw-popover-meta" id="hwPopoverMeta"></div>
+      </div>
+    </div>
+
+    <button class="btn-action btn-launch-comfy is-offline" id="btnLaunchComfy" title="ComfyUI im Terminal-Fenster starten" data-i18n-title="btn_launch_comfy_title" data-i18n="btn_launch_comfy">⚡ ComfyUI starten</button>
+
+    <button class="btn-action" id="btnReloadApp" title="Oberfläche neu laden (F5)" data-i18n-title="btn_reload_title" style="padding: 5px 10px; font-size: 12px;" data-i18n="btn_reload_app">🔄 App neu laden</button>
+    <div class="theme-picker-wrap" id="themePickerWrap">
+      <button type="button" class="btn-action" id="btnThemePicker" aria-expanded="false" aria-controls="themePopover" title="Design &amp; Akzentfarbe wechseln" data-i18n-title="btn_theme_title" style="padding: 5px 10px;">🎨</button>
+      <div class="theme-popover" id="themePopover" hidden role="region" aria-label="Theme">
+        <div class="theme-popover-section">
+          <div class="theme-popover-label" data-i18n="theme_base_label">Hintergrund / Design</div>
+          <div class="theme-base-grid" id="themeBaseGrid">
+            <button type="button" class="theme-base-chip" data-theme-base="midnight"><span data-i18n="theme_base_midnight">Midnight</span></button>
+            <button type="button" class="theme-base-chip" data-theme-base="obsidian"><span data-i18n="theme_base_obsidian">Obsidian</span></button>
+            <button type="button" class="theme-base-chip" data-theme-base="charcoal"><span data-i18n="theme_base_charcoal">Charcoal</span></button>
+            <button type="button" class="theme-base-chip" data-theme-base="plum"><span data-i18n="theme_base_plum">Plum</span></button>
+            <button type="button" class="theme-base-chip" data-theme-base="solar_noir"><span data-i18n="theme_base_solar_noir">Solar Noir</span></button>
+            <button type="button" class="theme-base-chip" data-theme-base="matrix_green"><span data-i18n="theme_base_matrix_green">Neon Green</span></button>
+            <button type="button" class="theme-base-chip" data-theme-base="pastel_pink"><span data-i18n="theme_base_pastel_pink">Pastel Pink</span></button>
+            <button type="button" class="theme-base-chip" data-theme-base="studio_light"><span data-i18n="theme_base_light">Light</span></button>
+          </div>
+        </div>
+        <div class="theme-popover-section">
+          <div class="theme-popover-label" data-i18n="theme_accent_label">Akzentfarbe</div>
+          <div class="theme-accent-row" id="themeAccentRow">
+            <button type="button" class="theme-accent-dot" data-theme-accent="violet" title="Studio Violet" style="background:#8b5cf6;"></button>
+            <button type="button" class="theme-accent-dot" data-theme-accent="lavender" title="Soft Lavender" style="background:#c084fc;"></button>
+            <button type="button" class="theme-accent-dot" data-theme-accent="cyan" title="Midnight Cyan" style="background:#0ea5e9;"></button>
+            <button type="button" class="theme-accent-dot" data-theme-accent="emerald" title="Darkroom Emerald" style="background:#10b981;"></button>
+            <button type="button" class="theme-accent-dot" data-theme-accent="neon_green" title="Neon Green" style="background:#00e676;"></button>
+            <button type="button" class="theme-accent-dot" data-theme-accent="amber" title="Solar Amber" style="background:#f59e0b;"></button>
+            <button type="button" class="theme-accent-dot" data-theme-accent="rose" title="Crimson Rose" style="background:#f43f5e;"></button>
+            <button type="button" class="theme-accent-dot" data-theme-accent="blush_pink" title="Blush Pink" style="background:#e879a8;"></button>
+            <button type="button" class="theme-accent-dot" data-theme-accent="titanium" title="Stealth Titanium" style="background:#64748b;"></button>
+            <button type="button" class="theme-accent-slot" id="btnCustomSlot0" data-custom-slot="0" title="Custom Slot 1">1</button>
+            <button type="button" class="theme-accent-slot" id="btnCustomSlot1" data-custom-slot="1" title="Custom Slot 2">2</button>
+            <label class="theme-accent-custom" id="themeAccentCustomWrap" title="Eigene Akzentfarbe wählen" data-i18n-title="theme_accent_custom_title">
+              <input type="color" id="inpThemeCustomAccent" value="#8b5cf6" aria-label="Custom Accent Color">
+              <span class="theme-accent-custom-icon">+</span>
+            </label>
+          </div>
+        </div>
+        <div class="theme-popover-section">
+          <button type="button" class="btn-action theme-reset-btn" id="btnThemeReset" data-i18n="theme_reset_btn">↺ Standard-Theme wiederherstellen</button>
+        </div>
+      </div>
+    </div>
+    <button class="btn-action" id="btnSettings" title="ComfyUI Verbindungseinstellungen" data-i18n-title="btn_settings_title" style="padding: 5px 10px;">⚙️</button>
+  </header>
+
+  <!-- Main 3-Column Studio Layout (Image Module - Default) -->
+  <div class="studio-layout" id="moduleImageView">
+
+    <!-- Column 1: Setup & Engine (Modelle, Sampler, LoRAs, Feintuning) -->
+    <aside class="controls-col col-setup" id="colSetup">
+
+      <!-- Model Preset Card -->
+      <section class="card" id="cardModel">
+        <div class="card-header">
+          <span class="card-title"><span class="icon">🧠</span> <span data-i18n="card_model">Modell-Preset</span></span>
+          <button type="button" class="card-help-btn" data-help-target="helpModel" title="Hilfe zu diesem Bereich ein-/ausblenden" data-i18n-title="help_btn_title" aria-expanded="false" aria-controls="helpModel">?</button>
+        </div>
+        <div class="card-help-box" id="helpModel" hidden data-i18n-html="help_model_html"></div>
+        <div class="field-group">
+          <div class="field-label" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2px;">
+            <span class="value-badge" id="modelArchBadge">Z-Image / Wan2.1</span>
+            <button class="btn-action" id="btnEditModelPresets" title="Neues Preset anlegen oder bearbeiten" data-i18n-title="btn_edit_preset_title" style="padding: 3px 9px; font-size: 11px;" data-i18n="btn_edit_preset">✏️ Editor / + Neu</button>
+          </div>
+          <select id="selModelPreset">
+            <option value="ZImage (BF16)" selected>ZImage (BF16)</option>
+            <option value="Minimax H3 Image">Minimax H3 Image</option>
+            <option value="Krea2-Turbo">Krea2-Turbo</option>
+            <option value="FLUX1-DEV-FP8">FLUX1 DEV (FP8)</option>
+            <option value="Qwen-Image 2.1">Qwen-Image 2.1</option>
+            <option value="Qwen-Image 2.1 Turbo">Qwen-Image 2.1 Turbo</option>
+            <option value="FLUX3-Klein-Image">FLUX3-Klein-Image</option>
+            <option value="MOSS-Image 8 Step">MOSS-Image 8 Step</option>
+            <option value="MOSS-Image JIB">MOSS-Image JIB</option>
+            <option value="KROMOSS">KROMOSS</option>
+          </select>
+        </div>
+        <!-- Quick Favorites Pills -->
+        <div class="pills-group model-pills" id="modelQuickPills">
+          <button class="pill-btn" data-model="Minimax H3 Image">MiniMax H3</button>
+          <button class="pill-btn" data-model="FLUX1-DEV-FP8">FLUX.1 Dev</button>
+          <button class="pill-btn" data-model="Krea2-Turbo">Krea2-Turbo</button>
+          <button class="pill-btn" data-model="ZImage (BF16)">Z-Image</button>
+          <button class="pill-btn" data-model="Qwen-Image 2.1 Turbo">Qwen Turbo</button>
+        </div>
+      </section>
+
+      <!-- Sampler Preset Card -->
+      <section class="card" id="cardSampler">
+        <div class="card-header">
+          <span class="card-title"><span class="icon">⚡</span> <span data-i18n="card_sampler">Sampler-Preset</span></span>
+          <button type="button" class="card-help-btn" data-help-target="helpSampler" title="Hilfe zu diesem Bereich ein-/ausblenden" data-i18n-title="help_btn_title" aria-expanded="false" aria-controls="helpSampler">?</button>
+        </div>
+        <div class="card-help-box" id="helpSampler" hidden data-i18n-html="help_sampler_html"></div>
+        <div class="field-group">
+          <div class="field-label" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2px;">
+            <span class="value-badge" id="samplerDetailsBadge">6 Steps · euler · simple · CFG 1</span>
+            <button class="btn-action" id="btnEditSamplerPresets" title="Neues Preset anlegen oder bearbeiten" data-i18n-title="btn_edit_preset_title" style="padding: 3px 9px; font-size: 11px;" data-i18n="btn_edit_preset">✏️ Editor / + Neu</button>
+          </div>
+          <select id="selSamplerPreset">
+            <option value="Z-Image Turbo" selected>Z-Image Turbo (9 Steps, CFG 1, euler/beta)</option>
+            <option value="Minimax H3 Image">Minimax H3 Image (6 Steps, CFG 1, euler/simple)</option>
+            <option value="Krea2-Turbo">Krea2-Turbo (9 Steps, CFG 1, euler/beta)</option>
+            <option value="FLUX1-DEV-FP8">FLUX1-DEV-FP8 (20 Steps, CFG 1, euler/simple)</option>
+            <option value="Qwen-Image 2.1">Qwen-Image 2.1 (25 Steps, CFG 1, euler/simple)</option>
+            <option value="Qwen-Image 2.1 Turbo">Qwen-Image 2.1 Turbo (8 Steps, CFG 1, euler/normal)</option>
+            <option value="FLUX3-Klein-Image">FLUX3-Klein-Image (4 Steps, CFG 1, euler/simple)</option>
+            <option value="MOSS-Image 8 Step">MOSS-Image 8 Step (8 Steps, CFG 2.5, res_dpm/simple)</option>
+            <option value="MOSS-Image SFT">MOSS-Image SFT (20 Steps, CFG 2.5, res_dpm/simple)</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- LoRA Stack Card -->
+      <section class="card collapsible" id="cardLora">
+        <div class="card-header" title="Klicken zum Ein-/Ausklappen" data-i18n-title="card_lora_title">
+          <span class="card-title"><span class="icon">🎭</span> <span data-i18n="card_lora">LoRA-Stack</span></span>
+          <div style="display:flex; gap:6px; align-items:center;" onclick="event.stopPropagation();">
+            <span class="value-badge" id="activeLorasCount">0 aktiv</span>
+            <button class="btn-action btn-lora-mgr" id="btnOpenLoraManager" title="LoRA Manager in ComfyUI aufrufen (http://127.0.0.1:8188/loras)" data-i18n-title="btn_lora_manager_title" style="padding: 2px 6px; font-size: 11px; display: inline-flex; align-items: center; justify-content: center;">
+              <span class="lm-icon">L</span>
+            </button>
+            <button class="btn-action" id="btnSyncLoras" title="LoRAs aus aktuellem Workflow neu synchronisieren" data-i18n-title="btn_sync_loras_title" style="padding: 2px 7px; font-size: 11px;" data-i18n="btn_sync_loras">🔄 Sync</button>
+            <button type="button" class="card-help-btn" data-help-target="helpLora" title="Hilfe zu diesem Bereich ein-/ausblenden" data-i18n-title="help_btn_title" aria-expanded="false" aria-controls="helpLora">?</button>
+          </div>
+        </div>
+        <div class="card-help-box" id="helpLora" hidden data-i18n-html="help_lora_html"></div>
+
+        <!-- LoRA Filter Bar & Quick Controls -->
+        <div class="lora-filter-bar">
+          <div class="lora-filter-pills" id="loraFilterPills">
+            <button class="pill-btn active" data-filter="all" data-i18n="lora_filter_all">Alle</button>
+            <button class="pill-btn" data-filter="match" title="Nur LoRAs passend zum aktuell ausgewählten Modell-Preset" data-i18n-title="lora_filter_match_title" data-i18n="lora_filter_match">🎯 Passend zum Modell</button>
+            <button class="pill-btn" data-filter="active" title="Nur aktivierte LoRAs anzeigen" data-i18n-title="lora_filter_active_title" data-i18n="lora_filter_active">⚡ Nur Aktive</button>
+          </div>
+          <div class="lora-filter-row2">
+            <input type="text" id="loraSearchInput" placeholder="🔍 LoRA suchen..." data-i18n-placeholder="lora_search_placeholder" class="lora-search-box">
+            <select id="loraCategorySelect" class="lora-cat-select" title="Nach Kategorie/Architektur filtern" data-i18n-title="lora_cat_title">
+              <option value="all" data-i18n="lora_cat_all">Alle Kategorien</option>
+              <option value="flux">FLUX</option>
+              <option value="zimage">Z-Image</option>
+              <option value="krea2">Krea2</option>
+              <option value="moss">Moss</option>
+              <option value="minimax">MiniMax</option>
+              <option value="qwen">Qwen</option>
+              <option value="other" data-i18n="lora_cat_other">Andere</option>
+            </select>
+            <button class="btn-action" id="btnToggleAllLoras" title="Alle sichtbaren LoRAs aktivieren / deaktivieren" data-i18n-title="lora_toggle_all_title" style="padding: 3px 8px; font-size: 11px; white-space: nowrap;" data-i18n="lora_toggle_all">Toggle All</button>
+          </div>
+        </div>
+
+        <div class="lora-list" id="loraContainer">
+          <!-- Dynamically populated from workflow / LoRA Manager -->
+        </div>
+      </section>
+
+      <!-- Feintuning & Finish Card -->
+      <section class="card collapsible" id="cardTuning">
+        <div class="card-header" title="Klicken zum Ein-/Ausklappen" data-i18n-title="card_lora_title">
+          <span class="card-title"><span class="icon">⚙️</span> <span data-i18n="card_tuning">Feintuning & Finish</span></span>
+          <div style="display:flex; gap:6px; align-items:center;" onclick="event.stopPropagation();">
+            <span class="value-badge" id="overlayStatusBadge" title="Status der Signatur/Wasserzeichen" style="font-size: 11px;">thomo.ART</span>
+            <button type="button" class="card-help-btn" data-help-target="helpTuning" title="Hilfe zu diesem Bereich ein-/ausblenden" data-i18n-title="help_btn_title" aria-expanded="false" aria-controls="helpTuning">?</button>
+          </div>
+        </div>
+        <div class="card-help-box" id="helpTuning" hidden data-i18n-html="help_tuning_html"></div>
+        <!-- Secondary Controls Tabs -->
+        <nav class="tabs-nav">
+          <button class="tab-btn active" data-tab="tabSampling" data-i18n="tab_sampling" title="Sampling & Seed" data-i18n-title="tab_sampling_title">⚙️ Sampling</button>
+          <button class="tab-btn" data-tab="tabUpscale" data-i18n="tab_upscale" title="Upscaling & Schärfe" data-i18n-title="tab_upscale_title">🔍 Upscale</button>
+          <button class="tab-btn" data-tab="tabExport" data-i18n="tab_export" title="Speichern & Export" data-i18n-title="tab_export_title">💾 Export</button>
+          <button class="tab-btn" data-tab="tabOverlay" data-i18n="tab_overlay" title="Signatur & Text" data-i18n-title="tab_overlay_title">✒️ Signatur</button>
+        </nav>
+
+        <!-- Tab 1: Sampling Overrides & Seed -->
+        <div class="tab-pane active" id="tabSampling">
+          <div class="field-group">
+            <div class="field-label">
+              <span data-i18n="seed_mode">Seed-Modus</span>
+              <span class="value-badge" id="seedValBadge" data-i18n="seed_badge_random">Zufall</span>
+            </div>
+            <div class="pills-group" id="seedPills">
+              <button class="pill-btn active" data-seedmode="randomize" data-i18n="seed_random">🎲 Zufall</button>
+              <button class="pill-btn" data-seedmode="fixed" data-i18n="seed_fixed">🔒 Fest</button>
+              <button class="pill-btn" data-seedmode="last" data-i18n="seed_last">🔄 Letzten Seed</button>
+            </div>
+            <input type="text" id="txtSeed" value="83048937704017" style="margin-top: 6px;">
+          </div>
+
+          <div class="field-group" id="fluxGuidanceGroup">
+            <div class="field-label">
+              <span data-i18n="flux_guidance_gate">Flux-Guidance Gate</span>
+              <span class="value-badge" id="fluxGuidanceVal">Inaktiv (Bypassed)</span>
+            </div>
+            <input type="range" id="rngFluxGuidance" min="1.0" max="7.0" step="0.5" value="3.5">
+            <span class="field-hint" id="fluxGuidanceHint" style="font-size: 11px; color: var(--mute);">Im Workflow automatisch inaktiv (nur bei FLUX-Modellen aktiv)</span>
+          </div>
+
+          <!-- Attention Engine / Acceleration (Node 1912: TASageAttentionToggler) -->
+          <div class="field-group" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line);">
+            <div class="field-label">
+              <span data-i18n="lbl_attention_toggler">⚡ Attention Engine</span>
+              <span class="value-badge" id="badgeSageAttention" style="font-size: 10px;">Kitchen ON</span>
+            </div>
+            <div class="pills-group" id="attnEnginePills">
+              <button class="pill-btn" data-attn="none" data-i18n="attn_none">Standard</button>
+              <button class="pill-btn" data-attn="sage" data-i18n="attn_sage">SageAttention</button>
+              <button class="pill-btn active" data-attn="kitchen" data-i18n="attn_kitchen">Kitchen INT8</button>
+            </div>
+            <div id="sageModeContainer" style="display: none; margin-top: 6px;">
+              <div class="field-label" style="font-size: 10px; text-transform: uppercase;">
+                <span data-i18n="lbl_sage_mode">Kernel-Variante</span>
+              </div>
+              <select id="selSageMode" style="font-size: 11px; padding: 4px 8px;">
+                <option value="auto">auto (Standard sageattn)</option>
+                <option value="sageattn_qk_int8_pv_fp16_cuda" selected>qk_int8_pv_fp16_cuda (CUDA)</option>
+                <option value="sageattn_qk_int8_pv_fp16_triton">qk_int8_pv_fp16_triton (Triton)</option>
+                <option value="sageattn_qk_int8_pv_fp8_cuda">qk_int8_pv_fp8_cuda (FP8 CUDA)</option>
+                <option value="sageattn_qk_fp8_pv_fp8_cuda">qk_fp8_pv_fp8_cuda (FP8/FP8 CUDA)</option>
+              </select>
+            </div>
+            <div class="field-group" style="margin-top: 6px;">
+              <label class="switch-label" style="font-size: 12px;">
+                <input type="checkbox" id="chkTorchEnable">
+                <span data-i18n="lbl_torch_enable">🚀 PyTorch FP16 Matmul (`torch_enable`)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- SeedVarianceEnhancer (Nodes 1995 & 1241) -->
+          <div class="field-group" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line);">
+            <div class="field-label" style="align-items: center;">
+              <label class="switch-label" style="margin-bottom: 0;">
+                <input type="checkbox" id="chkSVE">
+                <span data-i18n="sve_title">🧬 SeedVarianceEnhancer</span>
+              </label>
+              <span class="value-badge" id="sveBadge">Aus</span>
+            </div>
+
+            <div id="sveOptions" style="display: none; flex-direction: column; gap: 8px; margin-top: 8px;">
+              <label class="switch-label" style="font-size: 12px; margin-bottom: 0;">
+                <input type="checkbox" id="chkSVEAuto" checked>
+                <span data-i18n="sve_auto">✨ Auto-Richtwert je Modell (empfohlen)</span>
+              </label>
+
+              <details id="sveAdvancedDetails" style="border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; background: rgba(0,0,0,0.18);">
+                <summary style="cursor: pointer; font-size: 11px; font-weight: 600; color: var(--mute); user-select: none; list-style: none;" data-i18n="sve_adv_title">⚙️ Erweiterte Einstellungen</summary>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line);">
+                  <div class="overlay-details-row">
+                    <div class="overlay-mini-field">
+                      <label for="inpSVEStrength" data-i18n="sve_strength">Stärke (strength)</label>
+                      <input type="number" id="inpSVEStrength" min="0" max="100" step="0.05" value="0.35">
+                    </div>
+                    <div class="overlay-mini-field">
+                      <label for="inpSVERandPct" data-i18n="sve_rand_pct">Randomize (%)</label>
+                      <input type="number" id="inpSVERandPct" min="1" max="100" step="1" value="50">
+                    </div>
+                  </div>
+
+                  <div class="overlay-details-row">
+                    <div class="overlay-mini-field">
+                      <label for="inpSVESwitchPct" data-i18n="sve_switch_pct">Switchover (%)</label>
+                      <input type="number" id="inpSVESwitchPct" min="1" max="99" step="1" value="15">
+                    </div>
+                    <div class="overlay-mini-field">
+                      <label for="selSVENoiseInsert" data-i18n="sve_noise_insert">Noise-Phase</label>
+                      <select id="selSVENoiseInsert" style="font-size: 11px; padding: 6px 8px;">
+                        <option value="noise on beginning steps" selected>Beginning Steps</option>
+                        <option value="noise on ending steps">Ending Steps</option>
+                        <option value="noise on all steps">All Steps</option>
+                        <option value="disabled">Disabled</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="overlay-details-row">
+                    <div class="overlay-mini-field">
+                      <label for="selSVEMaskStart" data-i18n="sve_mask_start">Mask-Schutz ab</label>
+                      <select id="selSVEMaskStart" style="font-size: 11px; padding: 6px 8px;">
+                        <option value="beginning" selected>Beginning</option>
+                        <option value="end">End</option>
+                      </select>
+                    </div>
+                    <div class="overlay-mini-field">
+                      <label for="inpSVEMaskPct" data-i18n="sve_mask_pct">Mask-Schutz (%)</label>
+                      <input type="number" id="inpSVEMaskPct" min="0" max="99" step="1" value="0">
+                    </div>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Upscale & Schärfe -->
+        <div class="tab-pane" id="tabUpscale">
+          <div class="field-group">
+            <div class="field-label" style="align-items: center;">
+              <label class="switch-label" style="margin-bottom: 0;">
+                <input type="checkbox" id="chkSeedVR2">
+                <span data-i18n="use_seedvr2">SeedVR2 Video/Image Upscaler nutzen</span>
+              </label>
+              <span class="value-badge" id="seedVR2Badge">Aus</span>
+            </div>
+
+            <div id="seedVR2Options" style="display: none; flex-direction: column; gap: 8px; margin-top: 8px;">
+              <div class="overlay-mini-field">
+                <label for="selSeedVR2Model" data-i18n="seedvr2_model">DiT-Modell (Node 1593)</label>
+                <select id="selSeedVR2Model" style="font-size: 11px; padding: 6px 8px;">
+                  <option value="seedvr2_ema_7b_fp16.safetensors" selected>seedvr2_ema_7b_fp16.safetensors</option>
+                  <option value="seedvr2_ema_7b_fp8_e4m3fn_mixed_block35_fp16.safetensors">seedvr2_ema_7b_fp8_e4m3fn_mixed_block35_fp16.safetensors</option>
+                  <option value="seedvr2_ema_7b-Q4_K_M.gguf">seedvr2_ema_7b-Q4_K_M.gguf</option>
+                  <option value="seedvr2_ema_7b_sharp_fp16.safetensors">seedvr2_ema_7b_sharp_fp16.safetensors</option>
+                  <option value="seedvr2_ema_7b_sharp_fp8_e4m3fn_mixed_block35_fp16.safetensors">seedvr2_ema_7b_sharp_fp8_e4m3fn_mixed_block35_fp16.safetensors</option>
+                  <option value="seedvr2_ema_7b_sharp-Q4_K_M.gguf">seedvr2_ema_7b_sharp-Q4_K_M.gguf</option>
+                  <option value="seedvr2_ema_3b_fp16.safetensors">seedvr2_ema_3b_fp16.safetensors</option>
+                  <option value="seedvr2_ema_3b_fp8_e4m3fn.safetensors">seedvr2_ema_3b_fp8_e4m3fn.safetensors</option>
+                  <option value="seedvr2_ema_3b-Q8_0.gguf">seedvr2_ema_3b-Q8_0.gguf</option>
+                  <option value="seedvr2_ema_3b-Q4_K_M.gguf">seedvr2_ema_3b-Q4_K_M.gguf</option>
+                </select>
+              </div>
+
+              <div class="overlay-details-row">
+                <div class="overlay-mini-field">
+                  <label for="inpSeedVR2Res" data-i18n="seedvr2_res">Auflösung (kurze Kante)</label>
+                  <input type="number" id="inpSeedVR2Res" min="512" max="16384" step="2" value="3840">
+                </div>
+                <div class="overlay-mini-field">
+                  <label for="inpSeedVR2MaxRes" data-i18n="seedvr2_max_res">Max. Auflösung</label>
+                  <input type="number" id="inpSeedVR2MaxRes" min="0" max="16384" step="2" value="3840">
+                </div>
+              </div>
+
+              <div class="overlay-mini-field">
+                <label for="selSeedVR2ColorCorr" data-i18n="seedvr2_color_corr">Farbkorrektur (color_correction)</label>
+                <select id="selSeedVR2ColorCorr" style="font-size: 11px; padding: 6px 8px;">
+                  <option value="lab" selected>lab (Empfohlen)</option>
+                  <option value="wavelet">wavelet</option>
+                  <option value="wavelet_adaptive">wavelet_adaptive</option>
+                  <option value="hsv">hsv</option>
+                  <option value="adain">adain</option>
+                  <option value="none">none</option>
+                </select>
+              </div>
+
+              <details id="seedVR2AdvancedDetails" style="border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; background: rgba(0,0,0,0.18);">
+                <summary style="cursor: pointer; font-size: 11px; font-weight: 600; color: var(--mute); user-select: none; list-style: none;" data-i18n="seedvr2_adv_title">⚙️ Erweiterte SeedVR2-Optionen (VRAM & Noise)</summary>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line);">
+                  <div class="overlay-details-row">
+                    <div class="overlay-mini-field">
+                      <label for="inpSeedVR2Blocks" data-i18n="seedvr2_blocks">Blocks to Swap (0–36)</label>
+                      <input type="number" id="inpSeedVR2Blocks" min="0" max="36" step="1" value="15">
+                    </div>
+                    <div class="overlay-mini-field">
+                      <label for="selSeedVR2Attn" data-i18n="seedvr2_attn">Attention Mode</label>
+                      <select id="selSeedVR2Attn" style="font-size: 11px; padding: 6px 8px;">
+                        <option value="sageattn_2" selected>sageattn_2</option>
+                        <option value="sdpa">sdpa</option>
+                        <option value="flash_attn_2">flash_attn_2</option>
+                        <option value="flash_attn_3">flash_attn_3</option>
+                        <option value="sageattn_3">sageattn_3</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="overlay-details-row">
+                    <div class="overlay-mini-field">
+                      <label for="inpSeedVR2InNoise" data-i18n="seedvr2_in_noise">Input Noise Scale</label>
+                      <input type="number" id="inpSeedVR2InNoise" min="0" max="1" step="0.05" value="0">
+                    </div>
+                    <div class="overlay-mini-field">
+                      <label for="inpSeedVR2LatNoise" data-i18n="seedvr2_lat_noise">Latent Noise Scale</label>
+                      <input type="number" id="inpSeedVR2LatNoise" min="0" max="1" step="0.05" value="0">
+                    </div>
+                  </div>
+
+                  <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+                    <label class="switch-label" style="font-size: 12px; margin-bottom: 0;">
+                      <input type="checkbox" id="chkSeedVR2Tiled" checked>
+                      <span data-i18n="seedvr2_tiled">VAE Tiled (Encode/Decode)</span>
+                    </label>
+                    <label class="switch-label" style="font-size: 12px; margin-bottom: 0;">
+                      <input type="checkbox" id="chkSeedVR2Cache">
+                      <span data-i18n="seedvr2_cache">Cache Model</span>
+                    </label>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label" style="align-items: center;">
+              <label class="switch-label" style="margin-bottom: 0;">
+                <input type="checkbox" id="chkSharpen" checked>
+                <span data-i18n="laplacian_sharpen">Laplacian Schärfe (`TAFastLaplacianSharpen`)</span>
+              </label>
+              <span class="value-badge" id="sharpenVal">0.26</span>
+            </div>
+            <input type="range" id="rngSharpen" min="0.0" max="1.0" step="0.02" value="0.26" style="margin-top: 6px;">
+          </div>
+
+          <!-- ProPostFilmGrain (Nodes 1980 & 1983) -->
+          <div class="field-group" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line);">
+            <div class="field-label" style="align-items: center;">
+              <label class="switch-label" style="margin-bottom: 0;">
+                <input type="checkbox" id="chkFilmGrain">
+                <span data-i18n="film_grain">🎞️ Film Grain (`ProPostFilmGrain`)</span>
+              </label>
+              <span class="value-badge" id="filmGrainBadge">Aus</span>
+            </div>
+
+            <div id="filmGrainOptions" style="display: none; flex-direction: column; gap: 8px; margin-top: 8px;">
+              <div class="overlay-details-row" style="align-items: center;">
+                <div class="overlay-mini-field">
+                  <label for="selFilmGrainType" data-i18n="film_grain_type">Körnungstyp</label>
+                  <select id="selFilmGrainType">
+                    <option value="Fine" selected>Fine</option>
+                    <option value="Fine Simple">Fine Simple</option>
+                    <option value="Coarse">Coarse</option>
+                    <option value="Coarser">Coarser</option>
+                  </select>
+                </div>
+                <div class="overlay-mini-field" style="justify-content: flex-end; padding-top: 14px;">
+                  <label class="switch-label" style="margin-bottom: 0; font-size: 12px;">
+                    <input type="checkbox" id="chkFilmGrainGray">
+                    <span data-i18n="film_grain_gray">Graustufen</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="overlay-details-row">
+                <div class="overlay-mini-field">
+                  <label for="rngFilmGrainPower"><span data-i18n="film_grain_power">Stärke</span>: <span id="valFilmGrainPower">0.40</span></label>
+                  <input type="range" id="rngFilmGrainPower" min="0.0" max="1.0" step="0.01" value="0.40">
+                </div>
+                <div class="overlay-mini-field">
+                  <label for="rngFilmGrainSat"><span data-i18n="film_grain_sat">Sättigung</span>: <span id="valFilmGrainSat">0.15</span></label>
+                  <input type="range" id="rngFilmGrainSat" min="0.0" max="1.0" step="0.01" value="0.15">
+                </div>
+              </div>
+
+              <div class="overlay-details-row">
+                <div class="overlay-mini-field">
+                  <label for="rngFilmGrainShadows"><span data-i18n="film_grain_shadows">Schatten</span>: <span id="valFilmGrainShadows">0.20</span></label>
+                  <input type="range" id="rngFilmGrainShadows" min="0.0" max="1.0" step="0.01" value="0.20">
+                </div>
+                <div class="overlay-mini-field">
+                  <label for="rngFilmGrainHighs"><span data-i18n="film_grain_highs">Lichter</span>: <span id="valFilmGrainHighs">0.20</span></label>
+                  <input type="range" id="rngFilmGrainHighs" min="0.0" max="1.0" step="0.01" value="0.20">
+                </div>
+              </div>
+
+              <div class="overlay-details-row">
+                <div class="overlay-mini-field">
+                  <label for="rngFilmGrainScale"><span data-i18n="film_grain_scale">Skalierung</span>: <span id="valFilmGrainScale">0.65</span></label>
+                  <input type="range" id="rngFilmGrainScale" min="0.0" max="10.0" step="0.05" value="0.65">
+                </div>
+                <div class="overlay-mini-field">
+                  <label for="rngFilmGrainGamma"><span data-i18n="film_grain_gamma">Src Gamma</span>: <span id="valFilmGrainGamma">1.00</span></label>
+                  <input type="range" id="rngFilmGrainGamma" min="0.0" max="10.0" step="0.05" value="1.00">
+                </div>
+              </div>
+
+              <div class="overlay-details-row">
+                <div class="overlay-mini-field">
+                  <label for="rngFilmGrainSharpen"><span data-i18n="film_grain_sharpen">Grain-Schärfe</span>: <span id="valFilmGrainSharpen">0</span></label>
+                  <input type="range" id="rngFilmGrainSharpen" min="0" max="10" step="1" value="0">
+                </div>
+                <div class="overlay-mini-field"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Speichern & Export -->
+        <div class="tab-pane" id="tabExport">
+          <!-- Main Output Section (Node 1229) -->
+          <div class="export-section">
+            <div class="field-label" style="font-size: 10px; text-transform: uppercase; color: var(--mute); margin-bottom: 4px;">
+              <span data-i18n="export_main_header">Haupt-Ausgabe (Node 1229)</span>
+              <span class="value-badge" style="font-size: 10px;">PNG (Verlustfrei)</span>
+            </div>
+            <div class="field-group">
+              <label class="switch-label">
+                <input type="checkbox" id="chkSaveTxtMain" checked>
+                <span data-i18n="save_txt_main">📄 Prompt als .txt-Datei mitspeichern</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Optional Secondary Output (Node 1619 & 1620) -->
+          <div class="export-section" style="margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--line);">
+            <div class="field-group">
+              <label class="switch-label">
+                <input type="checkbox" id="chkExtraSave">
+                <span data-i18n="save_extra_image">🖼️ Zusätzliche Kopie speichern (Node 1619)</span>
+              </label>
+            </div>
+            <div id="extraSaveOptions" style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+              <div class="overlay-details-row">
+                <div class="overlay-mini-field">
+                  <label for="selExtraSaveFormat" data-i18n="extra_format_label">Format</label>
+                  <select id="selExtraSaveFormat">
+                    <option value="webp" selected>WebP</option>
+                    <option value="jpg">JPEG</option>
+                  </select>
+                </div>
+                <div class="overlay-mini-field">
+                  <label for="selExtraSaveQuality" data-i18n="extra_quality_label">Qualität</label>
+                  <select id="selExtraSaveQuality">
+                    <option value="95" selected>95% (Empfohlen)</option>
+                    <option value="90">90% (Kompakt)</option>
+                    <option value="100">100% (Maximal)</option>
+                    <option value="85">85%</option>
+                  </select>
+                </div>
+                <div class="overlay-mini-field">
+                  <label for="inpExtraSaveSubfolder" data-i18n="extra_subfolder_label">Unterordner</label>
+                  <input type="text" id="inpExtraSaveSubfolder" value="JPEG" placeholder="JPEG">
+                </div>
+              </div>
+              <div class="field-group" style="margin-top: 2px;">
+                <label class="switch-label" style="font-size: 12px;">
+                  <input type="checkbox" id="chkExtraSaveTxt">
+                  <span data-i18n="save_extra_txt">📄 Auch für diese Kopie eine .txt-Datei anlegen</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filename & Folder Settings (Nodes 1216, 2041, 1583) -->
+          <details class="export-section" id="fnGeneratorDetails" style="margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--line);">
+            <summary style="cursor: pointer; font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--mute); user-select: none; margin-bottom: 6px;">
+              <span data-i18n="fn_gen_header">📁 Dateinamen &amp; Ordner</span>
+            </summary>
+            <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
+              <div class="overlay-details-row">
+                <div class="overlay-mini-field">
+                  <label for="inpFnOutputFolder" data-i18n="fn_output_folder_label">Ausgabeordner</label>
+                  <input type="text" id="inpFnOutputFolder" value="" placeholder="(ComfyUI Standard)">
+                </div>
+                <div class="overlay-mini-field">
+                  <label for="inpFnSubfolder" data-i18n="fn_subfolder_label">Unterordner (Haupt)</label>
+                  <input type="text" id="inpFnSubfolder" value="" placeholder="z.B. 2026">
+                </div>
+              </div>
+              <div class="overlay-details-row">
+                <div class="overlay-mini-field">
+                  <label for="inpFnPrefix" data-i18n="fn_prefix_label">Präfix</label>
+                  <input type="text" id="inpFnPrefix" value="" placeholder="z.B. TA">
+                </div>
+                <div class="overlay-mini-field">
+                  <label for="inpFnWfVersion" data-i18n="fn_wf_version_label">Workflow-Tag</label>
+                  <input type="text" id="inpFnWfVersion" value="TA-FLEXMOD" placeholder="TA-FLEXMOD">
+                </div>
+              </div>
+              <div class="overlay-details-row">
+                <div class="overlay-mini-field">
+                  <label for="inpFnUpscaledSuffix" data-i18n="fn_upscaled_suffix_label">Upscale-Suffix</label>
+                  <input type="text" id="inpFnUpscaledSuffix" value="UPSCALED" placeholder="UPSCALED">
+                </div>
+                <div class="overlay-mini-field">
+                  <label for="inpFnDelimiter" data-i18n="fn_delimiter_label">Trennzeichen</label>
+                  <input type="text" id="inpFnDelimiter" value="-" placeholder="-">
+                </div>
+              </div>
+              <div class="overlay-details-row">
+                <div class="overlay-mini-field" style="flex: 1;">
+                  <label for="inpFnDateFormat" data-i18n="fn_date_format_label">Datumsformat (strftime)</label>
+                  <input type="text" id="inpFnDateFormat" value="%Y%m%d%H%M" placeholder="%Y%m%d%H%M">
+                </div>
+              </div>
+              <div id="fnPreviewText" style="font-size: 11px; color: var(--mute); background: rgba(0,0,0,0.22); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; word-break: break-all;"></div>
+            </div>
+          </details>
+        </div>
+
+        <!-- Tab 3: Signatur & Text-Overlays -->
+        <div class="tab-pane" id="tabOverlay">
+          <!-- Signature Section (Node 1979 & 1982) -->
+          <div class="overlay-section">
+            <div class="overlay-section-header">
+              <label class="switch-label">
+                <input type="checkbox" id="chkOverlaySig" checked>
+                <span data-i18n="overlay_sig">✒️ Künstler-Signatur</span>
+              </label>
+              <span class="value-badge" style="font-size: 10px;" id="badgeOverlaySigPos" data-i18n="pos_bottom_right">Unten rechts</span>
+            </div>
+            <div class="field-group" style="margin-top: 6px;">
+              <input type="text" id="txtOverlaySig" value="thomo.ART" placeholder="Signaturtext..." data-i18n-placeholder="sig_placeholder">
+            </div>
+            <div class="field-group" style="margin-top: 4px;">
+              <div class="field-label" style="font-size: 10px; text-transform: uppercase;"><span data-i18n="font_label">Schriftart (Font)</span></div>
+              <select id="selOverlaySigFont" style="font-size: 11px; padding: 4px 8px;">
+                <option value="Caveat-VariableFont_wght.ttf" selected>Caveat (Handschrift / Signatur)</option>
+                <option value="Roboto-Regular.ttf">Roboto (Klar & Modern)</option>
+                <option value="Quicksand-Bold.ttf">Quicksand (Bold & Rund)</option>
+                <option value="YoungSerif-Regular.ttf">Young Serif (Klassisch)</option>
+                <option value="Oswald-Bold.ttf">Oswald (Kompakt / Bold)</option>
+                <option value="impact.ttf">Impact (Kräftig)</option>
+                <option value="comic.ttf">Comic</option>
+                <option value="PixelifySans-Bold.ttf">Pixelify (Retro Pixel)</option>
+                <option value="AlumniSansCollegiateOne-Regular.ttf">Alumni Sans</option>
+              </select>
+            </div>
+            <div class="overlay-details-row">
+              <div class="overlay-mini-field">
+                <label for="inpOverlaySigSize" data-i18n="size_label">Größe (px)</label>
+                <input type="number" id="inpOverlaySigSize" value="14" min="8" max="72" step="1">
+              </div>
+              <div class="overlay-mini-field">
+                <label for="selOverlaySigColor" data-i18n="color_label">Farbe</label>
+                <select id="selOverlaySigColor">
+                  <option value="white" selected data-i18n="color_white">Weiß (white)</option>
+                  <option value="black" data-i18n="color_black">Schwarz (black)</option>
+                  <option value="red" data-i18n="color_red">Rot (red)</option>
+                  <option value="yellow" data-i18n="color_yellow">Gelb (yellow)</option>
+                </select>
+              </div>
+            </div>
+            <div class="overlay-details-row">
+              <div class="overlay-mini-field">
+                <label for="selOverlaySigAlign" data-i18n="align_label">Vertikal (Align)</label>
+                <select id="selOverlaySigAlign">
+                  <option value="bottom" selected data-i18n="align_bottom">Unten (bottom)</option>
+                  <option value="top" data-i18n="align_top">Oben (top)</option>
+                  <option value="center" data-i18n="align_center">Mitte (center)</option>
+                </select>
+              </div>
+              <div class="overlay-mini-field">
+                <label for="selOverlaySigJustify" data-i18n="justify_label">Horizontal (Justify)</label>
+                <select id="selOverlaySigJustify">
+                  <option value="right" selected data-i18n="justify_right">Rechts (right)</option>
+                  <option value="left" data-i18n="justify_left">Links (left)</option>
+                  <option value="center" data-i18n="justify_center">Zentriert (center)</option>
+                </select>
+              </div>
+            </div>
+            <div class="overlay-details-row">
+              <div class="overlay-mini-field">
+                <label for="inpOverlaySigPosX" data-i18n="offset_x_label">Versatz X (px)</label>
+                <input type="number" id="inpOverlaySigPosX" value="-15" step="1">
+              </div>
+              <div class="overlay-mini-field">
+                <label for="inpOverlaySigPosY" data-i18n="offset_y_label">Versatz Y (px)</label>
+                <input type="number" id="inpOverlaySigPosY" value="-15" step="1">
+              </div>
+            </div>
+            <div class="overlay-details-row">
+              <div class="overlay-mini-field">
+                <label for="inpOverlaySigRotation" data-i18n="rotation_label">Drehung (°)</label>
+                <input type="number" id="inpOverlaySigRotation" value="0" step="1" min="-360" max="360">
+              </div>
+              <div class="overlay-mini-field">
+                <label for="inpOverlaySigMargins" data-i18n="margins_label">Rand (px)</label>
+                <input type="number" id="inpOverlaySigMargins" value="0" step="1" min="0">
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Disclaimer Section (Node 1978 & 1981) -->
+          <div class="overlay-section" style="margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--line);">
+            <div class="overlay-section-header">
+              <label class="switch-label">
+                <input type="checkbox" id="chkOverlayAI">
+                <span data-i18n="overlay_ai">🤖 KI-Kennzeichnung</span>
+              </label>
+              <span class="value-badge" style="font-size: 10px;" id="badgeOverlayAIPos" data-i18n="pos_bottom_left">Unten links</span>
+            </div>
+            <div class="field-group" style="margin-top: 6px;">
+              <input type="text" id="txtOverlayAI" value="Created with AI '26" placeholder="KI-Hinweistext..." data-i18n-placeholder="ai_disclaimer_placeholder">
+            </div>
+            <div class="field-group" style="margin-top: 4px;">
+              <div class="field-label" style="font-size: 10px; text-transform: uppercase;"><span data-i18n="font_label">Schriftart (Font)</span></div>
+              <select id="selOverlayAIFont" style="font-size: 11px; padding: 4px 8px;">
+                <option value="Caveat-VariableFont_wght.ttf" selected>Caveat (Handschrift / Signatur)</option>
+                <option value="Roboto-Regular.ttf">Roboto (Klar & Modern)</option>
+                <option value="Quicksand-Bold.ttf">Quicksand (Bold & Rund)</option>
+                <option value="YoungSerif-Regular.ttf">Young Serif (Klassisch)</option>
+                <option value="Oswald-Bold.ttf">Oswald (Kompakt / Bold)</option>
+                <option value="impact.ttf">Impact (Kräftig)</option>
+                <option value="comic.ttf">Comic</option>
+                <option value="PixelifySans-Bold.ttf">Pixelify (Retro Pixel)</option>
+                <option value="AlumniSansCollegiateOne-Regular.ttf">Alumni Sans</option>
+              </select>
+            </div>
+            <div class="overlay-details-row">
+              <div class="overlay-mini-field">
+                <label for="inpOverlayAISize" data-i18n="size_label">Größe (px)</label>
+                <input type="number" id="inpOverlayAISize" value="14" min="8" max="72" step="1">
+              </div>
+              <div class="overlay-mini-field">
+                <label for="selOverlayAIColor" data-i18n="color_label">Farbe</label>
+                <select id="selOverlayAIColor">
+                  <option value="white" selected data-i18n="color_white">Weiß (white)</option>
+                  <option value="black" data-i18n="color_black">Schwarz (black)</option>
+                  <option value="red" data-i18n="color_red">Rot (red)</option>
+                  <option value="yellow" data-i18n="color_yellow">Gelb (yellow)</option>
+                </select>
+              </div>
+            </div>
+            <div class="overlay-details-row">
+              <div class="overlay-mini-field">
+                <label for="selOverlayAIAlign" data-i18n="align_label">Vertikal (Align)</label>
+                <select id="selOverlayAIAlign">
+                  <option value="bottom" selected data-i18n="align_bottom">Unten (bottom)</option>
+                  <option value="top" data-i18n="align_top">Oben (top)</option>
+                  <option value="center" data-i18n="align_center">Mitte (center)</option>
+                </select>
+              </div>
+              <div class="overlay-mini-field">
+                <label for="selOverlayAIJustify" data-i18n="justify_label">Horizontal (Justify)</label>
+                <select id="selOverlayAIJustify">
+                  <option value="left" selected data-i18n="justify_left">Links (left)</option>
+                  <option value="center" data-i18n="justify_center">Zentriert (center)</option>
+                  <option value="right" data-i18n="justify_right">Rechts (right)</option>
+                </select>
+              </div>
+            </div>
+            <div class="overlay-details-row">
+              <div class="overlay-mini-field">
+                <label for="inpOverlayAIPosX" data-i18n="offset_x_label">Versatz X (px)</label>
+                <input type="number" id="inpOverlayAIPosX" value="10" step="1">
+              </div>
+              <div class="overlay-mini-field">
+                <label for="inpOverlayAIPosY" data-i18n="offset_y_label">Versatz Y (px)</label>
+                <input type="number" id="inpOverlayAIPosY" value="-15" step="1">
+              </div>
+            </div>
+            <div class="overlay-details-row">
+              <div class="overlay-mini-field">
+                <label for="inpOverlayAIRotation" data-i18n="rotation_label">Drehung (°)</label>
+                <input type="number" id="inpOverlayAIRotation" value="0" step="1" min="-360" max="360">
+              </div>
+              <div class="overlay-mini-field">
+                <label for="inpOverlayAIMargins" data-i18n="margins_label">Rand (px)</label>
+                <input type="number" id="inpOverlayAIMargins" value="0" step="1" min="0">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </aside>
+
+    <div class="col-resizer" id="resizerSetup" role="separator" aria-orientation="vertical" aria-label="Setup-Spaltenbreite anpassen" title="Ziehen zum Anpassen · Doppelklick für Standard" data-i18n-title="col_resizer_title"></div>
+
+    <!-- Column 2: Prompt-Hub & KI-Engine (Prompts, Controller, LLM, Generate) -->
+    <section class="controls-col col-prompt" id="colPrompt">
+
+      <!-- Prompt Hub Card (TAPromptHub) -->
+      <section class="card" id="cardPrompt">
+        <div class="card-header">
+          <span class="card-title"><span class="icon">✍️</span> <span data-i18n="card_prompthub">Prompt-Hub</span></span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span class="value-badge" style="font-size: 11px;">TAPromptHub</span>
+            <button type="button" class="card-help-btn" data-help-target="helpPromptHub" title="Hilfe zu diesem Bereich ein-/ausblenden" data-i18n-title="help_btn_title" aria-expanded="false" aria-controls="helpPromptHub">?</button>
+          </div>
+        </div>
+        <div class="card-help-box" id="helpPromptHub" hidden data-i18n-html="help_prompthub_html"></div>
+        <div class="field-group">
+          <div class="field-label">
+            <span data-i18n="lbl_positive_prompt">Haupt-Bildidee (Positive Prompt)</span>
+          </div>
+          <textarea id="txtPrompt" placeholder="Beschreibe dein Bild..." data-i18n-placeholder="placeholder_positive_prompt" style="min-height: 150px; height: 185px; resize: vertical;"></textarea>
+        </div>
+
+        <!-- Additional Prompt / Style Booster -->
+        <div class="field-group" style="margin-top: 6px;">
+          <div class="field-label">
+            <span data-i18n="lbl_additional_prompt">Zusatz-Prompt / Stil-Booster (Additional)</span>
+            <span class="value-badge" style="font-size: 11px;" data-i18n="badge_quality_style">Qualität & Stil</span>
+          </div>
+          <textarea id="txtAdditionalPrompt" placeholder="Zusätzliche Stilanweisungen / Qualität..." data-i18n-placeholder="placeholder_additional_prompt" style="min-height: 44px; font-size: 0.85rem;"></textarea>
+        </div>
+
+        <!-- Negative Prompt -->
+        <div class="field-group" style="margin-top: 6px;">
+          <div class="field-label">
+            <span data-i18n="lbl_neg_prompt">Negativ-Prompt (Negative Prompt)</span>
+            <span class="value-badge" style="font-size: 11px; color: var(--danger);" data-i18n="badge_exclude">Ausschließen</span>
+          </div>
+          <textarea id="txtNegPrompt" placeholder="Was soll vermieden werden..." data-i18n-placeholder="placeholder_neg_prompt" style="min-height: 48px; font-size: 0.85rem;"></textarea>
+        </div>
+
+        <!-- Format / Aspect Ratio (Pixaroma Resolution Node Integration) -->
+        <div class="pixaroma-card" id="pixaromaCard">
+          <div class="pixaroma-header">
+            <div class="pixaroma-title">
+              <span class="pix-dot"></span>
+              <span>Resolution Pixaroma 📌</span>
+            </div>
+            <div class="pixaroma-header-right">
+              <!-- Batch Stepper (1 to 64) -->
+              <div class="pix-batch-control" title="Batch-Größe: Wie viele Bilder pro Durchlauf generiert werden (1 bis 64)" data-i18n-title="pix_batch_title">
+                <span class="pix-batch-lbl">batch</span>
+                <button type="button" class="pix-batch-btn" id="btnBatchDec" title="Batch verringern" data-i18n-title="pix_batch_dec_title">−</button>
+                <input type="number" id="inpBatchVal" class="pix-batch-input" value="1" min="1" max="64">
+                <button type="button" class="pix-batch-btn" id="btnBatchInc" title="Batch erhöhen" data-i18n-title="pix_batch_inc_title">+</button>
+              </div>
+              <span class="value-badge" id="aspectBadge">1920 × 1088 (16:9)</span>
+            </div>
+          </div>
+
+          <!-- 3x3 Ratio Grid + Custom Mode Chips (6 columns layout) -->
+          <div class="pix-res-chips" id="pixResChips">
+            <!-- Row 1: 1:1, 16:9, 9:16 -->
+            <button type="button" class="pix-res-chip" data-mode="preset" data-ratio="1:1">
+              <span class="pix-res-chip-shape" style="width: 10px; height: 10px;"></span>
+              <span>1:1</span>
+            </button>
+            <button type="button" class="pix-res-chip active" data-mode="preset" data-ratio="16:9">
+              <span class="pix-res-chip-shape" style="width: 14px; height: 8px;"></span>
+              <span>16:9</span>
+            </button>
+            <button type="button" class="pix-res-chip" data-mode="preset" data-ratio="9:16">
+              <span class="pix-res-chip-shape" style="width: 8px; height: 14px;"></span>
+              <span>9:16</span>
+            </button>
+
+            <!-- Row 2: 2:1, 3:2, 2:3 -->
+            <button type="button" class="pix-res-chip" data-mode="preset" data-ratio="2:1">
+              <span class="pix-res-chip-shape" style="width: 14px; height: 7px;"></span>
+              <span>2:1</span>
+            </button>
+            <button type="button" class="pix-res-chip" data-mode="preset" data-ratio="3:2">
+              <span class="pix-res-chip-shape" style="width: 13px; height: 9px;"></span>
+              <span>3:2</span>
+            </button>
+            <button type="button" class="pix-res-chip" data-mode="preset" data-ratio="2:3">
+              <span class="pix-res-chip-shape" style="width: 9px; height: 13px;"></span>
+              <span>2:3</span>
+            </button>
+
+            <!-- Row 3: 4:3, 3:4, 4:5 -->
+            <button type="button" class="pix-res-chip" data-mode="preset" data-ratio="4:3">
+              <span class="pix-res-chip-shape" style="width: 12px; height: 9px;"></span>
+              <span>4:3</span>
+            </button>
+            <button type="button" class="pix-res-chip" data-mode="preset" data-ratio="3:4">
+              <span class="pix-res-chip-shape" style="width: 9px; height: 12px;"></span>
+              <span>3:4</span>
+            </button>
+            <button type="button" class="pix-res-chip" data-mode="preset" data-ratio="4:5">
+              <span class="pix-res-chip-shape" style="width: 10px; height: 12px;"></span>
+              <span>4:5</span>
+            </button>
+
+            <!-- Row 4: Custom Ratio & Custom Resolution -->
+            <button type="button" class="pix-res-chip span-half" data-mode="custom_ratio" data-i18n="pix_custom_ratio">Custom Ratio</button>
+            <button type="button" class="pix-res-chip span-half" data-mode="custom_res" data-i18n="pix_custom_res">Custom Resolution</button>
+          </div>
+
+          <!-- Mode 1: Preset Resolutions Dropdown (Saves vertical space) -->
+          <div class="pix-res-dropdown-wrap" id="pixResDropdownWrap">
+            <label class="pix-res-dropdown-label" for="selPixResolution">
+              <span>📐</span>
+              <span data-i18n="pix_lbl_resolution">Auflösung:</span>
+            </label>
+            <select id="selPixResolution" class="pix-res-select">
+              <!-- Dynamically populated with the 8 resolutions -->
+            </select>
+          </div>
+
+          <!-- Mode 2: Custom Ratio Panel -->
+          <div class="pix-res-custom-panel" id="pixCustomRatioPanel" style="display: none;">
+            <div class="pix-res-ratio-row">
+              <div class="pix-field-mini">
+                <label>Ratio W</label>
+                <input type="number" id="inpCustomRatioW" value="16" min="1" max="100">
+              </div>
+              <button type="button" class="pix-icon-btn" id="btnSwapRatio" title="Verhältnis umkehren" data-i18n-title="pix_swap_ratio_title">⇄</button>
+              <div class="pix-field-mini">
+                <label>Ratio H</label>
+                <input type="number" id="inpCustomRatioH" value="9" min="1" max="100">
+              </div>
+            </div>
+
+            <!-- Quick-Pick Widths -->
+            <div class="pix-quickpicks">
+              <button type="button" class="pix-quickpick" data-w="512">512</button>
+              <button type="button" class="pix-quickpick" data-w="768">768</button>
+              <button type="button" class="pix-quickpick" data-w="1024">1024</button>
+              <button type="button" class="pix-quickpick active" data-w="1536">1536</button>
+            </div>
+
+            <!-- Dimension Inputs -->
+            <div class="pix-res-custom-row">
+              <div class="pix-res-custom-field">
+                <label data-i18n="pix_lbl_width">Breite (Width)</label>
+                <input type="text" id="inpRatioDriverW" value="1920">
+              </div>
+              <div class="pix-res-custom-field">
+                <label data-i18n="pix_lbl_height">Höhe (Height)</label>
+                <input type="text" id="inpRatioDriverH" value="1088">
+              </div>
+            </div>
+
+            <!-- Snap Chips & Readout -->
+            <div class="pix-res-footer">
+              <div class="pix-snap-group">
+                <span class="pix-snap-label">🧲 Snap</span>
+                <div class="pix-snap-btns" id="snapBtnsRatio">
+                  <button type="button" class="pix-snap-btn" data-snap="8">8</button>
+                  <button type="button" class="pix-snap-btn active" data-snap="16">16</button>
+                  <button type="button" class="pix-snap-btn" data-snap="32">32</button>
+                  <button type="button" class="pix-snap-btn" data-snap="64">64</button>
+                </div>
+              </div>
+              <div class="pix-readout" id="lblRatioReadout">16:9 • 2.09 MP</div>
+            </div>
+
+            <!-- Live Aspect Ratio Shape Preview -->
+            <div class="pix-preview-box">
+              <div class="pix-preview-rect" id="previewRectRatio"></div>
+              <div class="pix-preview-label" id="previewLabelRatio">1920 × 1088</div>
+            </div>
+          </div>
+
+          <!-- Mode 3: Custom Resolution Panel -->
+          <div class="pix-res-custom-panel" id="pixCustomResPanel" style="display: none;">
+            <div class="pix-res-custom-row">
+              <div class="pix-res-custom-field">
+                <label data-i18n="pix_lbl_width">Breite (Width)</label>
+                <input type="text" id="inpCustomResW" value="1920" placeholder="z.B. 1024+128" data-i18n-placeholder="pix_placeholder_custom_w">
+              </div>
+              <button type="button" class="pix-icon-btn" id="btnSwapRes" title="Breite & Höhe tauschen" data-i18n-title="pix_swap_res_title">⇄</button>
+              <div class="pix-res-custom-field">
+                <label data-i18n="pix_lbl_height">Höhe (Height)</label>
+                <input type="text" id="inpCustomResH" value="1088" placeholder="z.B. 512*2" data-i18n-placeholder="pix_placeholder_custom_h">
+              </div>
+            </div>
+
+            <!-- Snap Chips & Readout -->
+            <div class="pix-res-footer">
+              <div class="pix-snap-group">
+                <span class="pix-snap-label">🧲 Snap</span>
+                <div class="pix-snap-btns" id="snapBtnsRes">
+                  <button type="button" class="pix-snap-btn" data-snap="8">8</button>
+                  <button type="button" class="pix-snap-btn active" data-snap="16">16</button>
+                  <button type="button" class="pix-snap-btn" data-snap="32">32</button>
+                  <button type="button" class="pix-snap-btn" data-snap="64">64</button>
+                </div>
+              </div>
+              <div class="pix-readout" id="lblResReadout">16:9 • 2.09 MP</div>
+            </div>
+
+            <!-- Saved Custom Resolutions -->
+            <div class="pix-custom-saved-row" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 6px; min-width: 0; max-width: 100%;">
+              <button type="button" class="pix-snap-btn" id="btnSaveCustomRes" title="Aktuelle Custom-Auflösung als Preset merken" data-i18n="pix_save_custom_res" data-i18n-title="pix_save_custom_res_title" style="padding: 3px 8px;">💾 Merken</button>
+              <div id="customResChips" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; max-width: 100%;"></div>
+            </div>
+
+            <!-- Live Aspect Ratio Shape Preview -->
+            <div class="pix-preview-box">
+              <div class="pix-preview-rect" id="previewRectRes"></div>
+              <div class="pix-preview-label" id="previewLabelRes">1920 × 1088</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Generate & Cancel Action Buttons -->
+      <div class="generate-action-wrap" style="display: flex; flex-direction: column; gap: 6px; margin: 2px 0;">
+        <button class="btn-generate" id="btnGenerate">
+          <div class="generate-progress-fill" id="btnProgressFill"></div>
+          <span class="icon" id="btnGenerateIcon">🚀</span>
+          <span id="btnGenerateText" data-i18n="btn_generate">BILD GENERIEREN</span>
+        </button>
+
+        <button type="button" class="btn-cancel-gen" id="btnCancelGenerate" style="display: none;" title="Laufende Generierung in ComfyUI sofort abbrechen" data-i18n-title="btn_cancel_generate_title">
+          <span class="icon">🛑</span>
+          <span data-i18n="btn_cancel_generate">Aktion abbrechen</span>
+        </button>
+      </div>
+
+      <!-- Prompt Controller Card (TAPromptController) -->
+      <section class="card" id="cardPromptController">
+        <div class="card-header">
+          <span class="card-title"><span class="icon">🎛️</span> <span data-i18n="card_prompt_controller">Prompt-Controller</span></span>
+          <span class="value-badge" id="promptControllerBadge">Manual Only</span>
+        </div>
+        <div class="field-group">
+          <div class="field-label">
+            <span data-i18n="lbl_controller_mode">Controller-Modus (mode)</span>
+          </div>
+          <select id="selPromptControllerMode">
+            <option value="Manual Only" selected data-i18n="opt_mode_manual">Manual Only (Reine Prompt-Hub Eingabe)</option>
+            <option value="Generated Only" data-i18n="opt_mode_gen">Generated Only (Nur KI-Prompt)</option>
+            <option value="Combine: Manual + Generated" data-i18n="opt_mode_combo_mg">Combine: Manual + Generated (Manuell + KI)</option>
+            <option value="Combine: Generated + Manual" data-i18n="opt_mode_combo_gm">Combine: Generated + Manual (KI + Manuell)</option>
+            <option value="Clear / Empty" data-i18n="opt_mode_clear">Clear / Empty (Prompt leeren)</option>
+          </select>
+        </div>
+        <div class="field-group" style="margin-top: 6px;">
+          <div class="field-label">
+            <span data-i18n="lbl_delimiter">Trennzeichen (delimiter)</span>
+          </div>
+          <input type="text" id="inpDelimiter" value=", " style="font-family: monospace; font-size: 13px; padding: 6px 10px;">
+        </div>
+      </section>
+
+      <!-- LLM Prompt Engine Card (TASmartLLM T2I & I2I) -->
+      <section class="card" id="cardLLM">
+        <div class="card-header">
+          <span class="card-title"><span class="icon">🧠</span> <span data-i18n="card_llm">LLM (LM Studio / Ollama) – T2I & I2I</span></span>
+          <span class="value-badge" id="llmStatusBadge">Aus (Manuell)</span>
+        </div>
+
+        <!-- Mode Selector Pills -->
+        <div class="pills-group" id="llmModePills" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px;">
+          <button class="pill-btn active" data-llmmode="off" data-i18n="btn_llm_off">🚫 LLM Aus</button>
+          <button class="pill-btn" data-llmmode="t2i" data-i18n="btn_llm_t2i">✨ Text2Prompt (T2I)</button>
+          <button class="pill-btn" data-llmmode="i2i" data-i18n="btn_llm_i2i">🖼️ Image2Prompt (I2I)</button>
+        </div>
+
+        <!-- LLM Settings Panel (Always Visible for Model Selection) -->
+        <div id="llmSettingsPanel" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Model Selection -->
+          <div class="field-group">
+            <div class="field-label">
+              <span data-i18n="lbl_llm_model">LLM-Modell (LM Studio / Ollama)</span>
+              <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                <span class="value-badge" id="llmSourceBadge">🖥️ Lokal</span>
+                <span class="value-badge" id="llmModelBadge">Bereit</span>
+              </div>
+            </div>
+            <div class="llm-combo" id="llmModelCombo">
+              <button type="button" class="llm-combo-trigger" id="btnLLMModelTrigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="llm-combo-label" id="llmModelTriggerLabel">LMStudio/cognitivecomputations_dolphin-mistral-24b-venice-edition</span>
+                <span class="llm-combo-arrow">▾</span>
+              </button>
+              <div class="llm-combo-menu" id="llmModelMenu" style="display: none;">
+                <div class="llm-combo-search-wrap">
+                  <input type="text" id="inpLLMModelSearch" placeholder="🔍 Modell suchen..." data-i18n-placeholder="llm_model_search_placeholder" autocomplete="off">
+                  <button type="button" id="btnClearLLMModelSearch" class="llm-combo-clear" title="Suche leeren" style="display: none;">✕</button>
+                </div>
+                <div class="llm-combo-list" id="llmModelList" role="listbox"></div>
+              </div>
+            </div>
+            <select id="selLLMModel" style="display: none;">
+              <option value="LMStudio/cognitivecomputations_dolphin-mistral-24b-venice-edition">LMStudio/cognitivecomputations_dolphin-mistral-24b-venice-edition</option>
+              <option value="LMStudio/huihui-qwen3-vl-8b-instruct-abliterated [Vision]">LMStudio/huihui-qwen3-vl-8b-instruct-abliterated [Vision]</option>
+              <option value="LMStudio/qwen3-vl-8b-instruct [Vision]">LMStudio/qwen3-vl-8b-instruct [Vision]</option>
+              <option value="LMStudio/ministral-3-14b-reasoning-2512">LMStudio/ministral-3-14b-reasoning-2512</option>
+              <option value="LMStudio/qwen3-coder-30b-a3b-instruct">LMStudio/qwen3-coder-30b-a3b-instruct</option>
+              <option value="LMStudio/qwen3.8-27b">LMStudio/qwen3.8-27b</option>
+            </select>
+          </div>
+
+          <!-- Advanced TASmartLLM Submenu (Nodes 1878 & 1879) -->
+          <details id="llmAdvancedDetails" style="border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; background: rgba(0,0,0,0.18);">
+            <summary style="cursor: pointer; font-size: 12px; font-weight: 600; color: var(--mute); user-select: none; list-style: none; display: flex; align-items: center; justify-content: space-between;">
+              <span data-i18n="llm_adv_title">⚙️ LLM-Feineinstellungen (1878 / 1879)</span>
+              <span class="value-badge" id="llmAdvBadge" style="font-size: 10px;">T: 0.70 · 2048</span>
+            </summary>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line);">
+              <div class="overlay-details-row">
+                <div class="overlay-mini-field">
+                  <label for="rngLLMTemp"><span data-i18n="llm_temperature">Temperatur</span>: <span id="valLLMTemp">0.70</span></label>
+                  <input type="range" id="rngLLMTemp" min="0.0" max="2.0" step="0.05" value="0.70">
+                </div>
+                <div class="overlay-mini-field">
+                  <label for="inpLLMMaxTokens" data-i18n="llm_max_tokens">Max Tokens</label>
+                  <input type="number" id="inpLLMMaxTokens" min="128" max="8192" step="128" value="2048">
+                </div>
+              </div>
+
+              <div class="overlay-details-row">
+                <div class="overlay-mini-field">
+                  <label for="inpLLMTimeout" data-i18n="llm_timeout">Timeout (s)</label>
+                  <input type="number" id="inpLLMTimeout" min="10" max="600" step="10" value="120">
+                </div>
+                <div class="overlay-mini-field" style="justify-content: flex-end; padding-top: 14px;">
+                  <button type="button" class="btn-action" id="btnResetLLMDefaults" style="padding: 4px 8px; font-size: 11px;" data-i18n="llm_reset_defaults">↺ Workflow-Standard</button>
+                </div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label class="switch-label" style="font-size: 12px;">
+                  <input type="checkbox" id="chkLLMThinking">
+                  <span data-i18n="llm_thinking_mode">🧠 Thinking Mode (`thinking_mode`)</span>
+                </label>
+                <label class="switch-label" style="font-size: 12px;">
+                  <input type="checkbox" id="chkLLMUnloadImgFirst" checked>
+                  <span data-i18n="llm_unload_img_first">🧹 Bildmodelle vorher entladen (`unload_image_models_first`)</span>
+                </label>
+                <label class="switch-label" style="font-size: 12px;">
+                  <input type="checkbox" id="chkLLMUnloadAfter" checked>
+                  <span data-i18n="llm_unload_after">♻️ LLM danach entladen (`unload_llm_after`)</span>
+                </label>
+              </div>
+
+              <div class="field-group" id="i2iUserPromptGroup" style="display: none; margin-top: 2px;">
+                <div class="field-label">
+                  <span data-i18n="llm_user_prompt_i2i">User-Prompt (I2I · Node 1879)</span>
+                </div>
+                <textarea id="txtLLMI2IUserPrompt" style="min-height: 75px; font-size: 0.8rem; resize: vertical;"></textarea>
+              </div>
+
+              <div class="field-group" style="margin-top: 2px;">
+                <div class="field-label">
+                  <span data-i18n="llm_system_prompt">System-Prompt (T2I / I2I)</span>
+                </div>
+                <textarea id="txtLLMSystemPrompt" data-i18n-placeholder="llm_system_prompt_ph" placeholder="Wird aus Workflow geladen..." style="min-height: 95px; font-size: 0.8rem; resize: vertical;"></textarea>
+              </div>
+            </div>
+          </details>
+
+          <!-- I2I Reference Image Upload Panel -->
+          <div class="field-group" id="i2iUploadPanel" style="display: none;">
+            <div class="field-label">
+              <span data-i18n="lbl_i2i_ref">I2I Referenzbild (Node 1880 - Load Image)</span>
+              <span class="value-badge" id="i2iFileNameBadge">Kein Bild gewählt</span>
+            </div>
+            <div class="i2i-dropzone" id="i2iDropzone" style="border: 2px dashed var(--accent2); background: rgba(168, 85, 247, 0.05);">
+              <input type="file" id="inpI2IFile" accept="image/*" style="display: none;">
+              <div id="i2iEmptyState" style="text-align: center; padding: 14px 6px; cursor: pointer;">
+                <span style="font-size: 24px;">📷</span>
+                <div style="font-size: 13px; color: var(--accent2); margin-top: 4px; font-weight: 600;" data-i18n="i2i_drop_title">Klicken oder Referenzbild hierher ziehen</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;" data-i18n="i2i_drop_sub">PNG, JPG oder WEBP für Vision-Modell-Analyse</div>
+              </div>
+              <div id="i2iPreviewState" style="display: none; align-items: center; gap: 10px; padding: 8px;">
+                <img id="imgI2IThumb" src="" alt="Referenz" style="width: 56px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid var(--accent2); cursor: pointer;" title="In Haupt-Vorschau anzeigen">
+                <div style="flex: 1; min-width: 0;">
+                  <div id="lblI2IFilename" style="font-size: 12px; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">bild.png</div>
+                  <div style="font-size: 11px; color: var(--accent2); margin-top: 2px;" data-i18n="i2i_loaded">✓ In ComfyUI geladen (Node 1880)</div>
+                </div>
+                <button type="button" class="btn-action" id="btnRemoveI2I" title="Bild entfernen" data-i18n-title="btn_remove_i2i_title" style="padding: 4px 8px; font-size: 11px;" data-i18n="btn_remove_i2i">Entfernen</button>
+              </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
+              <button type="button" class="btn-action" id="btnAdoptPreviewAsI2I" title="Aktuell in der Vorschau angezeigtes Bild als I2I-Referenzbild übernehmen" data-i18n-title="btn_adopt_preview_i2i_title" style="font-size: 11px; padding: 3px 8px;" data-i18n="btn_adopt_preview_i2i">🖼️ Aus Vorschau übernehmen</button>
+            </div>
+          </div>
+
+          <!-- Generated LLM Prompt Result Display -->
+          <div class="field-group" id="llmPromptResultGroup" style="display: none; margin-top: 6px;">
+            <div class="field-label">
+              <span data-i18n="lbl_llm_result">✨ Generierter KI-Prompt (LLM Output)</span>
+              <div style="display: flex; gap: 4px;">
+                <button type="button" class="btn-action" id="btnCopyLLMPrompt" title="KI-Prompt kopieren" data-i18n-title="btn_copy_llm_title" style="padding: 2px 7px; font-size: 11px;" data-i18n="btn_copy_llm">📋 Kopieren</button>
+                <button type="button" class="btn-action" id="btnAdoptLLMPrompt" title="In Prompt-Hub als Haupt-Bildidee übernehmen" data-i18n-title="btn_adopt_llm_title" style="padding: 2px 7px; font-size: 11px;" data-i18n="btn_adopt_llm">📥 Als Bildidee übernehmen</button>
+              </div>
+            </div>
+            <textarea id="txtLLMGeneratedPrompt" readonly placeholder="Der vom LLM generierte Prompt wird hier nach der Generierung angezeigt..." data-i18n-placeholder="placeholder_llm_result" style="min-height: 95px; font-size: 0.82rem; font-family: inherit; background: rgba(0,0,0,0.3); border: 1px solid var(--accent); color: var(--text); border-radius: 6px; padding: 8px;"></textarea>
+            <div id="llmExecStatusBadge" style="display: none; margin-top: 5px; font-size: 11px; padding: 4px 8px; border-radius: 4px; background: rgba(0,0,0,0.25); border: 1px solid var(--border); color: var(--text-muted); line-height: 1.35; word-break: break-word;"></div>
+          </div>
+        </div>
+      </section>
+
+    </section>
+
+    <div class="col-resizer" id="resizerPrompt" role="separator" aria-orientation="vertical" aria-label="Prompt-Spaltenbreite anpassen" title="Ziehen zum Anpassen · Doppelklick für Standard" data-i18n-title="col_resizer_title"></div>
+
+    <!-- Right Studio Viewer Column -->
+    <main class="viewer-col">
+
+      <!-- Drag & Drop Overlay (Scoped to Viewer Column) -->
+      <div class="drop-overlay" id="dropOverlay">
+        <div class="drop-overlay-box">
+          <div class="drop-overlay-icon">📥</div>
+          <div class="drop-overlay-title" id="dropOverlayTitle" data-i18n="drop_title">Bild hier ablegen</div>
+          <div class="drop-overlay-sub" id="dropOverlaySub" data-i18n="drop_sub">Liest alle Prompts, Modell, Sampler, Seed, Pixaroma-Auflösung & LoRAs aus den Bild-Metadaten</div>
+        </div>
+      </div>
+
+      <!-- Large Center Canvas -->
+      <div class="viewer-canvas" id="viewerCanvas">
+        <div class="empty-state" id="emptyState" style="display:none;">
+          <div class="empty-icon">🖼️</div>
+          <div class="empty-text" data-i18n="empty_state_title">Bereit zum Generieren</div>
+          <div class="empty-hint" data-i18n="empty_state_hint">Wähle dein Model-Preset, passe die Prompts an und drücke auf "Bild generieren".</div>
+        </div>
+
+        <!-- Initial Mockup Image as Demonstration -->
+        <img src="/ta_studio_cockpit_ui_mockup_1794363751920.jpg" alt="Vorschau" class="main-preview-img" id="mainPreview" draggable="false">
+
+        <!-- Zoom Indicator / Reset Pill -->
+        <button class="viewer-zoom-badge" id="viewerZoomBadge" type="button" style="display:none;" title="Zoom zurücksetzen (Doppelklick)" data-i18n-title="btn_zoom_reset_title">100%</button>
+
+        <!-- Before/After SeedVR2 Compare View -->
+        <div class="compare-container" id="compareContainer" style="display:none;">
+          <img src="" alt="Nachher (SeedVR2)" class="compare-img compare-after-img" id="compareAfterImg" draggable="false">
+          <div class="compare-before-wrap" id="compareBeforeWrap">
+            <img src="" alt="Vorher (Original)" class="compare-img compare-before-img" id="compareBeforeImg" draggable="false">
+          </div>
+          <span class="compare-label compare-label-before" data-i18n="compare_before">Original</span>
+          <span class="compare-label compare-label-after" data-i18n="compare_after">SeedVR2</span>
+          <div class="compare-divider" id="compareDivider">
+            <div class="compare-handle">↔</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Toolbar under image -->
+      <div class="viewer-actions">
+        <div class="viewer-actions-row">
+          <div class="action-group">
+            <button class="btn-action btn-compact-icon" id="btnDownload" data-compact-icon="📥" title="Bild herunterladen" data-i18n-title="btn_download_title"><span class="btn-label" data-i18n="btn_download">📥 Download</span></button>
+            <button class="btn-action btn-compact-icon" id="btnCopyPrompt" data-compact-icon="📋" title="Prompt kopieren" data-i18n-title="btn_copy_prompt_title"><span class="btn-label" data-i18n="btn_copy_prompt">📋 Prompt kopieren</span></button>
+            <button class="btn-action btn-compact-short" id="btnReuseSeed" data-compact-label="🔄 Seed" title="Seed in Eingabe übernehmen" data-i18n-title="btn_reuse_seed_title"><span class="btn-label" data-i18n="btn_reuse_seed">🔄 Seed übernehmen</span></button>
+            <button class="btn-action btn-highlight" id="btnApplyAllParams" title="Alle Parameter dieses Bildes (Prompts, Model, Sampler, Seed, Pixaroma-Auflösung, LoRAs) ins Cockpit laden" data-i18n-title="btn_apply_all_title" data-i18n="btn_apply_all">⚡ Parameter laden</button>
+            <button class="btn-action btn-compact-short" id="btnSendToDiscordGif" data-compact-label="👾 GIF" data-gif-i18n-title="btn_send_to_gif_title" title="Aktuelles Bild im DiscordGIF AI-Studio animieren"><span class="btn-label" data-gif-i18n="btn_send_to_gif">👾 Als Discord-GIF</span></button>
+            <span class="bg-remove-wrap" id="bgRemoveWrap">
+              <button class="btn-action btn-compact-short" id="btnRemoveBg" data-compact-label="✂️ BG" title="Hintergrund entfernen (freistellen)" data-i18n-title="btn_remove_bg_title" disabled><span class="btn-label" data-i18n="btn_remove_bg">✂️ Hintergrund entf.</span></button>
+              <span class="help-badge-wrap" id="bgRemoveHelpWrap">
+                <button type="button" class="help-circle-btn" id="btnBgRemoveHelp" aria-label="Info" title="Warum inaktiv?" data-i18n-title="bg_remove_help_title">?</button>
+                <div class="help-popover" id="bgRemoveHelpPopover" role="tooltip"></div>
+              </span>
+            </span>
+          </div>
+          <div class="action-group">
+            <button class="btn-action btn-compact-icon" id="btnToggleCompare" data-compact-icon="↔️" title="Vorher/Nachher-Vergleich (Original vs. SeedVR2)" data-i18n-title="btn_compare_title" style="display:none;"><span class="btn-label" data-i18n="btn_compare">↔️ Vergleich</span></button>
+            <button class="btn-action btn-compact-icon" id="btnFullscreen" data-compact-icon="⛶" title="Vollbild-Vorschau" data-i18n-title="btn_fullscreen_title"><span class="btn-label" data-i18n="btn_fullscreen">⛶ Vollbild</span></button>
+          </div>
+        </div>
+        <div class="viewer-actions-row">
+          <div class="action-group">
+            <button class="btn-action btn-compact-icon" id="btnClearGallery" data-compact-icon="🧹" title="Galerieansicht leeren (Dateien auf der Festplatte bleiben sicher erhalten)" data-i18n-title="btn_clear_gallery_title"><span class="btn-label" data-i18n="btn_clear_gallery">🧹 Galerie leeren</span></button>
+            <button class="btn-action btn-compact-icon" id="btnRefreshGallery" data-compact-icon="🔄" title="Bilder aus Ausgabeordner neu laden" data-i18n-title="btn_refresh_gallery_title"><span class="btn-label" data-i18n="btn_refresh_gallery">🔄 Neu laden</span></button>
+            <button class="btn-action btn-compact-short" id="btnToggleGallery" data-compact-label="▼ Galerie" title="Galerieleiste ein- oder ausklappen" data-i18n-title="btn_collapse_gallery_title"><span class="btn-label" data-i18n="btn_collapse_gallery">▼ Galerie einklappen</span></button>
+          </div>
+          <div class="action-group">
+            <button class="btn-action btn-compact-icon" id="btnOpenFolder" data-compact-icon="📁" title="Im Explorer anzeigen" data-i18n-title="btn_open_folder_title"><span class="btn-label" data-i18n="btn_open_folder">📁 Im Ordner zeigen</span></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filmstrip History at bottom -->
+      <div class="filmstrip" id="filmstripGallery"></div>
+
+    </main>
+
+  </div>
+
+  <!-- Module: DiscordGIF (hidden by default, styled identically to StudioCockpit) -->
+  <div class="studio-layout studio-layout-gif" id="moduleGifView" style="display:none;">
+    <aside class="controls-col col-setup">
+      <!-- Source & Search Card -->
+      <section class="card">
+        <div class="card-header">
+          <span class="card-title"><span class="icon">👾</span> DiscordGIF</span>
+          <span class="value-badge" id="gifDiscordStatusBadge">Discord: Prüfe...</span>
+        </div>
+        <div class="gif-seg" id="gifSourceSeg">
+          <button type="button" class="active" data-source="local" data-gif-i18n="tab_local">📁 Meine GIFs</button>
+          <button type="button" data-source="tenor" data-gif-i18n="tab_tenor">🌐 Tenor</button>
+          <button type="button" data-source="ai" data-gif-i18n="tab_ai">✨ AI-GIF</button>
+        </div>
+        <div class="field-group" id="gifSearchBox" style="margin-top:10px;">
+          <input type="text" id="gifSearchInput" data-gif-i18n-ph="search_ph" placeholder="Suche nach Name, Tag oder Tenor...">
+        </div>
+        <div class="pills-group" id="gifCategoryPills" style="margin-top:8px;">
+          <button type="button" class="pill-btn active" data-filter="all" data-gif-i18n="filter_all">Alle</button>
+          <button type="button" class="pill-btn" data-filter="fav" data-gif-i18n="filter_fav">⭐ Favoriten</button>
+        </div>
+      </section>
+
+      <!-- Discord Behavior Card -->
+      <section class="card" id="gifBehaviorCard">
+        <div class="card-header">
+          <span class="card-title"><span class="icon">💬</span> <span data-gif-i18n="card_behavior">Discord-Einfügen</span></span>
+        </div>
+        <div class="field-group">
+          <label class="field-label" data-gif-i18n="paste_mode">Einfüge-Modus</label>
+          <div class="gif-seg" id="gifPasteModeSeg">
+            <button type="button" class="active" data-mode="file" data-gif-i18n="paste_file">Datei (Clip)</button>
+            <button type="button" data-mode="url" data-gif-i18n="paste_url">Link (URL)</button>
+          </div>
+        </div>
+        <label class="toggle-row" style="margin-top:10px; display:flex; align-items:center; gap:8px; cursor:pointer; font-size:12px;">
+          <input type="checkbox" id="chkGifAutoSend">
+          <span data-gif-i18n="auto_send">Sofort mit Enter absenden</span>
+        </label>
+        <p style="font-size:11px; color:var(--mute); margin:6px 0 0; line-height:1.35;" data-gif-i18n="hotkey_tip">💡 Drücke Alt + G in Discord, klicke ein GIF an – es wird direkt eingefügt!</p>
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button type="button" class="btn-action" id="btnGifSelectFolder" style="flex:1;" data-gif-i18n="btn_gif_folder">📁 GIF-Ordner</button>
+          <button type="button" class="btn-action" id="btnGifReload" data-gif-i18n="btn_reload">🔄 Neu laden</button>
+        </div>
+        <div id="gifFolderHint" style="font-size:11px; color:var(--mute); margin-top:6px; word-break:break-all;"></div>
+      </section>
+
+      <!-- Add GIF Card (Local tab) -->
+      <section class="card" id="gifAddCard">
+        <div class="card-header">
+          <span class="card-title"><span class="icon">➕</span> <span data-gif-i18n="card_add">GIF hinzufügen</span></span>
+        </div>
+        <div class="gif-dropzone" id="gifDropZone">
+          <p id="gifDropPrompt" data-gif-i18n="drop_gif">📁 GIF hierher ziehen oder klicken</p>
+          <input type="file" id="gifFileInput" accept="image/gif" hidden>
+        </div>
+        <div class="field-group" style="margin-top:8px;">
+          <label class="field-label" data-gif-i18n="or_url">Oder Web-URL</label>
+          <input type="url" id="gifInputUrl" placeholder="https://.../beispiel.gif">
+        </div>
+        <div class="field-group" style="margin-top:8px;">
+          <label class="field-label" data-gif-i18n="title_tags">Titel & Tags</label>
+          <input type="text" id="gifInputTitle" data-gif-i18n-ph="title_ph" placeholder="Titel (optional)">
+          <input type="text" id="gifInputTags" data-gif-i18n-ph="tags_ph" placeholder="Tags (kommagetrennt)" style="margin-top:6px;">
+        </div>
+        <button type="button" class="btn-generate" id="btnGifSave" style="margin-top:10px;" data-gif-i18n="btn_save_gif">💾 GIF speichern</button>
+      </section>
+
+      <!-- AI Settings Card (AI tab) -->
+      <section class="card" id="gifAiSettingsCard" style="display:none;">
+        <div class="card-header">
+          <span class="card-title"><span class="icon">⚙️</span> <span data-gif-i18n="card_ai_params">AI-GIF Parameter</span></span>
+        </div>
+        <div class="field-group">
+          <label class="field-label" data-gif-i18n="ai_model">AI-Modell / Workflow</label>
+          <select id="gifAiModelSelect">
+            <option value="minimax_h3" selected data-gif-i18n="opt_minimax">MiniMax H3 (Hailuo) • Action & Mimik</option>
+            <option value="ltx_video" data-gif-i18n="opt_ltx">LTX-Video 2B • Fast Action</option>
+            <option value="svd_xt" data-gif-i18n="opt_svd">SVD-XT • Sanfte Animation</option>
+          </select>
+          <div id="gifAiModelStatusHint" style="display:none; margin-top:6px; font-size:11px; line-height:1.45; padding:7px 9px; border-radius:6px; border:1px solid var(--line); background:var(--panel2);"></div>
+        </div>
+        <div class="field-group" style="margin-top:8px;">
+          <label class="field-label" data-gif-i18n="ai_res">Auflösung & VRAM</label>
+          <select id="gifAiResSelect">
+            <option value="high" selected>High (576×576 • 16 GB+)</option>
+            <option value="standard">Standard (512×512 • 8–12 GB)</option>
+            <option value="fast">Fast / Eco (480×272 • 6–8 GB)</option>
+          </select>
+        </div>
+        <div class="field-group" style="margin-top:8px;">
+          <div style="display:flex; justify-content:space-between; font-size:12px;">
+            <label class="field-label" style="margin:0;" data-gif-i18n="ai_motion">Motion-Intensität</label>
+            <span class="value-badge" id="gifAiMotionVal">100</span>
+          </div>
+          <input type="range" id="gifAiMotionRange" min="20" max="220" value="100">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+          <div class="field-group">
+            <label class="field-label">Frames</label>
+            <select id="gifAiFramesSelect">
+              <option value="17">17 (~1.4s)</option>
+              <option value="25">25 (~2.1s)</option>
+              <option value="33">33 (~2.8s)</option>
+              <option value="44" selected>44 (~3.6s)</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">FPS</label>
+            <select id="gifAiFpsSelect">
+              <option value="10">10 FPS</option>
+              <option value="12" selected>12 FPS</option>
+              <option value="16">16 FPS</option>
+            </select>
+          </div>
+        </div>
+        <label style="display:flex; align-items:center; gap:8px; margin-top:10px; font-size:12px; cursor:pointer;">
+          <input type="checkbox" id="chkGifAiPingPong" checked>
+          <span data-gif-i18n="ai_pingpong">Nahtloser Ping-Pong Loop</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; margin-top:6px; font-size:12px; cursor:pointer;">
+          <input type="checkbox" id="chkGifAiReverse">
+          <span data-gif-i18n="ai_reverse">Rückwärts abspielen</span>
+        </label>
+      </section>
+    </aside>
+
+    <main class="viewer-col gif-main-col">
+      <!-- Gallery Card (Local / Tenor) -->
+      <section class="card gif-gallery-card" id="gifGalleryCard">
+        <div class="card-header">
+          <span class="card-title"><span class="icon">🎞️</span> <span id="gifGalleryTitle" data-gif-i18n="gallery_title">GIF-Sammlung</span></span>
+          <span class="value-badge" id="gifCountBadge">0 GIFs</span>
+        </div>
+        <div class="gif-grid" id="gifGrid"></div>
+      </section>
+
+      <!-- AI Image-to-GIF Card -->
+      <section class="card gif-ai-card" id="gifAiCard" style="display:none;">
+        <div class="card-header">
+          <span class="card-title"><span class="icon">✨</span> <span data-gif-i18n="ai_studio_title">AI Image-to-GIF Studio</span></span>
+          <span class="value-badge" id="gifAiStatusBadge">ComfyUI: ...</span>
+        </div>
+
+        <div class="gif-ai-grid">
+          <div>
+            <label class="field-label" data-gif-i18n="ai_source_img">Ausgangsbild (PNG/JPG/WebP)</label>
+            <div class="gif-dropzone gif-ai-dropzone" id="gifAiDropZone">
+              <div id="gifAiDropPlaceholder">
+                <div style="font-size:28px; margin-bottom:6px;">🖼️</div>
+                <b data-gif-i18n="ai_drop_img">Bild hierher ziehen oder klicken</b>
+                <div style="font-size:11px; color:var(--mute); margin-top:4px;" data-gif-i18n="ai_drop_sub">Oder direkt aus dem Bilder-Studio senden</div>
+              </div>
+              <img id="gifAiSourcePreview" src="" alt="Vorschau" style="display:none; max-height:240px; max-width:100%; object-fit:contain; border-radius:6px;">
+              <input type="file" id="gifAiFileInput" accept="image/png,image/jpeg,image/webp" hidden>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+              <span id="gifAiImageInfo" style="font-size:11px; color:var(--mute);"></span>
+              <button type="button" class="btn-action" id="btnGifAiClearImg" style="display:none; padding:3px 8px; font-size:11px; color:var(--danger);" data-gif-i18n="btn_remove">✕ Entfernen</button>
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column;">
+            <label class="field-label" data-gif-i18n="ai_motion_prompt">Bewegungs-Prompt (Action)</label>
+            <textarea id="gifAiPromptInput" rows="4" data-gif-i18n-ph="ai_prompt_ph" placeholder="z. B. eating popcorn, chewing, smiling..."></textarea>
+            <div class="pills-group" id="gifAiPromptPills" style="margin-top:8px;">
+              <button type="button" class="pill-btn" data-prompt="eating popcorn, chewing, smiling" data-gif-i18n="idea_popcorn">🍿 Popcorn</button>
+              <button type="button" class="pill-btn" data-prompt="laughing out loud, cheerful expression" data-gif-i18n="idea_laugh">😂 Lachen</button>
+              <button type="button" class="pill-btn" data-prompt="waving hand hello, friendly smiling" data-gif-i18n="idea_wave">👋 Winken</button>
+              <button type="button" class="pill-btn" data-prompt="clapping hands applauding" data-gif-i18n="idea_clap">👏 Klatschen</button>
+              <button type="button" class="pill-btn" data-prompt="dancing, energetic movement" data-gif-i18n="idea_dance">💃 Tanzen</button>
+            </div>
+
+            <div class="field-group" style="margin-top:10px;">
+              <label class="field-label" data-gif-i18n="ai_title_opt">Titel (optional)</label>
+              <input type="text" id="gifAiTitleInput" data-gif-i18n-ph="ai_title_ph" placeholder="z. B. Popcorn Snack">
+            </div>
+
+            <div style="margin-top:10px; padding:10px; background:var(--panel2); border:1px solid var(--line); border-radius:8px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                <label style="display:flex; align-items:center; gap:8px; font-size:12px; cursor:pointer;">
+                  <input type="checkbox" id="chkGifAiOverlay">
+                  <span data-gif-i18n="ai_overlay">Text-Overlay hinzufügen</span>
+                </label>
+                <div style="display:flex; gap:6px;">
+                  <select id="gifAiOverlayPos" style="display:none; width:auto; font-size:11px; padding:3px 6px;">
+                    <option value="bottom" data-gif-i18n="ov_bottom">Unten</option>
+                    <option value="top" data-gif-i18n="ov_top">Oben</option>
+                  </select>
+                  <select id="gifAiOverlayEff" style="display:none; width:auto; font-size:11px; padding:3px 6px;">
+                    <option value="fade_in" data-gif-i18n="ov_fade">✨ Fade-In</option>
+                    <option value="delayed_fade" data-gif-i18n="ov_delayed">⏳ Verzögert</option>
+                    <option value="none" data-gif-i18n="ov_static">Statisch</option>
+                  </select>
+                </div>
+              </div>
+              <input type="text" id="gifAiOverlayText" data-gif-i18n-ph="ov_text_ph" placeholder="Text für Overlay..." style="display:none; margin-top:8px;">
+            </div>
+
+            <div style="display:flex; gap:8px; margin-top:auto; padding-top:12px;">
+              <button type="button" class="btn-generate" id="btnGifAiGenerate" style="flex:1; padding:10px 14px;" data-gif-i18n="btn_ai_generate">🚀 Discord-GIF generieren</button>
+              <button type="button" class="btn-action" id="btnGifAiCancel" style="display:none; color:var(--danger);" data-gif-i18n="btn_cancel">Abbrechen</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="gifAiProgressBox" style="display:none; margin-top:14px; padding:12px; background:var(--panel2); border:1px solid var(--line); border-radius:8px;">
+          <div style="display:flex; justify-content:space-between; gap:10px; font-size:12px; margin-bottom:6px;">
+            <span id="gifAiProgressText" style="white-space:pre-wrap; word-break:break-word;" data-gif-i18n="ai_generating">Generiere...</span>
+            <span id="gifAiProgressPct" style="color:var(--accent); font-weight:600; flex-shrink:0;">0%</span>
+          </div>
+          <div style="height:6px; background:var(--bg); border-radius:3px; overflow:hidden;">
+            <div id="gifAiProgressBar" style="width:0%; height:100%; background:linear-gradient(90deg, var(--accent), var(--accent2)); transition:width 0.3s;"></div>
+          </div>
+        </div>
+
+        <div id="gifAiResultBox" style="display:none; margin-top:14px; padding:12px; background:var(--panel2); border:1px solid var(--accent2); border-radius:8px; gap:14px; align-items:center;">
+          <img id="gifAiResultImg" src="" alt="Ergebnis" style="max-width:140px; max-height:140px; border-radius:6px; border:1px solid var(--line); background:#000;">
+          <div style="flex:1;">
+            <div style="font-weight:600; color:var(--accent2); margin-bottom:6px;" data-gif-i18n="ai_result_done">✅ Discord-GIF erstellt!</div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="btn-generate" id="btnGifAiSendResult" style="width:auto; padding:8px 16px;" data-gif-i18n="btn_send_discord">💬 In Discord einfügen</button>
+              <button type="button" class="btn-action" id="btnGifAiOpenCollection" data-gif-i18n="btn_to_collection">📁 Zur Sammlung</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal" style="display:none;">
+    <div class="modal-card settings-modal-card">
+      <div class="modal-header">
+        <h3 data-i18n="settings_title">⚙️ Einstellungen &amp; Verbindungen</h3>
+        <button class="modal-close" id="btnCloseSettings">✕</button>
+      </div>
+      <div class="modal-body settings-modal-body">
+
+        <!-- 1. General / App -->
+        <div class="settings-section settings-section--general">
+          <div class="settings-section-header">
+            <span class="settings-section-title" data-i18n="settings_sec_general">🌐 Allgemein</span>
+            <span class="settings-badge" data-i18n="settings_badge_general">Oberfläche</span>
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="settings_lang">Sprache / Language</label>
+            <select id="selLanguage">
+              <option value="de">Deutsch (German)</option>
+              <option value="en">English (Englisch)</option>
+            </select>
+          </div>
+          <div class="settings-grid-2">
+            <div class="field-group">
+              <label class="field-label" data-i18n="theme_base_label">Hintergrund / Design</label>
+              <select id="selThemeBase">
+                <option value="midnight" data-i18n="theme_base_midnight_full">Midnight Blue (Standard)</option>
+                <option value="obsidian" data-i18n="theme_base_obsidian_full">Obsidian Dark (Neutral)</option>
+                <option value="charcoal" data-i18n="theme_base_charcoal_full">Warm Charcoal</option>
+                <option value="plum" data-i18n="theme_base_plum_full">Plum / Aubergine</option>
+                <option value="solar_noir" data-i18n="theme_base_solar_noir_full">Solar Noir (Dark Gold)</option>
+                <option value="matrix_green" data-i18n="theme_base_matrix_green_full">Neon Green (Cyber)</option>
+                <option value="pastel_pink" data-i18n="theme_base_pastel_pink_full">Pastel Pink (Blasses Pink)</option>
+                <option value="studio_light" data-i18n="theme_base_light_full">Studio Light (Hell)</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" data-i18n="theme_accent_label">Akzentfarbe</label>
+              <select id="selThemeAccent">
+                <option value="violet">Studio Violet</option>
+                <option value="lavender">Soft Lavender</option>
+                <option value="cyan">Midnight Cyan</option>
+                <option value="emerald">Darkroom Emerald</option>
+                <option value="neon_green">Neon Green</option>
+                <option value="amber">Solar Amber</option>
+                <option value="rose">Crimson Rose</option>
+                <option value="blush_pink">Blush Pink</option>
+                <option value="titanium">Stealth Titanium</option>
+                <option value="custom" data-i18n="theme_accent_custom">Eigene Farbe (Custom)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. ComfyUI -->
+        <div class="settings-section settings-section--comfy">
+          <div class="settings-section-header">
+            <span class="settings-section-title" data-i18n="settings_sec_comfy">🎨 ComfyUI</span>
+            <span class="settings-badge" data-i18n="settings_badge_comfy">Bild-Backend &amp; Pfade</span>
+          </div>
+          <p class="settings-section-desc" data-i18n="settings_desc">
+            Die GUI erkennt ein laufendes ComfyUI automatisch (z. B. auf Port 8188).
+            Auch wenn ComfyUI in WSL oder auf einem anderen Rechner läuft, kannst du die Adresse hier anpassen.
+          </p>
+          <div class="field-group">
+            <label class="field-label" data-i18n="settings_comfy_url">ComfyUI URL</label>
+            <div class="settings-conn-row">
+              <input type="text" id="inpComfyUrl" value="http://127.0.0.1:8188">
+              <button type="button" class="btn-action" id="btnTestComfyConn" style="white-space:nowrap;" data-i18n="settings_test_btn">Verbindung testen</button>
+            </div>
+            <span id="connTestResult" class="settings-conn-status"></span>
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="settings_output_dir">Bilder-Ausgabeordner (Windows Pfad)</label>
+            <div class="settings-conn-row">
+              <input type="text" id="inpOutputDir" value="F:\Outputs\Bilder-AI\ComfyUI\2026">
+              <button type="button" class="btn-action" id="btnBrowseOutputDir" style="padding:7px 12px; font-size:12px; white-space:nowrap;" data-i18n="btn_browse">📁 Durchsuchen</button>
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="settings_launch_cmd">ComfyUI Start-Befehl / Skript (WSL oder Windows .bat)</label>
+            <div class="settings-conn-row">
+              <input type="text" id="inpComfyLaunchCmd" value="" placeholder="z. B. C:\ComfyUI\run_nvidia_gpu.bat" data-i18n-placeholder="settings_launch_placeholder">
+              <button type="button" class="btn-action" id="btnBrowseLaunchCmd" style="padding:7px 12px; font-size:12px; white-space:nowrap;" data-i18n="btn_browse">📁 Durchsuchen</button>
+            </div>
+            <span class="field-hint" style="font-size:11px; color:var(--mute); margin-top:2px;" data-i18n="settings_launch_hint">Hinweis: Trage hier den Pfad zu deiner eigenen Windows-.bat (z. B. run_nvidia_gpu.bat) oder deinem Start-Skript ein – wird beim Klick auf '⚡ ComfyUI starten' geöffnet.</span>
+          </div>
+        </div>
+
+        <!-- 3. TASmartLLM -->
+        <div class="settings-section settings-section--llm">
+          <div class="settings-section-header">
+            <span class="settings-section-title" data-i18n="settings_sec_llm">🧠 TASmartLLM</span>
+            <span class="settings-badge" data-i18n="settings_badge_llm">Prompt-KI / LLM</span>
+          </div>
+          <div class="settings-grid-2">
+            <div class="field-group">
+              <label class="field-label" data-i18n="settings_lms_url">LM Studio URL</label>
+              <input type="text" id="inpLmsUrl" value="http://127.0.0.1:1234">
+            </div>
+            <div class="field-group">
+              <label class="field-label" data-i18n="settings_ollama_url">Ollama URL</label>
+              <input type="text" id="inpOllamaUrl" value="http://127.0.0.1:11434">
+            </div>
+          </div>
+          <div class="cloud-keys-subsection">
+            <div class="cloud-keys-subtitle" data-i18n="settings_cloud_keys_title">☁️ Externe Cloud-LLM API-Keys (optional)</div>
+            <div class="settings-grid-2">
+              <div class="field-group">
+                <label class="field-label"><span>Gemini</span><code class="cloud-key-env">GEMINI_API_KEY</code></label>
+                <div class="cloud-key-input-wrap">
+                  <input type="password" id="inpGeminiApiKey" autocomplete="off" placeholder="Optional: AIza...">
+                  <button type="button" class="cloud-key-clear-btn" id="btnClearGeminiKey" style="display:none;" title="Key entfernen">✕</button>
+                </div>
+              </div>
+              <div class="field-group">
+                <label class="field-label"><span>OpenAI</span><code class="cloud-key-env">OPENAI_API_KEY</code></label>
+                <div class="cloud-key-input-wrap">
+                  <input type="password" id="inpOpenaiApiKey" autocomplete="off" placeholder="Optional: sk-...">
+                  <button type="button" class="cloud-key-clear-btn" id="btnClearOpenaiKey" style="display:none;" title="Key entfernen">✕</button>
+                </div>
+              </div>
+              <div class="field-group">
+                <label class="field-label"><span>OpenRouter</span><code class="cloud-key-env">OPENROUTER_API_KEY</code></label>
+                <div class="cloud-key-input-wrap">
+                  <input type="password" id="inpOpenrouterApiKey" autocomplete="off" placeholder="Optional: sk-or-...">
+                  <button type="button" class="cloud-key-clear-btn" id="btnClearOpenrouterKey" style="display:none;" title="Key entfernen">✕</button>
+                </div>
+              </div>
+              <div class="field-group">
+                <label class="field-label"><span>Groq</span><code class="cloud-key-env">GROQ_API_KEY</code></label>
+                <div class="cloud-key-input-wrap">
+                  <input type="password" id="inpGroqApiKey" autocomplete="off" placeholder="Optional: gsk_...">
+                  <button type="button" class="cloud-key-clear-btn" id="btnClearGroqKey" style="display:none;" title="Key entfernen">✕</button>
+                </div>
+              </div>
+            </div>
+            <div class="cloud-keys-hint" data-i18n="settings_cloud_keys_hint">
+              🔒 Keys werden lokal per Windows-DPAPI verschlüsselt gespeichert, nicht in Releases geteilt und beim ComfyUI-Start automatisch übergeben. Nach Änderung ComfyUI ggf. neu starten.
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. DiscordGIF -->
+        <div class="settings-section settings-section--gif">
+          <div class="settings-section-header">
+            <span class="settings-section-title" data-i18n="settings_sec_gif">👾 DiscordGIF</span>
+            <span class="settings-badge" data-i18n="settings_badge_gif">GIF-Tab</span>
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-gif-i18n="settings_gif_dir">Lokaler GIF-Ordner (eigene GIFs)</label>
+            <div class="settings-conn-row">
+              <input type="text" id="inpGifDir" value="" placeholder="z. B. D:\Bilder\MyGIFs">
+              <button type="button" class="btn-action" id="btnBrowseGifDir" style="padding:7px 12px; font-size:12px; white-space:nowrap;" data-gif-i18n="btn_browse">📁 Durchsuchen</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn-action" id="btnSaveSettings" style="background:var(--accent); color:#fff; border-color:var(--accent);" data-i18n="settings_save_btn">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Delete Image Modal -->
+  <div class="modal-overlay" id="confirmDeleteModal" style="display:none;">
+    <div class="modal-card" style="width: 440px;">
+      <div class="modal-header">
+        <h3 style="display: flex; align-items: center; gap: 8px;">
+          <span style="color: var(--danger);">🗑️</span>
+          <span data-i18n="delete_modal_title">Bild löschen?</span>
+        </h3>
+        <button class="modal-close" id="btnCloseConfirmDelete">✕</button>
+      </div>
+      <div class="modal-body" style="display: flex; gap: 14px; align-items: center;">
+        <img id="confirmDeleteThumb" src="" alt="Vorschau" style="width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); flex-shrink: 0; background: #000;">
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-weight: 600; font-size: 13px; color: var(--text); word-break: break-all;" id="confirmDeleteFilename">bild.png</div>
+          <p style="color: var(--mute); font-size: 12px; margin-top: 6px; line-height: 1.4;" data-i18n="delete_modal_warning">
+            Dieses Bild wird dauerhaft von der Festplatte und aus der Galerie entfernt.
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 12px 18px; border-top: 1px solid var(--line); background: var(--panel2);">
+        <button type="button" class="btn-action" id="btnCancelDeleteModal" style="padding: 7px 14px; font-size: 13px;" data-i18n="btn_cancel">Abbrechen</button>
+        <button type="button" class="btn-action" id="btnConfirmDeleteModal" style="background: var(--danger); border-color: var(--danger); color: #fff; font-weight: 600; padding: 7px 16px; font-size: 13px;" data-i18n="btn_delete">🗑️ Löschen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GitHub Update Modal -->
+  <div class="modal-overlay" id="updateModal" style="display:none;">
+    <div class="modal-card" style="width: 500px; max-width: 94vw;">
+      <div class="modal-header">
+        <h3 style="display: flex; align-items: center; gap: 8px;">
+          <span>⬆️</span>
+          <span id="updateModalTitle">Update verfügbar</span>
+        </h3>
+        <button class="modal-close" id="btnCloseUpdateModal">✕</button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="update-version-row">
+          <span class="update-ver-pill" id="updateCurrentVer">Aktuell: v0.88</span>
+          <span class="update-ver-arrow">→</span>
+          <span class="update-ver-pill update-ver-pill--new" id="updateNewVer">Neu: v0.89</span>
+        </div>
+        <p id="updateQuestionText" style="margin: 0; font-size: 13px; color: var(--text); line-height: 1.45;">
+          Es ist eine neue Version auf GitHub verfügbar. Möchtest du das Update jetzt herunterladen und installieren?
+        </p>
+        <div id="updateNotesWrap" style="display:none;">
+          <div style="font-size: 11px; font-weight: 600; color: var(--mute); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px;">Release Notes</div>
+          <pre id="updateNotesText" class="update-notes-box"></pre>
+        </div>
+        <div id="updateSourceHint" style="display:none; font-size: 12px; color: var(--mute); background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;">
+          Hinweis: Die automatische 1-Klick-Installation steht in der kompilierten <code>StudioCockpit.exe</code> zur Verfügung. Du kannst das Release direkt auf GitHub öffnen.
+        </div>
+        <div id="updateProgressWrap" style="display:none;">
+          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px;">
+            <span id="updateProgressText">Lade Update herunter…</span>
+            <span id="updateProgressPct">0%</span>
+          </div>
+          <div class="update-progress-track">
+            <div class="update-progress-fill" id="updateProgressFill" style="width:0%;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--line); background: var(--panel2);">
+        <button type="button" class="btn-action" id="btnDismissUpdate" style="padding: 7px 14px; font-size: 13px;">Später</button>
+        <a class="btn-action" id="btnOpenReleaseUrl" href="https://github.com/tmode-1960/TA-StudioCockpit/releases" target="_blank" rel="noopener" style="padding: 7px 14px; font-size: 13px; text-decoration: none;">GitHub öffnen</a>
+        <button type="button" class="btn-action" id="btnInstallUpdate" style="background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; padding: 7px 16px; font-size: 13px;">⬇️ Jetzt installieren</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- In-App Preset Editor Modal -->
+  <div class="modal-overlay" id="presetEditorModal" style="display:none;">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <h3 id="presetEditorModalTitle">Preset Editor</h3>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-action" id="btnOpenExternalPreset" title="In neuem Browser-Tab öffnen" data-i18n-title="btn_open_external_title" data-i18n="btn_open_external">↗ Im Tab öffnen</button>
+          <button class="modal-close" id="btnClosePresetEditor">✕</button>
+        </div>
+      </div>
+      <div class="modal-body" style="padding:0; height:600px;">
+        <iframe id="presetEditorIframe" src="" style="width:100%; height:100%; border:none; background:#171a23;"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- ComfyUI Offline Prompt Modal -->
+  <div class="modal-overlay" id="comfyOfflineModal" style="display:none;">
+    <div class="modal-card" style="width: 440px;">
+      <div class="modal-header">
+        <h3 style="display: flex; align-items: center; gap: 8px;">
+          <span style="color: #f87171;">⚡</span>
+          <span data-i18n="comfy_offline_modal_title">ComfyUI ist nicht gestartet</span>
+        </h3>
+        <button class="modal-close" id="btnCloseComfyOfflineModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--text); font-size: 13px; line-height: 1.5; margin: 0;" data-i18n="comfy_offline_modal_desc">
+          Um ein Bild zu generieren, muss ComfyUI zuerst gestartet werden. Möchtest du ComfyUI jetzt starten?
+        </p>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 12px 18px; border-top: 1px solid var(--line); background: var(--panel2);">
+        <button type="button" class="btn-action" id="btnCancelComfyOffline" style="padding: 7px 14px; font-size: 13px;" data-i18n="btn_cancel">Abbrechen</button>
+        <button type="button" class="btn-action" id="btnSettingsComfyOffline" style="padding: 7px 14px; font-size: 13px;" data-i18n="comfy_offline_btn_settings">⚙️ Einstellungen</button>
+        <button type="button" class="btn-action" id="btnStartComfyFromModal" style="background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; padding: 7px 16px; font-size: 13px;" data-i18n="comfy_offline_btn_start">⚡ ComfyUI jetzt starten</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Missing Custom Nodes Modal -->
+  <div class="modal-overlay" id="missingNodesModal" style="display:none;">
+    <div class="modal-card" style="width: 580px; max-width: 94vw;">
+      <div class="modal-header">
+        <h3 style="display: flex; align-items: center; gap: 8px;">
+          <span style="color: var(--accent);">🧩</span>
+          <span data-i18n="missing_nodes_title">Fehlende ComfyUI Custom Nodes</span>
+        </h3>
+        <button class="modal-close" id="btnCloseMissingNodesModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="missingNodesDesc" style="color: var(--text); font-size: 13px; line-height: 1.5; margin: 0;" data-i18n="missing_nodes_desc">
+          Für den Workflow fehlen in deiner ComfyUI-Installation benötigte Custom-Node-Packs. Sollen die ausgewählten Packs jetzt automatisch installiert werden?
+        </p>
+
+        <div id="missingNodesDirGroup" style="display: none; margin-top: 12px;">
+          <label for="inpMissingNodesComfyDir" style="display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px;" data-i18n="missing_nodes_dir_label">ComfyUI-Verzeichnis (z. B. C:\ComfyUI_windows_portable)</label>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="text" id="inpMissingNodesComfyDir" placeholder="C:\ComfyUI_windows_portable" style="flex: 1; min-width: 0; box-sizing: border-box;">
+            <button type="button" class="btn-action" id="btnBrowseMissingNodesDir" style="padding: 7px 12px; font-size: 12px; white-space: nowrap;" data-i18n="missing_nodes_btn_browse">📁 Ordner wählen</button>
+          </div>
+        </div>
+
+        <div class="missing-nodes-list" id="missingNodesList"></div>
+
+        <div class="install-progress-wrap" id="installNodesProgressWrap">
+          <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted); margin-bottom: 5px;">
+            <span id="installNodesProgressText">Installiere...</span>
+            <span id="installNodesProgressCount">0 / 0</span>
+          </div>
+          <div class="install-progress-track">
+            <div class="install-progress-bar" id="installNodesProgressBar"></div>
+          </div>
+          <div class="install-log-box" id="installNodesLog"></div>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 12px 18px; border-top: 1px solid var(--line); background: var(--panel2); flex-wrap: wrap;">
+        <button type="button" class="btn-action" id="btnDismissMissingNodes" style="padding: 7px 14px; font-size: 13px;" data-i18n="missing_nodes_btn_later">Später</button>
+        <button type="button" class="btn-action" id="btnRecheckMissingNodes" style="padding: 7px 14px; font-size: 13px;" data-i18n="missing_nodes_btn_recheck">🔄 Neu prüfen</button>
+        <button type="button" class="btn-action" id="btnInstallMissingNodes" style="background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; padding: 7px 16px; font-size: 13px;" data-i18n="missing_nodes_btn_install">⬇️ Jetzt installieren</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LoRA Manager Modal -->
+  <div class="modal-overlay" id="loraManagerModal" style="display:none;">
+    <div class="modal-card lora-manager-modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+          <h3 style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
+            <span>🎭</span>
+            <span data-i18n="lora_mgr_modal_title">ComfyUI LoRA-Manager</span>
+          </h3>
+          <span id="loraManagerModalUrl" class="lora-mgr-url-badge"></span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <button type="button" class="btn-action" id="btnLoraMgrSync" title="LoRAs ins Cockpit synchronisieren" data-i18n="lora_mgr_btn_sync" data-i18n-title="lora_mgr_btn_sync_title" style="padding: 4px 10px; font-size: 12px;">🔄 Sync</button>
+          <button type="button" class="btn-action" id="btnLoraMgrReload" title="LoRA-Manager neu laden" data-i18n="lora_mgr_btn_reload" data-i18n-title="lora_mgr_btn_reload_title" style="padding: 4px 10px; font-size: 12px;">↻ Neu laden</button>
+          <button type="button" class="btn-action" id="btnLoraMgrExternal" title="Im externen Browser öffnen" data-i18n="lora_mgr_btn_external" data-i18n-title="lora_mgr_btn_external_title" style="padding: 4px 10px; font-size: 12px;">↗ Browser</button>
+          <button type="button" class="modal-close" id="btnCloseLoraManagerModal">✕</button>
+        </div>
+      </div>
+      <div class="modal-body lora-manager-modal-body">
+        <div class="lora-mgr-loading" id="loraManagerLoading">
+          <div class="app-loading-ring"></div>
+          <span data-i18n="lora_mgr_loading">LoRA-Manager wird geladen...</span>
+        </div>
+        <iframe id="loraManagerFrame" class="lora-mgr-frame" src="about:blank" title="ComfyUI LoRA Manager"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Startup Loading Overlay -->
+  <div class="app-loading-overlay" id="appLoadingOverlay">
+    <div class="app-loading-card">
+      <div class="app-loading-ring"></div>
+      <div class="app-loading-text" data-i18n="app_loading_text">StudioCockpit wird geladen...</div>
+    </div>
+  </div>
+
+  <!-- Custom Text Context Menu (Copy / Cut / Paste / Select All) -->
+  <div id="studioContextMenu" class="studio-context-menu" style="display:none;">
+    <button type="button" class="studio-context-item" data-ctx="copy" data-gif-i18n="ctx_copy">📋 Kopieren</button>
+    <button type="button" class="studio-context-item" data-ctx="cut" data-gif-i18n="ctx_cut">✂️ Ausschneiden</button>
+    <button type="button" class="studio-context-item" data-ctx="paste" data-gif-i18n="ctx_paste">📥 Einfügen</button>
+    <div class="studio-context-sep"></div>
+    <button type="button" class="studio-context-item" data-ctx="selectAll" data-gif-i18n="ctx_select_all">🔘 Alles auswählen</button>
+  </div>
+
+  <!-- Module: Gallery (hidden by default) -->
+  <div class="gallery-layout" id="moduleGalleryView" style="display:none;">
+    <aside class="gallery-sidebar">
+      <div class="gallery-sidebar-head">
+        <span class="gallery-sidebar-title" id="galSidebarTitle">📚 Bibliothek</span>
+        <div style="display:flex; gap:4px;">
+          <button type="button" class="btn-action" id="btnGalAddRoot" title="Weiteren Ordner einbinden" style="padding:3px 7px; font-size:11px;">+ Ordner</button>
+          <button type="button" class="btn-action" id="btnGalRemoveRoot" title="Eingebundenen Ordner entfernen" style="padding:3px 7px; font-size:11px; color:var(--danger);" hidden>✕</button>
+          <button type="button" class="btn-action" id="btnGalRescan" title="Ordner neu scannen" style="padding:3px 8px; font-size:11px;">🔄</button>
+        </div>
+      </div>
+      <select class="gallery-select" id="selGalRoot" title="Aktiver Root-Ordner" style="width:100%;"></select>
+      <input type="text" class="gallery-folder-filter" id="inpGalFolderFilter" placeholder="🔍 Ordner filtern...">
+      <div class="gallery-smart-list">
+        <button type="button" class="gallery-tree-item active" data-gal-scope="all" id="btnGalScopeAll">
+          <span class="gal-tree-name">🗂️ Alle Medien</span>
+          <span class="gal-tree-count" id="galCountAll">0</span>
+        </button>
+        <button type="button" class="gallery-tree-item" data-gal-scope="favorites" id="btnGalScopeFav">
+          <span class="gal-tree-name">⭐ Favoriten</span>
+          <span class="gal-tree-count" id="galCountFav">0</span>
+        </button>
+        <button type="button" class="gallery-tree-item" data-gal-scope="__root__" id="btnGalScopeRoot">
+          <span class="gal-tree-name">📄 (Root)</span>
+          <span class="gal-tree-count" id="galCountRoot">0</span>
+        </button>
+      </div>
+      <div class="gallery-tree-divider" style="display:flex; justify-content:space-between; align-items:center;">
+        <span>ORDNER</span>
+        <button type="button" class="btn-action" id="btnGalNewFolder" title="Neuen Unterordner anlegen" style="padding:1px 6px; font-size:10px;">+ Neu</button>
+      </div>
+      <div class="gallery-folder-tree" id="galFolderTree"></div>
+    </aside>
+
+    <main class="gallery-main">
+      <div class="gallery-toolbar">
+        <input type="text" class="gallery-search-input" id="inpGalSearch" placeholder="🔍 Prompt, Modell, Seed oder Dateiname suchen...">
+        <select class="gallery-select" id="selGalFormat" title="Format">
+          <option value="all">Alle Formate</option>
+          <option value="image">🖼️ Nur Bilder</option>
+          <option value="video">🎬 Nur Videos</option>
+          <option value="png">PNG</option>
+          <option value="webp">WEBP</option>
+          <option value="jpg">JPG</option>
+          <option value="mp4">MP4</option>
+          <option value="webm">WEBM</option>
+          <option value="mov">MOV</option>
+        </select>
+        <select class="gallery-select" id="selGalSort" title="Sortierung">
+          <option value="newest">Neueste zuerst</option>
+          <option value="oldest">Älteste zuerst</option>
+          <option value="name">Name (A–Z)</option>
+        </select>
+        <div class="gallery-mode-switch" id="galModeSwitch">
+          <button type="button" class="pill-btn active" data-gal-mode="masonry" id="btnGalModeMasonry">Masonry</button>
+          <button type="button" class="pill-btn" data-gal-mode="grid" id="btnGalModeGrid">1:1 Grid</button>
+          <button type="button" class="pill-btn" data-gal-mode="rows" id="btnGalModeRows">Explorer Rows</button>
+        </div>
+        <button type="button" class="btn-action" id="btnGalSelectMode" title="Mehrfachauswahl zum Verschieben / Kopieren / Löschen (oder Strg+Klick)" style="padding:5px 9px; font-size:12px;">☑ Auswahl</button>
+        <span class="value-badge" id="galStatsBadge">0</span>
+        <button type="button" class="btn-action active" id="btnGalToggleTuning" title="Layout- &amp; Design-Regler ein-/ausblenden" style="padding:5px 10px; font-size:12px;">🎛️ Layout</button>
+      </div>
+
+      <div class="gallery-batch-bar" id="galBatchBar" hidden>
+        <span class="value-badge" id="galBatchCount">0 ausgewählt</span>
+        <select class="gallery-select" id="selGalBatchTarget" title="Zielordner"></select>
+        <button type="button" class="btn-action" id="btnGalBatchMove">📁 Verschieben</button>
+        <button type="button" class="btn-action" id="btnGalBatchCopy">📋 Kopieren</button>
+        <button type="button" class="btn-action" id="btnGalBatchDelete" style="color:var(--danger);">🗑️ Löschen</button>
+        <div class="spacer"></div>
+        <button type="button" class="btn-action" id="btnGalBatchClear">✕ Aufheben</button>
+      </div>
+
+      <div class="gallery-stage" id="galStage">
+        <div class="gallery-grid mode-masonry" id="galGrid"></div>
+        <div class="gallery-empty" id="galEmpty" hidden>Keine Bilder gefunden.</div>
+        <div class="gallery-load-more-wrap" id="galLoadMoreWrap" hidden>
+          <button type="button" class="btn-action" id="btnGalLoadMore">Mehr laden…</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Tuning Sidebar (Stufe 2) -->
+    <aside class="gallery-tuning" id="galTuningSidebar">
+      <div class="gallery-sidebar-head">
+        <span class="gallery-sidebar-title">🎛️ Layout &amp; Geometry</span>
+        <button type="button" class="btn-action" id="btnGalResetLayout" title="Layout zurücksetzen" style="padding:2px 8px; font-size:11px;">↺</button>
+      </div>
+
+      <div class="gal-tune-group">
+        <div class="gal-tune-row">
+          <span class="gal-tune-label">Spalten (Columns)</span>
+          <span class="value-badge" id="valGalCols">5</span>
+        </div>
+        <input type="range" id="rngGalCols" min="2" max="8" step="1" value="5">
+      </div>
+
+      <div class="gal-tune-group">
+        <div class="gal-tune-row">
+          <span class="gal-tune-label">Canvas-Breite</span>
+          <span class="value-badge" id="valGalWidth">100%</span>
+        </div>
+        <input type="range" id="rngGalWidth" min="60" max="100" step="2" value="100">
+      </div>
+
+      <div class="gal-tune-group">
+        <div class="gal-tune-row">
+          <span class="gal-tune-label">Abstand (Card Gap)</span>
+          <span class="value-badge" id="valGalGap">12px</span>
+        </div>
+        <input type="range" id="rngGalGap" min="4" max="28" step="2" value="12">
+      </div>
+
+      <div class="gal-tune-group">
+        <div class="gal-tune-row">
+          <span class="gal-tune-label">Eckenradius</span>
+          <span class="value-badge" id="valGalRadius">10px</span>
+        </div>
+        <input type="range" id="rngGalRadius" min="0" max="24" step="1" value="10">
+      </div>
+
+      <label class="gal-tune-check">
+        <input type="checkbox" id="chkGalHoverInfo" checked>
+        <span>Hover-Infos auf Kacheln</span>
+      </label>
+    </aside>
+  </div>
+
+  <!-- Gallery Lightbox Modal -->
+  <div class="gal-lightbox" id="galLightbox" hidden>
+    <div class="gal-lightbox-backdrop" id="galLightboxBackdrop"></div>
+    <div class="gal-lightbox-dialog">
+      <div class="gal-lightbox-stage">
+        <button type="button" class="gal-lb-nav gal-lb-prev" id="btnGalLbPrev" title="Vorheriges Bild (←)">‹</button>
+        <img id="galLbImg" src="" alt="">
+        <video id="galLbVideo" controls autoplay loop playsinline hidden></video>
+        <button type="button" class="gal-lb-nav gal-lb-next" id="btnGalLbNext" title="Nächstes Bild (→)">›</button>
+      </div>
+      <aside class="gal-lightbox-inspector">
+        <div class="gal-lb-head">
+          <div class="gal-lb-filename" id="galLbFilename">—</div>
+          <button type="button" class="modal-close" id="btnGalLbClose">✕</button>
+        </div>
+        <div class="gal-lb-meta-row" id="galLbMetaRow">—</div>
+        <div class="gal-lb-actions">
+          <button type="button" class="btn-primary" id="btnGalLbApply" style="width:100%;">⚡ Parameter ins Cockpit laden</button>
+          <div class="gal-lb-actions-row">
+            <button type="button" class="btn-action" id="btnGalLbFav">☆ Favorit</button>
+            <button type="button" class="btn-action" id="btnGalLbGif">👾 DiscordGIF</button>
+            <button type="button" class="btn-action" id="btnGalLbFolder" title="Im Explorer zeigen">📁 Ordner</button>
+            <button type="button" class="btn-action" id="btnGalLbDelete" title="Löschen" style="color:var(--danger);">🗑️</button>
+          </div>
+        </div>
+        <div class="gal-lb-fields">
+          <div class="gal-lb-field">
+            <div class="gal-lb-label">Model / Seed</div>
+            <div class="gal-lb-val" id="galLbModelSeed">—</div>
+          </div>
+          <div class="gal-lb-field">
+            <div class="gal-lb-label">Positive Prompt</div>
+            <div class="gal-lb-text" id="galLbPrompt">—</div>
+          </div>
+          <div class="gal-lb-field" id="galLbAddWrap" hidden>
+            <div class="gal-lb-label">Additional Prompt</div>
+            <div class="gal-lb-text" id="galLbAddPrompt"></div>
+          </div>
+          <div class="gal-lb-field" id="galLbNegWrap" hidden>
+            <div class="gal-lb-label">Negative Prompt</div>
+            <div class="gal-lb-text" id="galLbNegPrompt"></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="/app.js?v=0.89"></script>
+  <script src="/gif_module.js?v=0.79"></script>
+  <script src="/gallery_module.js?v=3"></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+[
+  {
+    "id": "ae46ff45",
+    "title": "Lachender Smiley",
+    "filename": "starter_ae46ff45.gif",
+    "url": "",
+    "tags": [
+      "lachen",
+      "funny",
+      "lol",
+      "happy"
+    ],
+    "favorite": true,
+    "use_count": 0,
+    "created_at": 1794837825
+  },
+  {
+    "id": "0681cdaa",
+    "title": "Thumbs Up!",
+    "filename": "starter_0681cdaa.gif",
+    "url": "",
+    "tags": [
+      "super",
+      "yes",
+      "top",
+      "nice"
+    ],
+    "favorite": false,
+    "use_count": 0,
+    "created_at": 1794837825
+  },
+  {
+    "id": "ee02540b",
+    "title": "Party Hype",
+    "filename": "starter_ee02540b.gif",
+    "url": "",
+    "tags": [
+      "party",
+      "dance",
+      "hype",
+      "feier"
+    ],
+    "favorite": false,
+    "use_count": 0,
+    "created_at": 1794837825
+  },
+  {
+    "id": "10c5a05a",
+    "title": "Mind Blown",
+    "filename": "starter_10c5a05a.gif",
+    "url": "",
+    "tags": [
+      "wow",
+      "boom",
+      "mindblown"
+    ],
+    "favorite": false,
+    "use_count": 0,
+    "created_at": 1794837825
+  }
+]

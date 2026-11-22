@@ -1,0 +1,21 @@
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Build & Distribution
+build/
+dist/
+
+# Nutzerspezifische Konfigurationsdateien – nicht durch Updates ueberschreiben
+data/config.json
+data/webview/
+backups/
+extern_resources/
+
+# ta-comfyui-nodes-pack Konfigurationsdateien
+ta_discord_link.json
+ta_model_choices.json
+ta_model_presets.json
+ta_sampler_presets.json
+ta_smart_llm_models.json

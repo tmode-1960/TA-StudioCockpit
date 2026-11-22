@@ -1,0 +1,1 @@
+# StudioCockpit modular plugins package
