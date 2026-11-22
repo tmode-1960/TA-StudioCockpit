@@ -36,7 +36,7 @@
       "name": "cm_bubblegum_krea2",
       "strength": 0.75,
       "clipStrength": 0.75,
-      "active": true,
+      "active": false,
       "trigger": "cm_bubblegum",
       "category": "krea2"
     },
@@ -44,7 +44,7 @@
       "name": "cm_oldman_krea2",
       "strength": 0.75,
       "clipStrength": 0.75,
-      "active": true,
+      "active": false,
       "trigger": "cm_oldman",
       "category": "krea2"
     },

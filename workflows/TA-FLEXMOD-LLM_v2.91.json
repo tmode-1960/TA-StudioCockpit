@@ -6887,7 +6887,7 @@
           {
             "name": "cm_bubblegum_krea2",
             "strength": "0.75",
-            "active": true,
+            "active": false,
             "expanded": false,
             "clipStrength": "0.75",
             "selected": false,
@@ -6896,10 +6896,10 @@
           {
             "name": "cm_oldman_krea2",
             "strength": "0.75",
-            "active": true,
+            "active": false,
             "expanded": false,
             "clipStrength": "0.75",
-            "selected": true,
+            "selected": false,
             "locked": false
           }
         ]
@@ -6950,7 +6950,7 @@
           {
             "name": "cm_bubblegum_krea2",
             "strength": "0.75",
-            "active": true,
+            "active": false,
             "expanded": false,
             "clipStrength": "0.75",
             "selected": false,
@@ -6959,10 +6959,10 @@
           {
             "name": "cm_oldman_krea2",
             "strength": "0.75",
-            "active": true,
+            "active": false,
             "expanded": false,
             "clipStrength": "0.75",
-            "selected": true,
+            "selected": false,
             "locked": false
           }
         ]
