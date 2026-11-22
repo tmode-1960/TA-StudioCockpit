@@ -36,7 +36,46 @@
     folders: [],
     lbIndex: -1,
     searchTimer: null,
+    fetchSeq: 0,
   };
+
+  function setLoadingOverlay(show) {
+    const overlay = $("galLoadingOverlay");
+    if (!overlay) return;
+    if (show) {
+      const txt = $("galLoadingText");
+      if (txt) {
+        txt.textContent = getLang() === "en" ? "Loading images..." : "Bilder werden geladen...";
+      }
+      overlay.classList.remove("is-hidden");
+    } else {
+      overlay.classList.add("is-hidden");
+    }
+  }
+
+  function waitForInitialImages(imgs, timeoutMs = 1500) {
+    const pending = imgs.slice(0, 8).filter((img) => img && !img.complete);
+    if (pending.length === 0) return Promise.resolve();
+    return new Promise((resolve) => {
+      let remaining = pending.length;
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        resolve();
+      };
+      const onSettle = () => {
+        remaining -= 1;
+        if (remaining <= 0) finish();
+      };
+      const timer = setTimeout(finish, timeoutMs);
+      pending.forEach((img) => {
+        img.addEventListener("load", onSettle, { once: true });
+        img.addEventListener("error", onSettle, { once: true });
+      });
+    });
+  }
 
   function getLang() {
     return document.documentElement.lang === "en" ? "en" : "de";
@@ -66,7 +105,10 @@
     }
   }
 
-  async function fetchItems(append = false) {
+  async function fetchItems(append = false, existingReqId = null) {
+    const reqId = existingReqId || ++state.fetchSeq;
+    setLoadingOverlay(true);
+
     if (!append) state.offset = 0;
     const params = new URLSearchParams({
       root: state.root,
@@ -81,8 +123,9 @@
 
     try {
       const resp = await fetch(`/api/gallery/items?${params.toString()}`);
-      if (!resp.ok) return;
+      if (!resp.ok || reqId !== state.fetchSeq) return;
       const data = await resp.json();
+      if (reqId !== state.fetchSeq) return;
 
       if (Array.isArray(data.roots)) {
         state.roots = data.roots;
@@ -107,14 +150,20 @@
 
       renderFolderTree();
       renderBatchTargetFolders();
-      renderGrid(append, data.items || []);
+      const renderedImgs = renderGrid(append, data.items || []);
 
       const loadMoreWrap = $("galLoadMoreWrap");
       if (loadMoreWrap) {
         loadMoreWrap.hidden = state.items.length >= state.totalFiltered;
       }
+
+      await waitForInitialImages(renderedImgs);
     } catch (err) {
       console.error("[Gallery] fetchItems error:", err);
+    } finally {
+      if (reqId === state.fetchSeq) {
+        setLoadingOverlay(false);
+      }
     }
   }
 
@@ -373,7 +422,7 @@
   function renderGrid(append, newItems) {
     const grid = $("galGrid");
     const empty = $("galEmpty");
-    if (!grid) return;
+    if (!grid) return [];
 
     if (!append) {
       grid.innerHTML = "";
@@ -381,17 +430,22 @@
 
     if (state.items.length === 0) {
       if (empty) empty.hidden = false;
-      return;
+      return [];
     }
     if (empty) empty.hidden = true;
 
     const startIdx = append ? state.items.length - newItems.length : 0;
     const listToRender = append ? newItems : state.items;
     const frag = document.createDocumentFragment();
+    const imgs = [];
     listToRender.forEach((item, i) => {
-      frag.appendChild(createCardElement(item, startIdx + i));
+      const card = createCardElement(item, startIdx + i);
+      const img = card.querySelector("img");
+      if (img) imgs.push(img);
+      frag.appendChild(card);
     });
     grid.appendChild(frag);
+    return imgs;
   }
 
   async function toggleFavorite(item, btnEl = null) {
@@ -561,12 +615,18 @@
     });
 
     $("btnGalRescan")?.addEventListener("click", async () => {
-      await fetch("/api/gallery/rescan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ root: state.root }),
-      });
-      await fetchItems(false);
+      const reqId = ++state.fetchSeq;
+      setLoadingOverlay(true);
+      try {
+        await fetch("/api/gallery/rescan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ root: state.root }),
+        });
+      } catch (_) {}
+      if (reqId === state.fetchSeq) {
+        await fetchItems(false, reqId);
+      }
     });
 
     $("inpGalFolderFilter")?.addEventListener("input", () => renderFolderTree());

@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v0.90 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v0.91 - FLEXMOD Edition)
 
 Eine moderne, schlanke Benutzeroberfläche zur Steuerung des komplexen **TA-FLEXMOD-LLM** ComfyUI-Workflows im unverwechselbaren **thomo.ART** Dark Studio UI Design (analog zu `tA-VideoMaker` und `tA-MusicMaker`).
 
