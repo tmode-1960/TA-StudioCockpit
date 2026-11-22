@@ -224,9 +224,12 @@
       overlay_img: "🖼️ Bild-Signatur / Logo",
       btn_overlay_img_upload: "📁 Logo wählen (PNG)",
       btn_overlay_img_clear_title: "Logo entfernen",
-      scale_label: "Skalierung",
-      opacity_label: "Deckkraft (%)",
-      overlay_img_xy_hint: "0, 0 = Bildmitte",
+      pos_x_label: "Position X (px)",
+      pos_y_label: "Position Y (px)",
+      scale_max_label: "Skalierung (max. 0.50)",
+      overlay_img_xy_hint: "0, 0 = Oben links",
+      btn_overlay_img_br: "↘️ Unten rechts",
+      btn_overlay_img_preview: "👁️ Vorschau",
 
       // Prompt Hub
       card_prompthub: "Prompt-Hub",
@@ -695,9 +698,12 @@
       overlay_img: "🖼️ Image Signature / Logo",
       btn_overlay_img_upload: "📁 Choose Logo (PNG)",
       btn_overlay_img_clear_title: "Remove logo",
-      scale_label: "Scale",
-      opacity_label: "Opacity (%)",
-      overlay_img_xy_hint: "0, 0 = Image center",
+      pos_x_label: "Position X (px)",
+      pos_y_label: "Position Y (px)",
+      scale_max_label: "Scale (max. 0.50)",
+      overlay_img_xy_hint: "0, 0 = Top left",
+      btn_overlay_img_br: "↘️ Bottom right",
+      btn_overlay_img_preview: "👁️ Preview",
 
       // Prompt Hub
       card_prompthub: "Prompt Hub",
@@ -1940,9 +1946,12 @@
   const inpOverlayImgPosX = document.getElementById("inpOverlayImgPosX");
   const inpOverlayImgPosY = document.getElementById("inpOverlayImgPosY");
   const inpOverlayImgScale = document.getElementById("inpOverlayImgScale");
-  const inpOverlayImgOpacity = document.getElementById("inpOverlayImgOpacity");
-  const inpOverlayImgRotation = document.getElementById("inpOverlayImgRotation");
+  const btnOverlayImgBottomRight = document.getElementById("btnOverlayImgBottomRight");
+  const btnOverlayImgPreview = document.getElementById("btnOverlayImgPreview");
+  const logoPreviewOverlay = document.getElementById("logoPreviewOverlay");
+  const logoPreviewImg = document.getElementById("logoPreviewImg");
   let currentOverlayImgFilename = "";
+  let overlayImgPreviewActive = false;
 
   const overlayStatusBadge = document.getElementById("overlayStatusBadge");
 
@@ -2000,6 +2009,95 @@
     }
   }
 
+  function getClampedLogoScale() {
+    const raw = inpOverlayImgScale ? parseFloat(inpOverlayImgScale.value) : 0.25;
+    if (isNaN(raw)) return 0.25;
+    return Math.max(0.05, Math.min(0.50, raw));
+  }
+
+  function getLogoNaturalSize() {
+    const lw = (imgOverlayThumb && imgOverlayThumb.naturalWidth > 0) ? imgOverlayThumb.naturalWidth : 786;
+    const lh = (imgOverlayThumb && imgOverlayThumb.naturalHeight > 0) ? imgOverlayThumb.naturalHeight : 790;
+    return { lw, lh };
+  }
+
+  function renderLogoPreviewOverlay() {
+    if (!logoPreviewOverlay || !logoPreviewImg) return;
+    if (!overlayImgPreviewActive || !currentOverlayImgFilename) {
+      logoPreviewOverlay.style.display = "none";
+      return;
+    }
+    const vc = document.getElementById("viewerCanvas");
+    const mp = document.getElementById("mainPreview");
+    if (!vc) return;
+    const vcRect = vc.getBoundingClientRect();
+    const W = Math.max(64, Number(currentPixW) || 1024);
+    const H = Math.max(64, Number(currentPixH) || 1024);
+
+    let boxLeft = 0, boxTop = 0, boxW = vcRect.width, boxH = vcRect.height;
+    if (mp && mp.style.display !== "none" && mp.naturalWidth > 0) {
+      const mpRect = mp.getBoundingClientRect();
+      boxLeft = mpRect.left - vcRect.left;
+      boxTop = mpRect.top - vcRect.top;
+      boxW = mpRect.width;
+      boxH = mpRect.height;
+    } else {
+      const targetRatio = W / H;
+      const vcRatio = vcRect.width / Math.max(1, vcRect.height);
+      if (vcRatio > targetRatio) {
+        boxH = vcRect.height * 0.92;
+        boxW = boxH * targetRatio;
+      } else {
+        boxW = vcRect.width * 0.92;
+        boxH = boxW / targetRatio;
+      }
+      boxLeft = (vcRect.width - boxW) / 2;
+      boxTop = (vcRect.height - boxH) / 2;
+    }
+
+    const { lw, lh } = getLogoNaturalSize();
+    const s = getClampedLogoScale();
+    const sw = lw * s;
+    const sh = lh * s;
+    const px = Math.max(0, parseInt(inpOverlayImgPosX?.value, 10) || 0);
+    const py = Math.max(0, parseInt(inpOverlayImgPosY?.value, 10) || 0);
+
+    logoPreviewOverlay.style.display = "block";
+    logoPreviewOverlay.style.left = `${boxLeft}px`;
+    logoPreviewOverlay.style.top = `${boxTop}px`;
+    logoPreviewOverlay.style.width = `${boxW}px`;
+    logoPreviewOverlay.style.height = `${boxH}px`;
+
+    const srcUrl = (imgOverlayThumb && imgOverlayThumb.src) ? imgOverlayThumb.src : `/view?filename=${encodeURIComponent(currentOverlayImgFilename)}&type=input`;
+    if (logoPreviewImg.src !== srcUrl) logoPreviewImg.src = srcUrl;
+    logoPreviewImg.style.left = `${(px / W) * 100}%`;
+    logoPreviewImg.style.top = `${(py / H) * 100}%`;
+    logoPreviewImg.style.width = `${(sw / W) * 100}%`;
+    logoPreviewImg.style.height = `${(sh / H) * 100}%`;
+  }
+
+  function fitOverlayImgBottomRight(autoScale = false) {
+    const W = Math.max(64, Number(currentPixW) || 1024);
+    const H = Math.max(64, Number(currentPixH) || 1024);
+    const { lw, lh } = getLogoNaturalSize();
+    let s = getClampedLogoScale();
+    if (autoScale) {
+      // Fit nicely (~15% of image width) and never exceed 0.50
+      s = Math.min(0.50, Math.max(0.08, Math.round(((W * 0.15) / lw) * 100) / 100));
+      if (inpOverlayImgScale) inpOverlayImgScale.value = s.toFixed(2);
+    } else if (inpOverlayImgScale && parseFloat(inpOverlayImgScale.value) > 0.50) {
+      s = 0.50;
+      inpOverlayImgScale.value = "0.50";
+    }
+    const sw = Math.round(lw * s);
+    const sh = Math.round(lh * s);
+    const margin = Math.max(16, Math.round(Math.min(W, H) * 0.02));
+    if (inpOverlayImgPosX) inpOverlayImgPosX.value = Math.max(0, W - sw - margin);
+    if (inpOverlayImgPosY) inpOverlayImgPosY.value = Math.max(0, H - sh - margin);
+    renderLogoPreviewOverlay();
+    saveStateDebounced();
+  }
+
   function updateOverlayImgUI(filename, previewUrl = "") {
     currentOverlayImgFilename = filename || "";
     if (badgeOverlayImgFile) {
@@ -2018,7 +2116,12 @@
         imgOverlayThumb.style.display = "none";
       }
     }
+    if (!currentOverlayImgFilename && overlayImgPreviewActive) {
+      overlayImgPreviewActive = false;
+      if (btnOverlayImgPreview) btnOverlayImgPreview.classList.remove("active");
+    }
     updateOverlayStatusBadge();
+    renderLogoPreviewOverlay();
   }
 
   if (btnOverlayImgUpload && inpOverlayImgFile) {
@@ -2037,8 +2140,16 @@
           const uploadedName = data.name;
           if (chkOverlayImg) chkOverlayImg.checked = true;
           updateOverlayImgUI(uploadedName, localUrl);
+          // Wait briefly for thumbnail naturalWidth/Height so bottom-right coords are exact
+          if (imgOverlayThumb) {
+            imgOverlayThumb.onload = () => {
+              fitOverlayImgBottomRight(true);
+              imgOverlayThumb.onload = null;
+            };
+          }
+          fitOverlayImgBottomRight(true);
           saveState();
-          showToast(`Logo "${uploadedName}" geladen & in ComfyUI bereitgestellt!`, "success", 3000);
+          showToast(`Logo "${uploadedName}" geladen & unten rechts eingepasst!`, "success", 3000);
         } else {
           showToast(t("toast_i2i_upload_fail", "Fehler beim Hochladen nach ComfyUI (ist ComfyUI online?)"), "error", 4500);
         }
@@ -2058,6 +2169,62 @@
     });
   }
 
+  if (btnOverlayImgBottomRight) {
+    btnOverlayImgBottomRight.addEventListener("click", () => {
+      fitOverlayImgBottomRight(false);
+    });
+  }
+
+  if (btnOverlayImgPreview) {
+    btnOverlayImgPreview.addEventListener("click", () => {
+      if (!currentOverlayImgFilename) {
+        showToast("Bitte zuerst ein Logo hochladen.", "info", 2500);
+        return;
+      }
+      overlayImgPreviewActive = !overlayImgPreviewActive;
+      btnOverlayImgPreview.classList.toggle("active", overlayImgPreviewActive);
+      btnOverlayImgPreview.style.borderColor = overlayImgPreviewActive ? "var(--accent)" : "";
+      btnOverlayImgPreview.style.color = overlayImgPreviewActive ? "var(--accent)" : "";
+      renderLogoPreviewOverlay();
+    });
+  }
+
+  // Dragging the logo inside the live preview updates X/Y live
+  if (logoPreviewImg) {
+    let dragState = null;
+    logoPreviewImg.addEventListener("mousedown", (e) => {
+      if (!overlayImgPreviewActive || !logoPreviewOverlay) return;
+      e.preventDefault();
+      const boxRect = logoPreviewOverlay.getBoundingClientRect();
+      const startX = parseInt(inpOverlayImgPosX?.value, 10) || 0;
+      const startY = parseInt(inpOverlayImgPosY?.value, 10) || 0;
+      logoPreviewImg.style.cursor = "grabbing";
+      dragState = { clientX: e.clientX, clientY: e.clientY, boxW: boxRect.width, boxH: boxRect.height, startX, startY };
+    });
+    window.addEventListener("mousemove", (e) => {
+      if (!dragState) return;
+      const W = Math.max(64, Number(currentPixW) || 1024);
+      const H = Math.max(64, Number(currentPixH) || 1024);
+      const { lw, lh } = getLogoNaturalSize();
+      const s = getClampedLogoScale();
+      const dx = ((e.clientX - dragState.clientX) / Math.max(1, dragState.boxW)) * W;
+      const dy = ((e.clientY - dragState.clientY) / Math.max(1, dragState.boxH)) * H;
+      const maxX = Math.max(0, Math.round(W - lw * s));
+      const maxY = Math.max(0, Math.round(H - lh * s));
+      if (inpOverlayImgPosX) inpOverlayImgPosX.value = Math.max(0, Math.min(maxX, Math.round(dragState.startX + dx)));
+      if (inpOverlayImgPosY) inpOverlayImgPosY.value = Math.max(0, Math.min(maxY, Math.round(dragState.startY + dy)));
+      renderLogoPreviewOverlay();
+    });
+    window.addEventListener("mouseup", () => {
+      if (!dragState) return;
+      dragState = null;
+      logoPreviewImg.style.cursor = "grab";
+      saveStateDebounced();
+    });
+  }
+
+  window.addEventListener("resize", renderLogoPreviewOverlay);
+
   [chkOverlaySig, chkOverlayAI, chkOverlayImg].forEach(chk => {
     if (chk) chk.addEventListener("change", () => {
       updateOverlayStatusBadge();
@@ -2072,8 +2239,17 @@
     txtOverlayAI, selOverlayAIFont, inpOverlayAISize, selOverlayAIColor,
     selOverlayAIAlign, selOverlayAIJustify, inpOverlayAIPosX, inpOverlayAIPosY,
     inpOverlayAIRotation, inpOverlayAIMargins,
-    inpOverlayImgPosX, inpOverlayImgPosY, inpOverlayImgScale, inpOverlayImgOpacity, inpOverlayImgRotation
+    inpOverlayImgPosX, inpOverlayImgPosY, inpOverlayImgScale
   ];
+
+  [inpOverlayImgPosX, inpOverlayImgPosY, inpOverlayImgScale].forEach(el => {
+    if (el) el.addEventListener("input", () => {
+      if (el === inpOverlayImgScale && parseFloat(el.value) > 0.50) {
+        el.value = "0.50";
+      }
+      renderLogoPreviewOverlay();
+    });
+  });
 
   overlayFormInputs.forEach(el => {
     if (el) {
@@ -4501,11 +4677,9 @@
       overlay_sig_margins: inpOverlaySigMargins ? parseInt(inpOverlaySigMargins.value, 10) || 0 : 0,
       overlay_img_enabled: chkOverlayImg ? chkOverlayImg.checked : false,
       overlay_img_file: currentOverlayImgFilename || "",
-      overlay_img_pos_x: inpOverlayImgPosX ? parseInt(inpOverlayImgPosX.value, 10) || 0 : 0,
-      overlay_img_pos_y: inpOverlayImgPosY ? parseInt(inpOverlayImgPosY.value, 10) || 0 : 0,
-      overlay_img_scale: inpOverlayImgScale ? parseFloat(inpOverlayImgScale.value) || 1.0 : 1.0,
-      overlay_img_opacity: inpOverlayImgOpacity ? (parseFloat(inpOverlayImgOpacity.value) ?? 100) : 100,
-      overlay_img_rotation: inpOverlayImgRotation ? parseFloat(inpOverlayImgRotation.value) || 0 : 0,
+      overlay_img_pos_x: inpOverlayImgPosX ? Math.max(0, parseInt(inpOverlayImgPosX.value, 10) || 0) : 0,
+      overlay_img_pos_y: inpOverlayImgPosY ? Math.max(0, parseInt(inpOverlayImgPosY.value, 10) || 0) : 0,
+      overlay_img_scale: getClampedLogoScale(),
       last_llm_prompt: (txtLLMGeneratedPrompt && !txtLLMGeneratedPrompt.value.startsWith("⏳")) ? txtLLMGeneratedPrompt.value : "",
       loras: loras,
     };
@@ -4791,9 +4965,7 @@
     if (s.overlay_img_file !== undefined) updateOverlayImgUI(s.overlay_img_file);
     if (s.overlay_img_pos_x !== undefined && inpOverlayImgPosX) inpOverlayImgPosX.value = s.overlay_img_pos_x;
     if (s.overlay_img_pos_y !== undefined && inpOverlayImgPosY) inpOverlayImgPosY.value = s.overlay_img_pos_y;
-    if (s.overlay_img_scale !== undefined && inpOverlayImgScale) inpOverlayImgScale.value = s.overlay_img_scale;
-    if (s.overlay_img_opacity !== undefined && inpOverlayImgOpacity) inpOverlayImgOpacity.value = s.overlay_img_opacity;
-    if (s.overlay_img_rotation !== undefined && inpOverlayImgRotation) inpOverlayImgRotation.value = s.overlay_img_rotation;
+    if (s.overlay_img_scale !== undefined && inpOverlayImgScale) inpOverlayImgScale.value = Math.max(0.05, Math.min(0.50, parseFloat(s.overlay_img_scale) || 0.25));
 
     updateOverlayStatusBadge();
     updateOverlayPositionBadges();
@@ -5514,12 +5686,12 @@
       }
       if (pr["2134"] && pr["2134"].inputs) params.overlay_img_enabled = Boolean(pr["2134"].inputs.switch);
       if (pr["2131"] && pr["2131"].inputs && pr["2131"].inputs.image !== undefined) params.overlay_img_file = pr["2131"].inputs.image;
+      if (pr["2135"] && pr["2135"].inputs && pr["2135"].inputs.scale_by !== undefined) {
+        params.overlay_img_scale = Math.max(0.05, Math.min(0.50, Number(pr["2135"].inputs.scale_by)));
+      }
       if (pr["2133"] && pr["2133"].inputs) {
-        if (pr["2133"].inputs.transparency !== undefined) params.overlay_img_opacity = Math.round(Math.max(0, Math.min(100, (1 - Number(pr["2133"].inputs.transparency)) * 100)));
-        if (pr["2133"].inputs.offset_x !== undefined) params.overlay_img_pos_x = pr["2133"].inputs.offset_x;
-        if (pr["2133"].inputs.offset_y !== undefined) params.overlay_img_pos_y = pr["2133"].inputs.offset_y;
-        if (pr["2133"].inputs.rotation_angle !== undefined) params.overlay_img_rotation = pr["2133"].inputs.rotation_angle;
-        if (pr["2133"].inputs.overlay_scale_factor !== undefined) params.overlay_img_scale = pr["2133"].inputs.overlay_scale_factor;
+        if (pr["2133"].inputs.x !== undefined) params.overlay_img_pos_x = pr["2133"].inputs.x;
+        if (pr["2133"].inputs.y !== undefined) params.overlay_img_pos_y = pr["2133"].inputs.y;
       }
       if (wf.nodes && Array.isArray(wf.nodes)) {
         const n1981 = wf.nodes.find(n => n.id === 1981);

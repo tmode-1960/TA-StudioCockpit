@@ -1,8 +1,8 @@
 {
   "id": "7784efe2-8433-4101-ac0d-f5fbc90119a8",
   "revision": 0,
-  "last_node_id": 2134,
-  "last_link_id": 3429,
+  "last_node_id": 2138,
+  "last_link_id": 3433,
   "nodes": [
     {
       "id": 1310,
@@ -3300,7 +3300,7 @@
       "id": 870,
       "type": "SetNode",
       "pos": [
-        2940,
+        3220,
         550
       ],
       "size": [
@@ -8214,7 +8214,7 @@
       "type": "LoadImage",
       "pos": [
         2670,
-        66
+        40
       ],
       "size": [
         260,
@@ -8272,10 +8272,10 @@
     },
     {
       "id": 2132,
-      "type": "JoinImageWithAlpha",
+      "type": "InvertMask",
       "pos": [
         2670,
-        250
+        220
       ],
       "size": [
         210,
@@ -8286,16 +8286,65 @@
       "mode": 0,
       "inputs": [
         {
+          "localized_name": "mask",
+          "name": "mask",
+          "type": "MASK",
+          "link": 3425
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            3430
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "InvertMask"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 2135,
+      "type": "ImageScaleBy",
+      "pos": [
+        2950,
+        40
+      ],
+      "size": [
+        230,
+        82
+      ],
+      "flags": {},
+      "order": 116,
+      "mode": 0,
+      "inputs": [
+        {
           "localized_name": "image",
           "name": "image",
           "type": "IMAGE",
           "link": 3424
         },
         {
-          "localized_name": "alpha",
-          "name": "alpha",
-          "type": "MASK",
-          "link": 3425
+          "localized_name": "upscale_method",
+          "name": "upscale_method",
+          "type": "COMBO",
+          "widget": {
+            "name": "upscale_method"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "scale_by",
+          "name": "scale_by",
+          "type": "FLOAT",
+          "widget": {
+            "name": "scale_by"
+          },
+          "link": null
         }
       ],
       "outputs": [
@@ -8308,80 +8357,216 @@
           ]
         }
       ],
+      "title": "🖼️ Scale Logo Image",
       "properties": {
-        "Node name for S&R": "JoinImageWithAlpha"
+        "Node name for S&R": "ImageScaleBy"
+      },
+      "widgets_values": [
+        "lanczos",
+        0.25
+      ]
+    },
+    {
+      "id": 2136,
+      "type": "MaskToImage",
+      "pos": [
+        2950,
+        160
+      ],
+      "size": [
+        210,
+        46
+      ],
+      "flags": {},
+      "order": 117,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "type": "MASK",
+          "link": 3430
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            3431
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MaskToImage"
       },
       "widgets_values": []
     },
     {
+      "id": 2137,
+      "type": "ImageScaleBy",
+      "pos": [
+        2950,
+        235
+      ],
+      "size": [
+        230,
+        82
+      ],
+      "flags": {},
+      "order": 118,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "link": 3431
+        },
+        {
+          "localized_name": "upscale_method",
+          "name": "upscale_method",
+          "type": "COMBO",
+          "widget": {
+            "name": "upscale_method"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "scale_by",
+          "name": "scale_by",
+          "type": "FLOAT",
+          "widget": {
+            "name": "scale_by"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            3432
+          ]
+        }
+      ],
+      "title": "🖼️ Scale Logo Mask",
+      "properties": {
+        "Node name for S&R": "ImageScaleBy"
+      },
+      "widgets_values": [
+        "bilinear",
+        0.25
+      ]
+    },
+    {
+      "id": 2138,
+      "type": "ImageToMask",
+      "pos": [
+        2950,
+        345
+      ],
+      "size": [
+        210,
+        58
+      ],
+      "flags": {},
+      "order": 119,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "link": 3432
+        },
+        {
+          "localized_name": "channel",
+          "name": "channel",
+          "type": "COMBO",
+          "widget": {
+            "name": "channel"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            3433
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageToMask"
+      },
+      "widgets_values": [
+        "red"
+      ]
+    },
+    {
       "id": 2133,
-      "type": "CR Overlay Transparent Image",
+      "type": "ImageCompositeMasked",
       "pos": [
         2670,
         330
       ],
       "size": [
-        260,
-        170
+        250,
+        146
       ],
       "flags": {},
-      "order": 116,
+      "order": 120,
       "mode": 0,
       "inputs": [
         {
-          "localized_name": "back_image",
-          "name": "back_image",
+          "localized_name": "destination",
+          "name": "destination",
           "type": "IMAGE",
           "link": 3429
         },
         {
-          "localized_name": "overlay_image",
-          "name": "overlay_image",
+          "localized_name": "source",
+          "name": "source",
           "type": "IMAGE",
           "link": 3426
         },
         {
-          "localized_name": "transparency",
-          "name": "transparency",
-          "type": "FLOAT",
-          "widget": {
-            "name": "transparency"
-          },
-          "link": null
+          "localized_name": "mask",
+          "name": "mask",
+          "type": "MASK",
+          "link": 3433
         },
         {
-          "localized_name": "offset_x",
-          "name": "offset_x",
+          "localized_name": "x",
+          "name": "x",
           "type": "INT",
           "widget": {
-            "name": "offset_x"
+            "name": "x"
           },
           "link": null
         },
         {
-          "localized_name": "offset_y",
-          "name": "offset_y",
+          "localized_name": "y",
+          "name": "y",
           "type": "INT",
           "widget": {
-            "name": "offset_y"
+            "name": "y"
           },
           "link": null
         },
         {
-          "localized_name": "rotation_angle",
-          "name": "rotation_angle",
-          "type": "FLOAT",
+          "localized_name": "resize_source",
+          "name": "resize_source",
+          "type": "BOOLEAN",
           "widget": {
-            "name": "rotation_angle"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "overlay_scale_factor",
-          "name": "overlay_scale_factor",
-          "type": "FLOAT",
-          "widget": {
-            "name": "overlay_scale_factor"
+            "name": "resize_source"
           },
           "link": null
         }
@@ -8394,31 +8579,23 @@
           "links": [
             3427
           ]
-        },
-        {
-          "localized_name": "show_help",
-          "name": "show_help",
-          "type": "STRING",
-          "links": []
         }
       ],
-      "title": "🖼️ CR Overlay Image",
+      "title": "🖼️ Image Composite Masked",
       "properties": {
-        "Node name for S&R": "CR Overlay Transparent Image"
+        "Node name for S&R": "ImageCompositeMasked"
       },
       "widgets_values": [
-        0.0,
         0,
         0,
-        0.0,
-        1.0
+        false
       ]
     },
     {
       "id": 2134,
       "type": "LazySwitchKJ",
       "pos": [
-        2670,
+        2950,
         520
       ],
       "size": [
@@ -8426,7 +8603,7 @@
         80
       ],
       "flags": {},
-      "order": 117,
+      "order": 121,
       "mode": 0,
       "inputs": [
         {
@@ -9323,7 +9500,7 @@
       3424,
       2131,
       0,
-      2132,
+      2135,
       0,
       "IMAGE"
     ],
@@ -9332,12 +9509,12 @@
       2131,
       1,
       2132,
-      1,
+      0,
       "MASK"
     ],
     [
       3426,
-      2132,
+      2135,
       0,
       2133,
       1,
@@ -9366,6 +9543,38 @@
       2133,
       0,
       "*"
+    ],
+    [
+      3430,
+      2132,
+      0,
+      2136,
+      0,
+      "MASK"
+    ],
+    [
+      3431,
+      2136,
+      0,
+      2137,
+      0,
+      "IMAGE"
+    ],
+    [
+      3432,
+      2137,
+      0,
+      2138,
+      0,
+      "IMAGE"
+    ],
+    [
+      3433,
+      2138,
+      0,
+      2133,
+      2,
+      "MASK"
     ]
   ],
   "groups": [],

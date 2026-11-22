@@ -38,7 +38,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, updater
 
-APP_VERSION = "0.99"
+APP_VERSION = "1.00"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
 OUTPUT_DIR = ""
@@ -1771,24 +1771,23 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                         n["widgets_values"][0] = img_file
                     if "widgets_values_named" in n:
                         n["widgets_values_named"]["image"] = img_file
-                elif n.get("id") == 2133:
-                    transp_img = round(max(0.0, min(1.0, 1.0 - float(params.get("overlay_img_opacity", 100.0)) / 100.0)), 3)
-                    pos_x_img = int(params.get("overlay_img_pos_x", 0))
-                    pos_y_img = int(params.get("overlay_img_pos_y", 0))
-                    rot_img = float(params.get("overlay_img_rotation", 0))
-                    scale_img = float(params.get("overlay_img_scale", 1.0))
-                    if "widgets_values" in n and len(n["widgets_values"]) >= 5:
-                        n["widgets_values"][0] = transp_img
-                        n["widgets_values"][1] = pos_x_img
-                        n["widgets_values"][2] = pos_y_img
-                        n["widgets_values"][3] = rot_img
-                        n["widgets_values"][4] = scale_img
+                elif n.get("id") in (2135, 2137):
+                    scale_img = round(max(0.05, min(0.50, float(params.get("overlay_img_scale", 0.25)))), 3)
+                    if "widgets_values" in n and len(n["widgets_values"]) >= 2:
+                        n["widgets_values"][1] = scale_img
                     if "widgets_values_named" in n:
-                        n["widgets_values_named"]["transparency"] = transp_img
-                        n["widgets_values_named"]["offset_x"] = pos_x_img
-                        n["widgets_values_named"]["offset_y"] = pos_y_img
-                        n["widgets_values_named"]["rotation_angle"] = rot_img
-                        n["widgets_values_named"]["overlay_scale_factor"] = scale_img
+                        n["widgets_values_named"]["scale_by"] = scale_img
+                elif n.get("id") == 2133:
+                    pos_x_img = max(0, int(params.get("overlay_img_pos_x", 0)))
+                    pos_y_img = max(0, int(params.get("overlay_img_pos_y", 0)))
+                    if "widgets_values" in n and len(n["widgets_values"]) >= 3:
+                        n["widgets_values"][0] = pos_x_img
+                        n["widgets_values"][1] = pos_y_img
+                        n["widgets_values"][2] = False
+                    if "widgets_values_named" in n:
+                        n["widgets_values_named"]["x"] = pos_x_img
+                        n["widgets_values_named"]["y"] = pos_y_img
+                        n["widgets_values_named"]["resize_source"] = False
                 elif n.get("id") == 1229:
                     txt_mode = "enabled" if bool(params.get("save_txt_main", True)) else "disabled"
                     if "widgets_values" in n and len(n["widgets_values"]) >= 2:
@@ -2702,17 +2701,14 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                     params["overlay_img_enabled"] = bool(w_vals[0])
                 elif nid == 2131 and w_vals and "overlay_img_file" not in params:
                     params["overlay_img_file"] = str(w_vals[0])
-                elif nid == 2133 and len(w_vals) >= 5:
-                    if "overlay_img_opacity" not in params:
-                        params["overlay_img_opacity"] = round(max(0.0, min(100.0, (1.0 - float(w_vals[0])) * 100.0)), 1)
-                    if "overlay_img_pos_x" not in params:
-                        params["overlay_img_pos_x"] = int(w_vals[1])
-                    if "overlay_img_pos_y" not in params:
-                        params["overlay_img_pos_y"] = int(w_vals[2])
-                    if "overlay_img_rotation" not in params:
-                        params["overlay_img_rotation"] = float(w_vals[3])
+                elif nid == 2135 and len(w_vals) >= 2:
                     if "overlay_img_scale" not in params:
-                        params["overlay_img_scale"] = float(w_vals[4])
+                        params["overlay_img_scale"] = round(max(0.05, min(0.50, float(w_vals[1]))), 3)
+                elif nid == 2133 and len(w_vals) >= 2:
+                    if "overlay_img_pos_x" not in params:
+                        params["overlay_img_pos_x"] = int(w_vals[0])
+                    if "overlay_img_pos_y" not in params:
+                        params["overlay_img_pos_y"] = int(w_vals[1])
 
         # Fallback ratio calculation
         if "aspect_ratio" not in params and "width" in params and "height" in params:

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v0.99 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.00 (FLEXMOD Edition)</title>
   <link rel="icon" href="/favicon.ico">
   <script>
     (function () {
@@ -818,32 +818,26 @@
             </div>
             <div class="overlay-details-row" style="margin-top: 6px;">
               <div class="overlay-mini-field">
-                <label for="inpOverlayImgPosX" data-i18n="offset_x_label">Versatz X (px)</label>
-                <input type="number" id="inpOverlayImgPosX" value="0" step="1">
+                <label for="inpOverlayImgPosX" data-i18n="pos_x_label">Position X (px)</label>
+                <input type="number" id="inpOverlayImgPosX" value="0" min="0" step="1">
               </div>
               <div class="overlay-mini-field">
-                <label for="inpOverlayImgPosY" data-i18n="offset_y_label">Versatz Y (px)</label>
-                <input type="number" id="inpOverlayImgPosY" value="0" step="1">
-              </div>
-            </div>
-            <div class="overlay-details-row">
-              <div class="overlay-mini-field">
-                <label for="inpOverlayImgScale" data-i18n="scale_label">Skalierung</label>
-                <input type="number" id="inpOverlayImgScale" value="1.0" min="0.05" max="5.0" step="0.05">
-              </div>
-              <div class="overlay-mini-field">
-                <label for="inpOverlayImgOpacity" data-i18n="opacity_label">Deckkraft (%)</label>
-                <input type="number" id="inpOverlayImgOpacity" value="100" min="0" max="100" step="5">
+                <label for="inpOverlayImgPosY" data-i18n="pos_y_label">Position Y (px)</label>
+                <input type="number" id="inpOverlayImgPosY" value="0" min="0" step="1">
               </div>
             </div>
             <div class="overlay-details-row">
               <div class="overlay-mini-field">
-                <label for="inpOverlayImgRotation" data-i18n="rotation_label">Drehung (°)</label>
-                <input type="number" id="inpOverlayImgRotation" value="0" step="1" min="-360" max="360">
+                <label for="inpOverlayImgScale" data-i18n="scale_max_label">Skalierung (max. 0.50)</label>
+                <input type="number" id="inpOverlayImgScale" value="0.25" min="0.05" max="0.50" step="0.01">
               </div>
               <div class="overlay-mini-field" style="justify-content: flex-end;">
-                <span style="font-size: 10px; color: var(--mute);" data-i18n="overlay_img_xy_hint">0, 0 = Bildmitte</span>
+                <span style="font-size: 10px; color: var(--mute);" data-i18n="overlay_img_xy_hint">0, 0 = Oben links</span>
               </div>
+            </div>
+            <div style="display: flex; gap: 6px; margin-top: 6px;">
+              <button type="button" class="btn-secondary" id="btnOverlayImgBottomRight" style="flex: 1; font-size: 11px; padding: 5px 8px;" data-i18n="btn_overlay_img_br">↘️ Unten rechts</button>
+              <button type="button" class="btn-secondary" id="btnOverlayImgPreview" style="flex: 1; font-size: 11px; padding: 5px 8px;" data-i18n="btn_overlay_img_preview">👁️ Vorschau</button>
             </div>
           </div>
         </div>
@@ -1284,6 +1278,11 @@
 
         <!-- Initial Mockup Image as Demonstration -->
         <img src="/ta_studio_cockpit_ui_mockup_1794363751920.jpg" alt="Vorschau" class="main-preview-img" id="mainPreview" draggable="false">
+
+        <!-- Live Logo Overlay Preview Frame -->
+        <div id="logoPreviewOverlay" style="display:none; position:absolute; pointer-events:none; border:1px dashed rgba(168,85,247,0.75); box-sizing:border-box; z-index:15;">
+          <img id="logoPreviewImg" src="" alt="" draggable="false" style="position:absolute; pointer-events:auto; cursor:grab; user-select:none; box-shadow:0 0 0 1px rgba(168,85,247,0.75);">
+        </div>
 
         <!-- Zoom Indicator / Reset Pill -->
         <button class="viewer-zoom-badge" id="viewerZoomBadge" type="button" style="display:none;" title="Zoom zurücksetzen (Doppelklick)" data-i18n-title="btn_zoom_reset_title">100%</button>
@@ -2122,7 +2121,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=0.99"></script>
+  <script src="/app.js?v=1.00"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=4"></script>
 </body>

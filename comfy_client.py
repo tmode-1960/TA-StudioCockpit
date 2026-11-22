@@ -651,17 +651,23 @@ def build_flexmod_api_prompt(
             "rotation_angle": float(overlay_sig_rotation),
             "margins": int(overlay_sig_margins),
         },
-        # CR Overlay Transparent Image / LazySwitchKJ (nodes 2131, 2133 & 2134: Bild-Logo)
+        # Image Composite Masked / LazySwitchKJ (nodes 2131, 2133, 2134, 2135, 2137: Bild-Logo)
         **(
             {
                 "2134": {"switch": True},
                 "2131": {"image": str(overlay_img_file)},
+                "2135": {
+                    "upscale_method": "lanczos",
+                    "scale_by": round(max(0.05, min(0.50, float(overlay_img_scale))), 3),
+                },
+                "2137": {
+                    "upscale_method": "bilinear",
+                    "scale_by": round(max(0.05, min(0.50, float(overlay_img_scale))), 3),
+                },
                 "2133": {
-                    "transparency": round(max(0.0, min(1.0, 1.0 - float(overlay_img_opacity) / 100.0)), 3),
-                    "offset_x": int(overlay_img_pos_x),
-                    "offset_y": int(overlay_img_pos_y),
-                    "rotation_angle": float(overlay_img_rotation),
-                    "overlay_scale_factor": float(overlay_img_scale),
+                    "x": max(0, int(overlay_img_pos_x)),
+                    "y": max(0, int(overlay_img_pos_y)),
+                    "resize_source": False,
                 },
             }
             if (overlay_img_enabled and overlay_img_file)
