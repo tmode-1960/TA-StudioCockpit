@@ -280,7 +280,7 @@
       badge_llm_offline: "⚠️ Kein LLM aktiv!",
       badge_llm_title_click: "Klicken, um Status von LM Studio / Ollama / Cloud-LLMs neu zu prüfen",
       llm_unavailable_title: "Weder lokaler LLM-Server (LM Studio / Ollama) noch Cloud-API-Key aktiv",
-      lbl_i2i_ref: "I2I Referenzbild (Node 1880 - Load Image)",
+      lbl_i2i_ref: "I2I Referenzbild",
       badge_no_image: "Kein Bild gewählt",
       badge_uploading: "Wird hochgeladen...",
       badge_error: "Fehler",
@@ -743,7 +743,7 @@
       badge_llm_offline: "⚠️ No LLM active!",
       badge_llm_title_click: "Click to re-check LM Studio / Ollama / Cloud LLM status",
       llm_unavailable_title: "Neither local LLM server (LM Studio / Ollama) nor cloud API key active",
-      lbl_i2i_ref: "I2I Reference Image (Node 1880 - Load Image)",
+      lbl_i2i_ref: "I2I Reference Image",
       badge_no_image: "No image chosen",
       badge_uploading: "Uploading...",
       badge_error: "Error",
@@ -3788,6 +3788,24 @@
   });
 
   // LLM Engine State & Actions
+  const VISION_MODEL_PATTERNS = [
+    "vision", "-vl", "_vl", "qwen3.5", "qwen3.6", "qwen3.8",
+    "qwen2.5-vl", "qwen2-vl", "gemma-3", "pixtral", "llava",
+    "internvl", "minicpm-v", "gemini/", "gpt-4o"
+  ];
+  function isVisionModel(name) {
+    const low = String(name || "").toLowerCase();
+    return VISION_MODEL_PATTERNS.some(p => low.includes(p));
+  }
+  function formatLLMModelLabel(name) {
+    const s = String(name || "");
+    if (!s) return "";
+    if (isVisionModel(s) && !s.toLowerCase().includes("[vision]")) {
+      return `${s} [Vision]`;
+    }
+    return s;
+  }
+
   let currentLLMMode = "off"; // "off", "t2i", "i2i"
   let currentI2IImageFilename = "";
   let llmModelsByMode = { t2i: "", i2i: "" };
@@ -3851,10 +3869,10 @@
           selLLMModel.value = remembered;
         } else if (!remembered) {
           if (mode === "i2i") {
-            const visionOpt = Array.from(selLLMModel.options).find(o => o.value.toLowerCase().includes("vision") || o.value.toLowerCase().includes("vl"));
+            const visionOpt = Array.from(selLLMModel.options).find(o => isVisionModel(o.value));
             selLLMModel.value = visionOpt ? visionOpt.value : selLLMModel.options[0].value;
           } else {
-            const textOpt = Array.from(selLLMModel.options).find(o => !o.value.toLowerCase().includes("vision"));
+            const textOpt = Array.from(selLLMModel.options).find(o => !isVisionModel(o.value));
             selLLMModel.value = textOpt ? textOpt.value : selLLMModel.options[0].value;
           }
           llmModelsByMode[mode] = selLLMModel.value;
@@ -4211,7 +4229,7 @@
           data.models.forEach(m => {
             const opt = document.createElement("option");
             opt.value = m;
-            opt.textContent = m;
+            opt.textContent = formatLLMModelLabel(m);
             if (m === currentVal) opt.selected = true;
             selLLMModel.appendChild(opt);
           });

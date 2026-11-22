@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v0.95 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v0.96 (FLEXMOD Edition)</title>
   <link rel="icon" href="/favicon.ico">
   <script>
     (function () {
@@ -1171,9 +1171,9 @@
 
           <!-- I2I Reference Image Upload Panel -->
           <div class="field-group" id="i2iUploadPanel" style="display: none;">
-            <div class="field-label">
-              <span data-i18n="lbl_i2i_ref">I2I Referenzbild (Node 1880 - Load Image)</span>
-              <span class="value-badge" id="i2iFileNameBadge">Kein Bild gewählt</span>
+            <div class="field-label i2i-ref-label-row">
+              <span data-i18n="lbl_i2i_ref" title="Node 1880 - Load Image" style="white-space: nowrap; flex-shrink: 0;">I2I Referenzbild</span>
+              <span class="value-badge" id="i2iFileNameBadge" style="max-width: 155px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Kein Bild gewählt</span>
             </div>
             <div class="i2i-dropzone" id="i2iDropzone" style="border: 2px dashed var(--accent2); background: rgba(168, 85, 247, 0.05);">
               <input type="file" id="inpI2IFile" accept="image/*" style="display: none;">
@@ -2075,7 +2075,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=0.95"></script>
+  <script src="/app.js?v=0.96"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=4"></script>
 </body>

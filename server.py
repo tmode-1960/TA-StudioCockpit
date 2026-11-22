@@ -38,7 +38,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, updater
 
-APP_VERSION = "0.95"
+APP_VERSION = "0.96"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
 OUTPUT_DIR = ""
@@ -1189,8 +1189,10 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         for m in models:
             if not isinstance(m, str):
                 continue
+            low = m.lower()
+            if "text-embedding" in low or "nomic-embed" in low:
+                continue
             if m.startswith("Gemini/"):
-                low = m.lower()
                 if any(skip in low for skip in cls.GEMINI_SKIP_SUBSTRINGS):
                     continue
             filtered.append(m)
