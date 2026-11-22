@@ -118,9 +118,9 @@ def check_for_updates(force: bool = False) -> dict:
     except urllib.error.HTTPError as exc:
         err_msg = f"GitHub HTTP {exc.code}"
         if exc.code == 404:
-            err_msg = "Noch keine GitHub Releases veröffentlicht."
+            err_msg = "No GitHub releases published yet."
         elif exc.code == 403:
-            err_msg = "GitHub API Rate-Limit erreicht."
+            err_msg = "GitHub API rate limit reached."
         return {
             "ok": False,
             "update_available": False,
@@ -190,7 +190,7 @@ def _safe_extract_zip(zip_path: str, dest_dir: str) -> None:
         for member in zf.infolist():
             target = os.path.abspath(os.path.join(dest_abs, member.filename))
             if not (target == dest_abs or target.startswith(dest_abs + os.sep)):
-                raise RuntimeError("Unsicherer Pfad im Update-Archiv.")
+                raise RuntimeError("Unsafe path in update archive.")
         zf.extractall(dest_abs)
 
 
@@ -213,7 +213,7 @@ def _run_install_worker(info: dict) -> None:
         _set_install_state(
             status="downloading",
             progress=5,
-            message="Lade Update herunter…",
+            message="Downloading update…",
             error="",
             target_version=target_ver,
         )
@@ -242,7 +242,7 @@ def _run_install_worker(info: dict) -> None:
         _set_install_state(
             status="extracting",
             progress=80,
-            message="Entpacke Update-Dateien…",
+            message="Extracting update files…",
         )
 
         source_dir = os.path.join(staging_dir, "extracted")
@@ -257,12 +257,12 @@ def _run_install_worker(info: dict) -> None:
 
         new_exe = os.path.join(payload_dir, "StudioCockpit.exe")
         if not os.path.isfile(new_exe):
-            raise RuntimeError("StudioCockpit.exe wurde im Update-Paket nicht gefunden.")
+            raise RuntimeError("StudioCockpit.exe was not found in the update package.")
 
         _set_install_state(
             status="applying",
             progress=92,
-            message="Bereite Installation & Neustart vor…",
+            message="Preparing installation & restart…",
         )
 
         app_exe = os.path.abspath(sys.executable)
@@ -321,7 +321,7 @@ def _run_install_worker(info: dict) -> None:
         _set_install_state(
             status="restarting",
             progress=100,
-            message="Update installiert – StudioCockpit startet neu…",
+            message="Update installed – restarting StudioCockpit…",
         )
 
         def _delayed_exit():
@@ -337,7 +337,7 @@ def _run_install_worker(info: dict) -> None:
         _set_install_state(
             status="error",
             progress=0,
-            message="Update fehlgeschlagen.",
+            message="Update failed.",
             error=str(exc),
         )
         try:
@@ -350,7 +350,7 @@ def start_install() -> tuple[int, dict]:
     if not getattr(sys, "frozen", False) or sys.platform != "win32":
         return 400, {
             "ok": False,
-            "error": "Auto-Update ist nur in der kompilierten Windows-App (StudioCockpit.exe) verfügbar.",
+            "error": "Auto-update is only available in the compiled Windows app (StudioCockpit.exe).",
         }
 
     with _INSTALL_LOCK:
@@ -361,12 +361,12 @@ def start_install() -> tuple[int, dict]:
     if not info.get("ok") or not info.get("update_available"):
         return 400, {
             "ok": False,
-            "error": info.get("error") or "Kein neues Update verfügbar.",
+            "error": info.get("error") or "No new update available.",
         }
     if not info.get("download_url"):
         return 400, {
             "ok": False,
-            "error": "Kein passendes Release-Asset (.zip / .exe) auf GitHub gefunden.",
+            "error": "No matching release asset (.zip / .exe) found on GitHub.",
         }
 
     t = threading.Thread(target=_run_install_worker, args=(info,), daemon=True)

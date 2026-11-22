@@ -7293,8 +7293,8 @@
     function openUpdateModal(info) {
       if (!modal || !info) return;
       latestUpdateInfo = info;
-      if (elCurVer) elCurVer.textContent = `Aktuell: v${info.current_version || "?"}`;
-      if (elNewVer) elNewVer.textContent = `Neu: v${info.latest_version || "?"}`;
+      if (elCurVer) elCurVer.textContent = `Current: v${info.current_version || "?"}`;
+      if (elNewVer) elNewVer.textContent = `New: v${info.latest_version || "?"}`;
       if (btnOpenRelease) btnOpenRelease.href = info.release_url || info.releases_url || "https://github.com/tmode-1960/TA-StudioCockpit/releases";
 
       if (elNotesWrap && elNotesText) {
@@ -7349,13 +7349,13 @@
           }
         } else if (manual) {
           if (info.ok) {
-            showToast(`StudioCockpit ist aktuell (v${info.current_version}).`, "success", 3500);
+            showToast(`StudioCockpit is up to date (v${info.current_version}).`, "success", 3500);
           } else {
-            showToast(info.error || "Update-Prüfung fehlgeschlagen.", "info", 4000);
+            showToast(info.error || "Update check failed.", "info", 4000);
           }
         }
       } catch (e) {
-        if (manual) showToast("Update-Prüfung nicht möglich (offline?).", "error", 3500);
+        if (manual) showToast("Unable to check for updates (offline?).", "error", 3500);
       }
     }
 
@@ -7367,7 +7367,7 @@
         const pct = Math.max(0, Math.min(100, Number(st.progress || 0)));
         if (elProgressFill) elProgressFill.style.width = `${pct}%`;
         if (elProgressPct) elProgressPct.textContent = `${pct}%`;
-        if (elProgressText) elProgressText.textContent = st.message || "Installiere…";
+        if (elProgressText) elProgressText.textContent = st.message || "Installing…";
 
         if (st.status === "restarting") {
           if (pollTimer) {
@@ -7381,7 +7381,7 @@
           }
           if (btnInstall) btnInstall.disabled = false;
           if (btnDismiss) btnDismiss.disabled = false;
-          showToast(st.error || "Update fehlgeschlagen.", "error", 5000);
+          showToast(st.error || "Update failed.", "error", 5000);
         }
       } catch (e) {}
     }
@@ -7409,7 +7409,7 @@
         btnInstall.disabled = true;
         if (btnDismiss) btnDismiss.disabled = true;
         if (elProgressWrap) elProgressWrap.style.display = "";
-        if (elProgressText) elProgressText.textContent = "Starte Download…";
+        if (elProgressText) elProgressText.textContent = "Starting download…";
         if (elProgressPct) elProgressPct.textContent = "0%";
         if (elProgressFill) elProgressFill.style.width = "0%";
 
@@ -7417,7 +7417,7 @@
           const res = await fetch("/api/update/install", { method: "POST" });
           const data = await res.json();
           if (!res.ok || !data.ok) {
-            throw new Error(data.error || "Installation konnte nicht gestartet werden.");
+            throw new Error(data.error || "Could not start installation.");
           }
           pollTimer = setInterval(pollInstallStatus, 400);
           pollInstallStatus();
@@ -7425,7 +7425,7 @@
           btnInstall.disabled = false;
           if (btnDismiss) btnDismiss.disabled = false;
           if (elProgressWrap) elProgressWrap.style.display = "none";
-          showToast(err.message || "Update fehlgeschlagen.", "error", 5000);
+          showToast(err.message || "Update failed.", "error", 5000);
         }
       });
     }
