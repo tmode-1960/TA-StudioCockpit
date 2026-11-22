@@ -3659,6 +3659,17 @@
     });
   }
 
+  function persistCustomResPresets() {
+    try {
+      localStorage.setItem("tAStudio.customResPresets", JSON.stringify(savedCustomResolutions));
+      fetch("/api/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ custom_res_presets: savedCustomResolutions })
+      }).catch(() => {});
+    } catch (_) {}
+  }
+
   function renderCustomResChips() {
     if (!customResChips) return;
     customResChips.innerHTML = "";
@@ -3699,6 +3710,7 @@
       delBtn.addEventListener("click", () => {
         savedCustomResolutions.splice(idx, 1);
         renderCustomResChips();
+        persistCustomResPresets();
         saveState();
       });
       chip.appendChild(applyBtn);
@@ -3719,6 +3731,7 @@
       if (!exists) {
         savedCustomResolutions.push({ w, h, snap: currentSnap });
         renderCustomResChips();
+        persistCustomResPresets();
       }
       saveState();
     });
@@ -4522,7 +4535,7 @@
     if (s.height) currentPixH = parseInt(s.height, 10);
 
     setPixMode(restoredMode, restoredRatio);
-    if (Array.isArray(s.custom_res_presets)) {
+    if (savedCustomResolutions.length === 0 && Array.isArray(s.custom_res_presets) && s.custom_res_presets.length > 0) {
       savedCustomResolutions = s.custom_res_presets.filter(r => r && r.w && r.h);
       renderCustomResChips();
     }
@@ -7188,6 +7201,13 @@
             localStorage.setItem("tAStudio.themeCustomAccent", currentCustomAccent);
           } catch (e) {}
         }
+        if (Array.isArray(cfg.custom_res_presets) && cfg.custom_res_presets.length > 0) {
+          savedCustomResolutions = cfg.custom_res_presets.filter(r => r && r.w && r.h);
+          try {
+            localStorage.setItem("tAStudio.customResPresets", JSON.stringify(savedCustomResolutions));
+          } catch (_) {}
+          renderCustomResChips();
+        }
         if (cfg.ui_state) state = cfg.ui_state;
       }
     } catch (e) {}
@@ -7199,6 +7219,17 @@
         applyLanguage(savedLang, false);
       }
     } catch (e) {}
+
+    // Fallback: restore custom_res_presets from localStorage if not already loaded from config.json
+    if (savedCustomResolutions.length === 0) {
+      try {
+        const lsPresets = JSON.parse(localStorage.getItem("tAStudio.customResPresets") || "[]");
+        if (Array.isArray(lsPresets) && lsPresets.length > 0) {
+          savedCustomResolutions = lsPresets.filter(r => r && r.w && r.h);
+          renderCustomResChips();
+        }
+      } catch (_) {}
+    }
 
     // Check localStorage as well; use whichever has more recent updated_at or fallback
     try {
