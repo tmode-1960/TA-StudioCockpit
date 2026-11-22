@@ -432,6 +432,8 @@
       drop_sub_i2i: "Als Referenzbild für Vision (Image -> Prompt) ablegen oder Metadaten laden",
       btn_adopt_preview_i2i: "🖼️ Aus Vorschau übernehmen",
       btn_adopt_preview_i2i_title: "Aktuell in der Vorschau angezeigtes Bild als I2I-Referenzbild übernehmen",
+      btn_browse_i2i: "📁 Durchsuchen…",
+      btn_browse_i2i_title: "Referenzbild per Datei-Dialog auswählen (merkt sich den letzten Ordner)",
 
       // Toasts & Alerts
       toast_copied: "✓ Kopiert!",
@@ -895,6 +897,8 @@
       drop_sub_i2i: "Drop as reference image for Vision (Image -> Prompt) or load metadata",
       btn_adopt_preview_i2i: "🖼️ Use from Preview",
       btn_adopt_preview_i2i_title: "Use image currently in preview as I2I reference image",
+      btn_browse_i2i: "📁 Browse…",
+      btn_browse_i2i_title: "Pick reference image via file dialog (remembers last folder)",
 
       // Toasts & Alerts
       toast_copied: "✓ Copied!",
@@ -2603,6 +2607,24 @@
   const dropOverlayTitle = document.getElementById("dropOverlayTitle");
   const dropOverlaySub = document.getElementById("dropOverlaySub");
   const btnAdoptPreviewAsI2I = document.getElementById("btnAdoptPreviewAsI2I");
+  const btnBrowseI2I = document.getElementById("btnBrowseI2I");
+  if (btnBrowseI2I) {
+    btnBrowseI2I.addEventListener("click", async () => {
+      try {
+        const resp = await fetch("/api/browse_i2i_image");
+        if (!resp.ok) return;
+        const data = await resp.json();
+        if (!data || !data.b64 || !data.name) return;
+        const bin = atob(data.b64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        const file = new File([bytes], data.name, { type: data.mime || "image/png" });
+        await uploadI2IImage(file);
+      } catch (e) {
+        console.warn("I2I browse failed:", e);
+      }
+    });
+  }
   const compareContainer = document.getElementById("compareContainer");
   const compareBeforeWrap = document.getElementById("compareBeforeWrap");
   const compareBeforeImg = document.getElementById("compareBeforeImg");

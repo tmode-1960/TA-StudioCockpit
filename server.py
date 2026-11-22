@@ -38,7 +38,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, updater
 
-APP_VERSION = "0.96"
+APP_VERSION = "0.97"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
 OUTPUT_DIR = ""
@@ -646,6 +646,9 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             return
         elif path == "/api/browse_file":
             self.handle_browse_file(parsed.query)
+            return
+        elif path == "/api/browse_i2i_image":
+            self.handle_browse_i2i_image()
             return
         elif path in ("/api/workflow/loras", "/api/loras"):
             self.handle_workflow_loras()
@@ -2691,26 +2694,17 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         except OSError:
             return False
 
-    def _open_browse_dialog(self, is_file: bool, query: str = ""):
-        """Open a native file or folder selection dialog and return the chosen path as JSON."""
-        params = urllib.parse.parse_qs(query or "")
-        initial = (params.get("initial") or [""])[0].strip()
-        initial_dir = ""
-        if initial:
-            if os.path.isdir(initial):
-                initial_dir = initial
-            else:
-                parent = os.path.dirname(initial)
-                if parent and os.path.isdir(parent):
-                    initial_dir = parent
-
+    def _pick_native_path(self, is_file: bool, initial_dir: str = "", kind: str = "script") -> str:
         selected = ""
         try:
             import webview
             if webview.windows:
                 if is_file:
                     dialog_type = getattr(getattr(webview, "FileDialog", None), "OPEN", None) or getattr(webview, "OPEN_DIALOG", 10)
-                    file_types = ("Skripte & Programme (*.bat;*.cmd;*.sh;*.exe;*.ps1)", "Alle Dateien (*.*)")
+                    if kind == "image":
+                        file_types = ("Bilder (*.png;*.jpg;*.jpeg;*.webp;*.bmp)", "Alle Dateien (*.*)")
+                    else:
+                        file_types = ("Skripte & Programme (*.bat;*.cmd;*.sh;*.exe;*.ps1)", "Alle Dateien (*.*)")
                     kwargs = {"allow_multiple": False, "file_types": file_types}
                     if initial_dir:
                         kwargs["directory"] = initial_dir
@@ -2734,13 +2728,13 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                 root.withdraw()
                 root.attributes("-topmost", True)
                 if is_file:
-                    kwargs = {
-                        "title": "Datei auswählen",
-                        "filetypes": [
-                            ("Skripte & Programme", "*.bat *.cmd *.sh *.exe *.ps1"),
-                            ("Alle Dateien", "*.*"),
-                        ],
-                    }
+                    if kind == "image":
+                        ftypes = [("Bilder", "*.png *.jpg *.jpeg *.webp *.bmp"), ("Alle Dateien", "*.*")]
+                        title = "Referenzbild auswählen"
+                    else:
+                        ftypes = [("Skripte & Programme", "*.bat *.cmd *.sh *.exe *.ps1"), ("Alle Dateien", "*.*")]
+                        title = "Datei auswählen"
+                    kwargs = {"title": title, "filetypes": ftypes}
                     if initial_dir:
                         kwargs["initialdir"] = initial_dir
                     selected = filedialog.askopenfilename(**kwargs) or ""
@@ -2752,6 +2746,55 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                 root.destroy()
             except Exception:
                 pass
+        return selected
+
+    def handle_browse_i2i_image(self):
+        """Open native image picker starting in last_i2i_dir (or OUTPUT_DIR), remember folder, return image payload."""
+        cfg = load_config()
+        initial_dir = str(cfg.get("last_i2i_dir") or "").strip()
+        if not initial_dir or not os.path.isdir(initial_dir):
+            out_dir = get_output_dir()
+            initial_dir = out_dir if out_dir and os.path.isdir(out_dir) else ""
+        selected = self._pick_native_path(is_file=True, initial_dir=initial_dir, kind="image")
+        if not selected or not os.path.isfile(selected):
+            self.send_json({"path": ""})
+            return
+        parent_dir = os.path.dirname(os.path.abspath(selected))
+        if parent_dir and os.path.isdir(parent_dir):
+            save_config({"last_i2i_dir": parent_dir})
+        ext = os.path.splitext(selected)[1].lower()
+        mime = {
+            ".png": "image/png",
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".webp": "image/webp",
+            ".bmp": "image/bmp",
+        }.get(ext, "image/png")
+        try:
+            with open(selected, "rb") as f:
+                b64 = base64.b64encode(f.read()).decode("ascii")
+            self.send_json({
+                "path": selected,
+                "name": os.path.basename(selected),
+                "mime": mime,
+                "b64": b64,
+            })
+        except Exception as e:
+            self.send_json({"error": str(e)}, status=500)
+
+    def _open_browse_dialog(self, is_file: bool, query: str = ""):
+        """Open a native file or folder selection dialog and return the chosen path as JSON."""
+        params = urllib.parse.parse_qs(query or "")
+        initial = (params.get("initial") or [""])[0].strip()
+        initial_dir = ""
+        if initial:
+            if os.path.isdir(initial):
+                initial_dir = initial
+            else:
+                parent = os.path.dirname(initial)
+                if parent and os.path.isdir(parent):
+                    initial_dir = parent
+        selected = self._pick_native_path(is_file=is_file, initial_dir=initial_dir, kind="script")
 
         if selected:
             selected = os.path.normpath(selected)
