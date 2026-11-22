@@ -3842,16 +3842,16 @@
         llmPromptResultGroup.style.display = "none";
       }
     }
-    // Restore per-mode remembered model, or pick a default only if none is set
+    // Restore per-mode remembered model, or pick an appropriate default only if none is remembered yet
     if (selLLMModel && selLLMModel.options.length > 0) {
       if (mode === "t2i" || mode === "i2i") {
         const remembered = llmModelsByMode[mode];
         const hasRemembered = remembered && Array.from(selLLMModel.options).some(o => o.value === remembered);
         if (hasRemembered) {
           selLLMModel.value = remembered;
-        } else if (!selLLMModel.value) {
+        } else if (!remembered) {
           if (mode === "i2i") {
-            const visionOpt = Array.from(selLLMModel.options).find(o => o.value.toLowerCase().includes("vision"));
+            const visionOpt = Array.from(selLLMModel.options).find(o => o.value.toLowerCase().includes("vision") || o.value.toLowerCase().includes("vl"));
             selLLMModel.value = visionOpt ? visionOpt.value : selLLMModel.options[0].value;
           } else {
             const textOpt = Array.from(selLLMModel.options).find(o => !o.value.toLowerCase().includes("vision"));
