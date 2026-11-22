@@ -221,6 +221,12 @@
       badge_overlay_both: "✒️ Sig + KI",
       badge_overlay_ai: "🤖 KI-Hinweis",
       badge_overlay_off: "Aus",
+      overlay_img: "🖼️ Bild-Signatur / Logo",
+      btn_overlay_img_upload: "📁 Logo wählen (PNG)",
+      btn_overlay_img_clear_title: "Logo entfernen",
+      scale_label: "Skalierung",
+      opacity_label: "Deckkraft (%)",
+      overlay_img_xy_hint: "0, 0 = Bildmitte",
 
       // Prompt Hub
       card_prompthub: "Prompt-Hub",
@@ -686,6 +692,12 @@
       badge_overlay_both: "✒️ Sig + AI",
       badge_overlay_ai: "🤖 AI Note",
       badge_overlay_off: "Off",
+      overlay_img: "🖼️ Image Signature / Logo",
+      btn_overlay_img_upload: "📁 Choose Logo (PNG)",
+      btn_overlay_img_clear_title: "Remove logo",
+      scale_label: "Scale",
+      opacity_label: "Opacity (%)",
+      overlay_img_xy_hint: "0, 0 = Image center",
 
       // Prompt Hub
       card_prompthub: "Prompt Hub",
@@ -1919,6 +1931,19 @@
   const inpOverlayAIMargins = document.getElementById("inpOverlayAIMargins");
   const badgeOverlayAIPos = document.getElementById("badgeOverlayAIPos");
 
+  const chkOverlayImg = document.getElementById("chkOverlayImg");
+  const inpOverlayImgFile = document.getElementById("inpOverlayImgFile");
+  const btnOverlayImgUpload = document.getElementById("btnOverlayImgUpload");
+  const btnOverlayImgClear = document.getElementById("btnOverlayImgClear");
+  const imgOverlayThumb = document.getElementById("imgOverlayThumb");
+  const badgeOverlayImgFile = document.getElementById("badgeOverlayImgFile");
+  const inpOverlayImgPosX = document.getElementById("inpOverlayImgPosX");
+  const inpOverlayImgPosY = document.getElementById("inpOverlayImgPosY");
+  const inpOverlayImgScale = document.getElementById("inpOverlayImgScale");
+  const inpOverlayImgOpacity = document.getElementById("inpOverlayImgOpacity");
+  const inpOverlayImgRotation = document.getElementById("inpOverlayImgRotation");
+  let currentOverlayImgFilename = "";
+
   const overlayStatusBadge = document.getElementById("overlayStatusBadge");
 
   function getPositionBadgeText(align, justify) {
@@ -1953,24 +1978,87 @@
     if (!overlayStatusBadge) return;
     const sigOn = chkOverlaySig ? chkOverlaySig.checked : false;
     const aiOn = chkOverlayAI ? chkOverlayAI.checked : false;
+    const imgOn = (chkOverlayImg ? chkOverlayImg.checked : false) && Boolean(currentOverlayImgFilename);
+    const imgSuffix = imgOn ? " + 🖼️" : "";
 
     if (sigOn && aiOn) {
-      overlayStatusBadge.textContent = t("badge_overlay_both", "✒️ Sig + KI");
+      overlayStatusBadge.textContent = t("badge_overlay_both", "✒️ Sig + KI") + imgSuffix;
       overlayStatusBadge.style.color = "var(--accent)";
     } else if (sigOn) {
       const txt = (txtOverlaySig && txtOverlaySig.value.trim()) ? txtOverlaySig.value.trim() : "thomo.ART";
-      overlayStatusBadge.textContent = `✒️ ${txt}`;
+      overlayStatusBadge.textContent = `✒️ ${txt}${imgSuffix}`;
       overlayStatusBadge.style.color = "var(--accent)";
     } else if (aiOn) {
-      overlayStatusBadge.textContent = t("badge_overlay_ai", "🤖 KI-Hinweis");
+      overlayStatusBadge.textContent = t("badge_overlay_ai", "🤖 KI-Hinweis") + imgSuffix;
       overlayStatusBadge.style.color = "var(--text)";
+    } else if (imgOn) {
+      overlayStatusBadge.textContent = `🖼️ ${currentOverlayImgFilename}`;
+      overlayStatusBadge.style.color = "var(--accent)";
     } else {
       overlayStatusBadge.textContent = t("badge_overlay_off", "Aus");
       overlayStatusBadge.style.color = "var(--mute)";
     }
   }
 
-  [chkOverlaySig, chkOverlayAI].forEach(chk => {
+  function updateOverlayImgUI(filename, previewUrl = "") {
+    currentOverlayImgFilename = filename || "";
+    if (badgeOverlayImgFile) {
+      badgeOverlayImgFile.textContent = currentOverlayImgFilename || t("badge_no_image", "Kein Bild");
+      badgeOverlayImgFile.title = currentOverlayImgFilename || "";
+    }
+    if (btnOverlayImgClear) {
+      btnOverlayImgClear.style.display = currentOverlayImgFilename ? "inline-flex" : "none";
+    }
+    if (imgOverlayThumb) {
+      if (currentOverlayImgFilename) {
+        imgOverlayThumb.src = previewUrl || `/view?filename=${encodeURIComponent(currentOverlayImgFilename)}&type=input`;
+        imgOverlayThumb.style.display = "block";
+      } else {
+        imgOverlayThumb.src = "";
+        imgOverlayThumb.style.display = "none";
+      }
+    }
+    updateOverlayStatusBadge();
+  }
+
+  if (btnOverlayImgUpload && inpOverlayImgFile) {
+    btnOverlayImgUpload.addEventListener("click", () => inpOverlayImgFile.click());
+    inpOverlayImgFile.addEventListener("change", async () => {
+      const file = inpOverlayImgFile.files && inpOverlayImgFile.files[0];
+      if (!file) return;
+      const localUrl = URL.createObjectURL(file);
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("overwrite", "true");
+      try {
+        const resp = await fetch("/upload/image", { method: "POST", body: formData });
+        if (resp.ok) {
+          const data = await resp.json();
+          const uploadedName = data.name;
+          if (chkOverlayImg) chkOverlayImg.checked = true;
+          updateOverlayImgUI(uploadedName, localUrl);
+          saveState();
+          showToast(`Logo "${uploadedName}" geladen & in ComfyUI bereitgestellt!`, "success", 3000);
+        } else {
+          showToast(t("toast_i2i_upload_fail", "Fehler beim Hochladen nach ComfyUI (ist ComfyUI online?)"), "error", 4500);
+        }
+      } catch (e) {
+        console.error("Overlay logo upload failed:", e);
+        showToast(t("toast_i2i_upload_fail", "Verbindungsfehler beim Hochladen nach ComfyUI."), "error", 4500);
+      }
+    });
+  }
+
+  if (btnOverlayImgClear) {
+    btnOverlayImgClear.addEventListener("click", () => {
+      if (inpOverlayImgFile) inpOverlayImgFile.value = "";
+      if (chkOverlayImg) chkOverlayImg.checked = false;
+      updateOverlayImgUI("");
+      saveState();
+    });
+  }
+
+  [chkOverlaySig, chkOverlayAI, chkOverlayImg].forEach(chk => {
     if (chk) chk.addEventListener("change", () => {
       updateOverlayStatusBadge();
       saveStateDebounced();
@@ -1983,7 +2071,8 @@
     inpOverlaySigRotation, inpOverlaySigMargins,
     txtOverlayAI, selOverlayAIFont, inpOverlayAISize, selOverlayAIColor,
     selOverlayAIAlign, selOverlayAIJustify, inpOverlayAIPosX, inpOverlayAIPosY,
-    inpOverlayAIRotation, inpOverlayAIMargins
+    inpOverlayAIRotation, inpOverlayAIMargins,
+    inpOverlayImgPosX, inpOverlayImgPosY, inpOverlayImgScale, inpOverlayImgOpacity, inpOverlayImgRotation
   ];
 
   overlayFormInputs.forEach(el => {
@@ -4410,6 +4499,13 @@
       overlay_sig_pos_y: inpOverlaySigPosY ? parseInt(inpOverlaySigPosY.value, 10) || 0 : -15,
       overlay_sig_rotation: inpOverlaySigRotation ? parseFloat(inpOverlaySigRotation.value) || 0 : 0,
       overlay_sig_margins: inpOverlaySigMargins ? parseInt(inpOverlaySigMargins.value, 10) || 0 : 0,
+      overlay_img_enabled: chkOverlayImg ? chkOverlayImg.checked : false,
+      overlay_img_file: currentOverlayImgFilename || "",
+      overlay_img_pos_x: inpOverlayImgPosX ? parseInt(inpOverlayImgPosX.value, 10) || 0 : 0,
+      overlay_img_pos_y: inpOverlayImgPosY ? parseInt(inpOverlayImgPosY.value, 10) || 0 : 0,
+      overlay_img_scale: inpOverlayImgScale ? parseFloat(inpOverlayImgScale.value) || 1.0 : 1.0,
+      overlay_img_opacity: inpOverlayImgOpacity ? (parseFloat(inpOverlayImgOpacity.value) ?? 100) : 100,
+      overlay_img_rotation: inpOverlayImgRotation ? parseFloat(inpOverlayImgRotation.value) || 0 : 0,
       last_llm_prompt: (txtLLMGeneratedPrompt && !txtLLMGeneratedPrompt.value.startsWith("⏳")) ? txtLLMGeneratedPrompt.value : "",
       loras: loras,
     };
@@ -4691,6 +4787,13 @@
     if (s.overlay_sig_pos_y !== undefined && inpOverlaySigPosY) inpOverlaySigPosY.value = s.overlay_sig_pos_y;
     if (s.overlay_sig_rotation !== undefined && inpOverlaySigRotation) inpOverlaySigRotation.value = s.overlay_sig_rotation;
     if (s.overlay_sig_margins !== undefined && inpOverlaySigMargins) inpOverlaySigMargins.value = s.overlay_sig_margins;
+    if (s.overlay_img_enabled !== undefined && chkOverlayImg) chkOverlayImg.checked = Boolean(s.overlay_img_enabled);
+    if (s.overlay_img_file !== undefined) updateOverlayImgUI(s.overlay_img_file);
+    if (s.overlay_img_pos_x !== undefined && inpOverlayImgPosX) inpOverlayImgPosX.value = s.overlay_img_pos_x;
+    if (s.overlay_img_pos_y !== undefined && inpOverlayImgPosY) inpOverlayImgPosY.value = s.overlay_img_pos_y;
+    if (s.overlay_img_scale !== undefined && inpOverlayImgScale) inpOverlayImgScale.value = s.overlay_img_scale;
+    if (s.overlay_img_opacity !== undefined && inpOverlayImgOpacity) inpOverlayImgOpacity.value = s.overlay_img_opacity;
+    if (s.overlay_img_rotation !== undefined && inpOverlayImgRotation) inpOverlayImgRotation.value = s.overlay_img_rotation;
 
     updateOverlayStatusBadge();
     updateOverlayPositionBadges();
@@ -5408,6 +5511,15 @@
         if (pr["1979"].inputs.position_y !== undefined) params.overlay_sig_pos_y = pr["1979"].inputs.position_y;
         if (pr["1979"].inputs.rotation_angle !== undefined) params.overlay_sig_rotation = pr["1979"].inputs.rotation_angle;
         if (pr["1979"].inputs.margins !== undefined) params.overlay_sig_margins = pr["1979"].inputs.margins;
+      }
+      if (pr["2134"] && pr["2134"].inputs) params.overlay_img_enabled = Boolean(pr["2134"].inputs.switch);
+      if (pr["2131"] && pr["2131"].inputs && pr["2131"].inputs.image !== undefined) params.overlay_img_file = pr["2131"].inputs.image;
+      if (pr["2133"] && pr["2133"].inputs) {
+        if (pr["2133"].inputs.transparency !== undefined) params.overlay_img_opacity = Math.round(Math.max(0, Math.min(100, (1 - Number(pr["2133"].inputs.transparency)) * 100)));
+        if (pr["2133"].inputs.offset_x !== undefined) params.overlay_img_pos_x = pr["2133"].inputs.offset_x;
+        if (pr["2133"].inputs.offset_y !== undefined) params.overlay_img_pos_y = pr["2133"].inputs.offset_y;
+        if (pr["2133"].inputs.rotation_angle !== undefined) params.overlay_img_rotation = pr["2133"].inputs.rotation_angle;
+        if (pr["2133"].inputs.overlay_scale_factor !== undefined) params.overlay_img_scale = pr["2133"].inputs.overlay_scale_factor;
       }
       if (wf.nodes && Array.isArray(wf.nodes)) {
         const n1981 = wf.nodes.find(n => n.id === 1981);

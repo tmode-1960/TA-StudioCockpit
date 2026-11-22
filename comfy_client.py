@@ -394,6 +394,13 @@ def build_flexmod_api_prompt(
     overlay_sig_pos_y: int = -15,
     overlay_sig_rotation: float = 0.0,
     overlay_sig_margins: int = 0,
+    overlay_img_enabled: bool = False,
+    overlay_img_file: str = "",
+    overlay_img_pos_x: int = 0,
+    overlay_img_pos_y: int = 0,
+    overlay_img_scale: float = 1.0,
+    overlay_img_opacity: float = 100.0,
+    overlay_img_rotation: float = 0.0,
     sage_enable: bool = False,
     torch_enable: bool = False,
     sage_mode: str = "sageattn_qk_int8_pv_fp16_cuda",
@@ -644,6 +651,22 @@ def build_flexmod_api_prompt(
             "rotation_angle": float(overlay_sig_rotation),
             "margins": int(overlay_sig_margins),
         },
+        # CR Overlay Transparent Image / LazySwitchKJ (nodes 2131, 2133 & 2134: Bild-Logo)
+        **(
+            {
+                "2134": {"switch": True},
+                "2131": {"image": str(overlay_img_file)},
+                "2133": {
+                    "transparency": round(max(0.0, min(1.0, 1.0 - float(overlay_img_opacity) / 100.0)), 3),
+                    "offset_x": int(overlay_img_pos_x),
+                    "offset_y": int(overlay_img_pos_y),
+                    "rotation_angle": float(overlay_img_rotation),
+                    "overlay_scale_factor": float(overlay_img_scale),
+                },
+            }
+            if (overlay_img_enabled and overlay_img_file)
+            else {}
+        ),
         # Main Save with Prompt Text (node 1229)
         "1229": {
             "save_txt": "enabled" if save_txt_main else "disabled",
@@ -814,5 +837,9 @@ def build_flexmod_api_prompt(
     }
 
     converter = EclipseWorkflowConverter(wf)
+    # Bypass image-overlay switch (2134) when disabled or no logo file is set,
+    # so LoadImage (2131) is not emitted into the API prompt and cannot fail validation.
+    if not (overlay_img_enabled and overlay_img_file) and 2134 in converter.top.nodes:
+        converter.top.nodes[2134]["mode"] = MODE_BYPASS
     api_prompt = converter.convert(outputs=output_ids, overrides=overrides)
     return api_prompt

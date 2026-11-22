@@ -38,7 +38,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, updater
 
-APP_VERSION = "0.97"
+APP_VERSION = "0.98"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
 OUTPUT_DIR = ""
@@ -55,9 +55,9 @@ else:
 BASE_DIR = DATA_ROOT
 WEB_DIR = os.path.join(BUNDLE_DIR, "web")
 CONFIG_PATH = os.path.join(DATA_ROOT, "data", "config.json")
-WORKFLOW_PATH = os.path.join(BUNDLE_DIR, "workflows", "TA-FLEXMOD-LLM_v2.91.json")
-WORKFLOW_VERSION = "v2.91"
-WORKFLOW_NAME = "TA-FLEXMOD-LLM v2.91"
+WORKFLOW_PATH = os.path.join(BUNDLE_DIR, "workflows", "TA-FLEXMOD-LLM_v2.92.json")
+WORKFLOW_VERSION = "v2.92"
+WORKFLOW_NAME = "TA-FLEXMOD-LLM v2.92"
 
 # In-memory job state
 ACTIVE_JOBS: dict[str, dict] = {}
@@ -371,9 +371,9 @@ REQUIRED_NODE_PACKS = [
         "name": "ComfyUI_Comfyroll_CustomNodes",
         "repo": "https://github.com/Suzie1/ComfyUI_Comfyroll_CustomNodes",
         "required": True,
-        "description_de": "Text-Overlay für Signatur & KI-Hinweis (CR Overlay Text)",
-        "description_en": "Text overlay for signature & AI disclaimer (CR Overlay Text)",
-        "nodes": ["CR Overlay Text"],
+        "description_de": "Text- & Bild-Overlay für Signatur, Logo & KI-Hinweis (CR Overlay Text / Transparent Image)",
+        "description_en": "Text & image overlay for signature, logo & AI disclaimer (CR Overlay Text / Transparent Image)",
+        "nodes": ["CR Overlay Text", "CR Overlay Transparent Image"],
     },
     {
         "id": "ComfyUI-SeedVR2_VideoUpscaler",
@@ -1621,6 +1621,13 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                 overlay_sig_pos_y=int(params.get("overlay_sig_pos_y", -15)),
                 overlay_sig_rotation=float(params.get("overlay_sig_rotation", 0)),
                 overlay_sig_margins=int(params.get("overlay_sig_margins", 0)),
+                overlay_img_enabled=bool(params.get("overlay_img_enabled", False)),
+                overlay_img_file=str(params.get("overlay_img_file", "")),
+                overlay_img_pos_x=int(params.get("overlay_img_pos_x", 0)),
+                overlay_img_pos_y=int(params.get("overlay_img_pos_y", 0)),
+                overlay_img_scale=float(params.get("overlay_img_scale", 1.0)),
+                overlay_img_opacity=float(params.get("overlay_img_opacity", 100.0)),
+                overlay_img_rotation=float(params.get("overlay_img_rotation", 0)),
                 sage_enable=bool(params.get("sage_enable", False)),
                 torch_enable=bool(params.get("torch_enable", False)),
                 sage_mode=str(params.get("sage_mode", "sageattn_qk_int8_pv_fp16_cuda")),
@@ -1752,6 +1759,36 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                         n["widgets_values_named"]["position_x"] = pos_x_sig
                         n["widgets_values_named"]["position_y"] = pos_y_sig
                         n["widgets_values_named"]["rotation_angle"] = rot_sig
+                elif n.get("id") == 2134:
+                    sw_img = bool(params.get("overlay_img_enabled", False))
+                    if "widgets_values" in n and n["widgets_values"]:
+                        n["widgets_values"][0] = sw_img
+                    if "widgets_values_named" in n:
+                        n["widgets_values_named"]["switch"] = sw_img
+                elif n.get("id") == 2131:
+                    img_file = str(params.get("overlay_img_file", ""))
+                    if "widgets_values" in n and n["widgets_values"]:
+                        n["widgets_values"][0] = img_file
+                    if "widgets_values_named" in n:
+                        n["widgets_values_named"]["image"] = img_file
+                elif n.get("id") == 2133:
+                    transp_img = round(max(0.0, min(1.0, 1.0 - float(params.get("overlay_img_opacity", 100.0)) / 100.0)), 3)
+                    pos_x_img = int(params.get("overlay_img_pos_x", 0))
+                    pos_y_img = int(params.get("overlay_img_pos_y", 0))
+                    rot_img = float(params.get("overlay_img_rotation", 0))
+                    scale_img = float(params.get("overlay_img_scale", 1.0))
+                    if "widgets_values" in n and len(n["widgets_values"]) >= 5:
+                        n["widgets_values"][0] = transp_img
+                        n["widgets_values"][1] = pos_x_img
+                        n["widgets_values"][2] = pos_y_img
+                        n["widgets_values"][3] = rot_img
+                        n["widgets_values"][4] = scale_img
+                    if "widgets_values_named" in n:
+                        n["widgets_values_named"]["transparency"] = transp_img
+                        n["widgets_values_named"]["offset_x"] = pos_x_img
+                        n["widgets_values_named"]["offset_y"] = pos_y_img
+                        n["widgets_values_named"]["rotation_angle"] = rot_img
+                        n["widgets_values_named"]["overlay_scale_factor"] = scale_img
                 elif n.get("id") == 1229:
                     txt_mode = "enabled" if bool(params.get("save_txt_main", True)) else "disabled"
                     if "widgets_values" in n and len(n["widgets_values"]) >= 2:
@@ -2661,6 +2698,21 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                         params["overlay_sig_pos_y"] = int(w_vals[9])
                     if len(w_vals) > 10 and "overlay_sig_rotation" not in params:
                         params["overlay_sig_rotation"] = float(w_vals[10])
+                elif nid == 2134 and w_vals and "overlay_img_enabled" not in params:
+                    params["overlay_img_enabled"] = bool(w_vals[0])
+                elif nid == 2131 and w_vals and "overlay_img_file" not in params:
+                    params["overlay_img_file"] = str(w_vals[0])
+                elif nid == 2133 and len(w_vals) >= 5:
+                    if "overlay_img_opacity" not in params:
+                        params["overlay_img_opacity"] = round(max(0.0, min(100.0, (1.0 - float(w_vals[0])) * 100.0)), 1)
+                    if "overlay_img_pos_x" not in params:
+                        params["overlay_img_pos_x"] = int(w_vals[1])
+                    if "overlay_img_pos_y" not in params:
+                        params["overlay_img_pos_y"] = int(w_vals[2])
+                    if "overlay_img_rotation" not in params:
+                        params["overlay_img_rotation"] = float(w_vals[3])
+                    if "overlay_img_scale" not in params:
+                        params["overlay_img_scale"] = float(w_vals[4])
 
         # Fallback ratio calculation
         if "aspect_ratio" not in params and "width" in params and "height" in params:

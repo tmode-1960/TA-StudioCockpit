@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v0.97 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v0.98 (FLEXMOD Edition)</title>
   <link rel="icon" href="/favicon.ico">
   <script>
     (function () {
@@ -35,7 +35,7 @@
       <b class="brand-title">StudioCockpit</b>
       <span class="brand-badge brand-badge-clickable" id="brandVersion" title="Click to check for updates on GitHub">v0.88</span>
       <button type="button" class="brand-badge brand-badge-update" id="btnUpdateBadge" style="display:none;" title="New update available – click to install">⬆️ Update</button>
-      <span class="brand-badge brand-badge-wf" id="brandWf" title="Verwendeter ComfyUI Workflow" data-i18n-title="brand_wf_title">WF v2.91</span>
+      <span class="brand-badge brand-badge-wf" id="brandWf" title="Verwendeter ComfyUI Workflow" data-i18n-title="brand_wf_title">WF v2.92</span>
     </div>
 
     <nav class="studio-nav" id="studioNav" aria-label="Studio-Module">
@@ -797,6 +797,52 @@
               <div class="overlay-mini-field">
                 <label for="inpOverlayAIMargins" data-i18n="margins_label">Rand (px)</label>
                 <input type="number" id="inpOverlayAIMargins" value="0" step="1" min="0">
+              </div>
+            </div>
+          </div>
+
+          <!-- Image Overlay / Copyright Logo Section (Nodes 2131, 2132, 2133 & 2134) -->
+          <div class="overlay-section" style="margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--line);">
+            <div class="overlay-section-header">
+              <label class="switch-label">
+                <input type="checkbox" id="chkOverlayImg">
+                <span data-i18n="overlay_img">🖼️ Bild-Signatur / Logo</span>
+              </label>
+              <span class="value-badge" style="font-size: 10px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" id="badgeOverlayImgFile" data-i18n="badge_no_image">Kein Bild</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px;">
+              <input type="file" id="inpOverlayImgFile" accept="image/png,image/webp,image/jpeg" style="display: none;">
+              <button type="button" class="btn-secondary" id="btnOverlayImgUpload" style="flex: 1; font-size: 11px; padding: 5px 8px;" data-i18n="btn_overlay_img_upload">📁 Logo wählen (PNG)</button>
+              <button type="button" class="btn-secondary" id="btnOverlayImgClear" style="font-size: 11px; padding: 5px 8px; display: none;" title="Logo entfernen" data-i18n-title="btn_overlay_img_clear_title">✕</button>
+              <img id="imgOverlayThumb" alt="" style="display: none; width: 28px; height: 28px; object-fit: contain; border-radius: 4px; border: 1px solid var(--line); background: rgba(0,0,0,0.35);">
+            </div>
+            <div class="overlay-details-row" style="margin-top: 6px;">
+              <div class="overlay-mini-field">
+                <label for="inpOverlayImgPosX" data-i18n="offset_x_label">Versatz X (px)</label>
+                <input type="number" id="inpOverlayImgPosX" value="0" step="1">
+              </div>
+              <div class="overlay-mini-field">
+                <label for="inpOverlayImgPosY" data-i18n="offset_y_label">Versatz Y (px)</label>
+                <input type="number" id="inpOverlayImgPosY" value="0" step="1">
+              </div>
+            </div>
+            <div class="overlay-details-row">
+              <div class="overlay-mini-field">
+                <label for="inpOverlayImgScale" data-i18n="scale_label">Skalierung</label>
+                <input type="number" id="inpOverlayImgScale" value="1.0" min="0.05" max="5.0" step="0.05">
+              </div>
+              <div class="overlay-mini-field">
+                <label for="inpOverlayImgOpacity" data-i18n="opacity_label">Deckkraft (%)</label>
+                <input type="number" id="inpOverlayImgOpacity" value="100" min="0" max="100" step="5">
+              </div>
+            </div>
+            <div class="overlay-details-row">
+              <div class="overlay-mini-field">
+                <label for="inpOverlayImgRotation" data-i18n="rotation_label">Drehung (°)</label>
+                <input type="number" id="inpOverlayImgRotation" value="0" step="1" min="-360" max="360">
+              </div>
+              <div class="overlay-mini-field" style="justify-content: flex-end;">
+                <span style="font-size: 10px; color: var(--mute);" data-i18n="overlay_img_xy_hint">0, 0 = Bildmitte</span>
               </div>
             </div>
           </div>
@@ -2076,7 +2122,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=0.97"></script>
+  <script src="/app.js?v=0.98"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=4"></script>
 </body>
