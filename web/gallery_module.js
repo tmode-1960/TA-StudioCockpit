@@ -419,13 +419,18 @@
     return card;
   }
 
+  let masonryColHeights = [];
+
   function renderGrid(append, newItems) {
     const grid = $("galGrid");
     const empty = $("galEmpty");
     if (!grid) return [];
 
+    const isMasonry = state.mode === "masonry";
+
     if (!append) {
       grid.innerHTML = "";
+      masonryColHeights = [];
     }
 
     if (state.items.length === 0) {
@@ -436,6 +441,57 @@
 
     const startIdx = append ? state.items.length - newItems.length : 0;
     const listToRender = append ? newItems : state.items;
+
+    if (isMasonry) {
+      const colsCount = Math.max(1, parseInt(state.layout.cols, 10) || 5);
+      let colEls = Array.from(grid.children).filter((el) => el.classList.contains("gal-masonry-col"));
+      if (!append || colEls.length !== colsCount) {
+        grid.innerHTML = "";
+        colEls = [];
+        masonryColHeights = new Array(colsCount).fill(0);
+        for (let c = 0; c < colsCount; c++) {
+          const col = document.createElement("div");
+          col.className = "gal-masonry-col";
+          grid.appendChild(col);
+          colEls.push(col);
+        }
+        const frags = colEls.map(() => document.createDocumentFragment());
+        state.items.forEach((item, idx) => {
+          let targetCol = 0;
+          if (idx < colsCount) {
+            targetCol = idx;
+          } else {
+            for (let c = 1; c < colsCount; c++) {
+              if (masonryColHeights[c] < masonryColHeights[targetCol]) targetCol = c;
+            }
+          }
+          const ratio = item.width && item.height ? item.height / item.width : 1;
+          masonryColHeights[targetCol] += ratio;
+          frags[targetCol].appendChild(createCardElement(item, idx));
+        });
+        colEls.forEach((col, c) => col.appendChild(frags[c]));
+        return [];
+      }
+
+      const frags = colEls.map(() => document.createDocumentFragment());
+      listToRender.forEach((item, i) => {
+        const idx = startIdx + i;
+        let targetCol = 0;
+        if (idx < colsCount) {
+          targetCol = idx;
+        } else {
+          for (let c = 1; c < colsCount; c++) {
+            if (masonryColHeights[c] < masonryColHeights[targetCol]) targetCol = c;
+          }
+        }
+        const ratio = item.width && item.height ? item.height / item.width : 1;
+        masonryColHeights[targetCol] += ratio;
+        frags[targetCol].appendChild(createCardElement(item, idx));
+      });
+      colEls.forEach((col, c) => col.appendChild(frags[c]));
+      return [];
+    }
+
     const frag = document.createDocumentFragment();
     const imgs = [];
     listToRender.forEach((item, i) => {
@@ -737,6 +793,7 @@
     $("rngGalCols")?.addEventListener("input", (e) => {
       state.layout.cols = parseInt(e.target.value, 10) || 5;
       applyLayoutToDOM(true);
+      if (state.mode === "masonry") renderGrid(false, state.items);
     });
     $("rngGalWidth")?.addEventListener("input", (e) => {
       state.layout.width = parseInt(e.target.value, 10) || 100;
@@ -910,6 +967,9 @@
       try {
         localStorage.setItem("tAStudio.galleryLayout", JSON.stringify(state.layout));
       } catch (_) {}
+    }
+    if (state.items.length > 0) {
+      renderGrid(false, state.items);
     }
   }
 
