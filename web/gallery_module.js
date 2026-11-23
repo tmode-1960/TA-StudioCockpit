@@ -576,6 +576,9 @@
     if ($("btnGalLbGif")) {
       $("btnGalLbGif").hidden = isVideo;
     }
+    if ($("btnGalLbVideoBtn")) {
+      $("btnGalLbVideoBtn").hidden = isVideo;
+    }
 
     $("galLbFilename").textContent = item.name;
     const dims = item.width ? `${item.width} × ${item.height} · ` : "";
@@ -876,6 +879,15 @@
         };
         reader.readAsDataURL(blob);
       } catch (_) {}
+    });
+
+    $("btnGalLbVideoBtn")?.addEventListener("click", async () => {
+      const item = state.items[state.lbIndex];
+      if (!item || item.media_type === "video") return;
+      closeLightbox();
+      if (typeof window.sendImageToVideoMaker === "function") {
+        await window.sendImageToVideoMaker(item.path || item.url, "quick");
+      }
     });
 
     $("btnGalLbDelete")?.addEventListener("click", async () => {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v1.00 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.01 (FLEXMOD Edition)</title>
   <link rel="icon" href="/favicon.ico">
   <script>
     (function () {
@@ -42,6 +42,7 @@
       <button type="button" class="studio-nav-btn active" data-module="image" data-gif-i18n="nav_images">🎨 Bilder</button>
       <button type="button" class="studio-nav-btn" data-module="gallery" data-i18n="nav_gallery">🖼️ Galerie</button>
       <button type="button" class="studio-nav-btn" data-module="gif" data-gif-i18n="nav_gif">👾 DiscordGIF</button>
+      <button type="button" class="studio-nav-btn" data-module="video">🎬 VideoMaker</button>
     </nav>
 
     <div class="spacer"></div>
@@ -1310,6 +1311,7 @@
             <button class="btn-action btn-compact-short" id="btnReuseSeed" data-compact-label="🔄 Seed" title="Seed in Eingabe übernehmen" data-i18n-title="btn_reuse_seed_title"><span class="btn-label" data-i18n="btn_reuse_seed">🔄 Seed übernehmen</span></button>
             <button class="btn-action btn-highlight" id="btnApplyAllParams" title="Alle Parameter dieses Bildes (Prompts, Model, Sampler, Seed, Pixaroma-Auflösung, LoRAs) ins Cockpit laden" data-i18n-title="btn_apply_all_title" data-i18n="btn_apply_all">⚡ Parameter laden</button>
             <button class="btn-action btn-compact-short" id="btnSendToDiscordGif" data-compact-label="👾 GIF" data-gif-i18n-title="btn_send_to_gif_title" title="Aktuelles Bild im DiscordGIF AI-Studio animieren"><span class="btn-label" data-gif-i18n="btn_send_to_gif">👾 Als Discord-GIF</span></button>
+            <button class="btn-action btn-compact-short" id="btnSendToVideoMaker" data-compact-label="🎬 Video" title="Aktuelles Bild an VideoMaker übergeben"><span class="btn-label">🎬 An VideoMaker</span></button>
             <span class="bg-remove-wrap" id="bgRemoveWrap">
               <button class="btn-action btn-compact-short" id="btnRemoveBg" data-compact-label="✂️ BG" title="Hintergrund entfernen (freistellen)" data-i18n-title="btn_remove_bg_title" disabled><span class="btn-label" data-i18n="btn_remove_bg">✂️ Hintergrund entf.</span></button>
               <span class="help-badge-wrap" id="bgRemoveHelpWrap">
@@ -1339,6 +1341,873 @@
       <div class="filmstrip" id="filmstripGallery"></div>
 
     </main>
+
+  </div>
+
+
+  <!-- Module: VideoMaker (hidden by default, styled consistently with StudioCockpit) -->
+  <div class="studio-layout studio-layout-video" id="moduleVideoView" style="display:none;">
+
+  <!-- Left Controls Column -->
+  <section class="col left">
+    <div class="card">
+      <h2 data-video-i18n="mode"></h2>
+      <div class="seg" id="vm_modeSeg">
+        <button data-mode="director" class="active" data-video-i18n="modeDirector"></button>
+        <button data-mode="quick" data-video-i18n="modeQuick"></button>
+        <button data-mode="morph" data-video-i18n="modeMorph">🌀 Morph & Transform</button>
+        <button data-mode="longclip" data-video-i18n="modeLongClip"></button>
+        <button data-mode="lipsync" data-video-i18n="modeLipsync"></button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 data-video-i18n="resolution"></h2>
+      <div class="field">
+        <span data-video-i18n="profileAndVram"></span>
+        <select id="vm_selProfile">
+          <option value="eco" data-video-i18n="profileEco"></option>
+          <option value="balanced" data-video-i18n="profileBalanced"></option>
+          <option value="ultra" data-video-i18n="profileUltra"></option>
+        </select>
+      </div>
+      <div class="field">
+        <span data-video-i18n="resolution"></span>
+        <select id="vm_selResolution">
+          <optgroup data-video-i18n-label="optgroupLandscape" label="Querformat (16:9)">
+            <option value="480p" data-video-i18n="resEco480"></option>
+            <option value="720p" data-video-i18n="res720"></option>
+            <option value="1080p" data-video-i18n="res1080"></option>
+          </optgroup>
+          <optgroup data-video-i18n-label="optgroupPortrait" label="Hochformat (9:16 - Shorts / TikTok)">
+            <option value="480p_portrait" data-video-i18n="resPortrait480"></option>
+            <option value="720p_portrait" data-video-i18n="resPortrait720"></option>
+            <option value="1080p_portrait" data-video-i18n="resPortrait1080"></option>
+          </optgroup>
+          <optgroup data-video-i18n-label="optgroupSquare" label="Quadratisch (1:1)">
+            <option value="512x512" data-video-i18n="resSquare512"></option>
+          </optgroup>
+        </select>
+      </div>
+      <label class="check">
+        <input type="checkbox" id="vm_chkAutoUpscale">
+        <span data-video-i18n="autoUpscale1080"></span>
+      </label>
+      <div class="field" style="margin-top:4px;">
+        <span style="font-size:11px; color:var(--mute);" data-video-i18n="upscaleEngineLabel">Upscale-Engine</span>
+        <select id="vm_selUpscaleEngine">
+          <option value="ffmpeg" selected data-video-i18n="upscaleFfmpeg">⚡ FFmpeg Lanczos (Schnell)</option>
+          <option value="relayvsr" data-video-i18n="upscaleRelayvsr">✨ RelayVSR AI 2x (KI-HD)</option>
+        </select>
+      </div>
+      <div class="field" style="margin-top:6px;">
+        <span style="font-size:11px; color:var(--mute);" data-video-i18n="filmLutLabel">Film-LUT (Farblook)</span>
+        <select id="vm_selFilmLut">
+          <option value="" data-video-i18n="filmLutNone">Kein LUT (Original)</option>
+        </select>
+      </div>
+      <div class="field" style="margin-top:6px;">
+        <span data-video-i18n="fps"></span>
+        <select id="vm_selFps">
+          <option value="16" data-video-i18n="fps16"></option>
+          <option value="24" selected data-video-i18n="fps24"></option>
+          <option value="30" data-video-i18n="fps30"></option>
+        </select>
+      </div>
+      <div class="field" style="margin-top:6px;">
+        <span data-video-i18n="turboModeLabel">Sampling / Steps</span>
+        <select id="vm_selTurboMode">
+          <option value="turbo" selected data-video-i18n="turboMode8Steps">⚡ Turbo (8 Steps — Schnell)</option>
+          <option value="quality" data-video-i18n="turboMode20Steps">🎬 Standard (20 Steps — Qualität)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 data-video-i18n="seeds"></h2>
+      <div class="field">
+        <span data-video-i18n="videoSeed"></span>
+        <div style="display:flex; gap:8px;">
+          <input id="vm_videoSeed" type="number" value="424242">
+          <label class="check" style="white-space:nowrap;">
+            <input type="checkbox" id="vm_chkRandomSeed" checked>
+            <span data-video-i18n="randomize"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="vm_cardEcoNotice" style="display:none;">
+      <h2 data-video-i18n="vramOptimizationTitle"></h2>
+      <p style="font-size:12px; color:var(--mute); margin:0;" data-video-i18n="ecoNotice"></p>
+    </div>
+  </section>
+
+  <!-- Right Content Column -->
+  <section class="col right">
+    <nav class="tabs" id="vm_tabs">
+      <button data-tab="storyboard" class="active" data-video-i18n="tabStoryboard"></button>
+      <button data-tab="quick" data-video-i18n="tabQuick"></button>
+      <button data-tab="morph" data-video-i18n="tabMorph">🌀 Morph & Transform</button>
+      <button data-tab="longclip" data-video-i18n="tabLongClip"></button>
+      <button data-tab="lipsync" data-video-i18n="tabLipsync"></button>
+      <button data-tab="player" data-video-i18n="tabPlayer"></button>
+      <button data-tab="models" data-video-i18n="tabModels"></button>
+    </nav>
+
+    <!-- Tab 1: Storyboard & Director (up to 5 min) -->
+    <div id="vm_tabContentStoryboard" class="tab-pane">
+      <div class="ai-box">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <b style="font-size:13px; color:var(--accent);" data-video-i18n="aiAssistantTitle"></b>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <span style="font-size:12px; color:var(--mute);" data-video-i18n="aiScenesCount"></span>
+            <select id="vm_aiShotCount" style="width:70px; padding:3px 6px;">
+              <option value="3">3</option>
+              <option value="5" selected>5</option>
+              <option value="8">8</option>
+              <option value="12">12</option>
+            </select>
+            <button class="primary" id="vm_btnAiDraft" style="padding:4px 10px; font-size:12px;" data-video-i18n="generateStoryboard"></button>
+            <span id="vm_aiDirectorBadge" style="font-size:11px; color:var(--accent2); margin-left:6px; font-weight:600; display:none;"></span>
+            <span id="vm_aiDirectorBadge" style="font-size:11px; color:var(--accent2); margin-left:6px; font-weight:600; display:none;"></span>
+          </div>
+        </div>
+        <textarea id="vm_aiIdeaInput" rows="2" data-i18n-placeholder="aiIdeaPlaceholder"></textarea>
+      </div>
+
+      <div class="storyboard-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:10px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:260px;">
+          <h2 style="margin:0; white-space:nowrap;" data-video-i18n="storyboardTitle"></h2>
+          <input type="text" id="vm_storyboardTitleInput" data-i18n-placeholder="videoTitlePlaceholder" style="flex:1; padding:5px 10px; font-size:12px; border-radius:6px; background:var(--bg); border:1px solid var(--border); color:var(--text);" title="Videotitel / Name für die Filmdatei">
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="secondary" id="vm_btnSaveProject" data-video-i18n="saveProject" title="Projekt als Datei speichern">💾 Projekt speichern</button>
+          <button class="secondary" id="vm_btnLoadProject" data-video-i18n="loadProject" title="Projekt aus Datei laden">📂 Projekt laden</button>
+          <input type="file" id="vm_projectFileInput" accept=".json,.tav" style="display:none;">
+          <button class="secondary" id="vm_btnAddScene" data-video-i18n="addScene"></button>
+          <button class="secondary" id="vm_btnResetScenes" data-video-i18n="resetDefaultScenes" title="Demo-Szenen wiederherstellen">↺ Standard</button>
+          <button class="secondary" id="vm_btnClearScenes" data-video-i18n="clearAllScenes" title="Alle Szenen im Storyboard leeren">🗑️ Alle leeren</button>
+          <button class="secondary" id="vm_btnAnimatic" data-video-i18n="btnAnimaticPreview"></button>
+          <button class="secondary" id="vm_btnStitch" data-video-i18n="stitchAll"></button>
+          <button class="primary" id="vm_btnRenderAll" data-video-i18n="renderAll"></button>
+        </div>
+      </div>
+
+      <div class="h3-storyboard-meta-bar">
+        <span style="font-size:12px; color:var(--accent); font-weight:600; white-space:nowrap;" data-video-i18n="storyboardMusicStyleLabel"></span>
+        <input type="text" id="vm_storyboardMusicStyleInput" data-i18n-placeholder="storyboardMusicStylePlaceholder" style="flex:1; padding:5px 10px; font-size:12px; border-radius:6px; background:var(--bg); border:1px solid var(--border); color:var(--text);">
+      </div>
+
+      <!-- Storyboard Render Progress Bar -->
+      <div id="vm_storyboardProgressBox" style="display:none; background:var(--panel-bg); border:1px solid var(--accent); border-radius:8px; padding:12px; margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px; align-items:center;">
+          <b id="vm_sbProgressTitle" style="color:var(--accent);">Rendering Scenes...</b>
+          <div style="display:flex; gap:12px; align-items:center;">
+            <span style="font-family:Consolas, monospace; color:var(--accent);" id="vm_sbProgressTimer">⏱️ 00:00</span>
+            <span id="vm_sbProgressStats">0%</span>
+            <button class="btn-cancel-render" onclick="cancelActiveRender()" title="Abbrechen" data-video-i18n="btnCancelRender">✕ Abbrechen</button>
+          </div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-bar" id="vm_sbProgressBar" style="width:0%;"></div>
+        </div>
+        <div id="vm_sbDoneBadge" style="display:none; margin-top:8px; font-size:12px; color:var(--accent2); font-weight:600;"></div>
+      </div>
+
+      <div class="scene-list" id="vm_sceneList">
+        <!-- Rendered via app.js -->
+      </div>
+    </div>
+
+    <!-- Tab 2: Quick Clip (5-15 sec) -->
+    <div id="vm_tabContentQuick" class="tab-pane" style="display:none;">
+      <div class="card">
+        <h2 data-video-i18n="quickClipTitle"></h2>
+        
+        <div class="frame-slots" style="max-width:540px; margin-bottom:8px;">
+          <div class="frame-box">
+            <div class="frame-box-label">
+              <span data-video-i18n="firstFrameLabel"></span>
+            </div>
+            <div class="frame-dropzone" id="vm_quickFirstFrameDrop" style="height:220px;">
+              <span style="font-size:11px; color:var(--mute);" data-video-i18n="dropImagePrompt"></span>
+            </div>
+            <input type="file" id="vm_quickFirstFileInput" accept="image/*" style="display:none;">
+          </div>
+          <div class="frame-box">
+            <div class="frame-box-label">
+              <span data-video-i18n="lastFrameLabel"></span>
+            </div>
+            <div class="frame-dropzone" id="vm_quickLastFrameDrop" style="height:220px;">
+              <span style="font-size:11px; color:var(--mute);" data-video-i18n="dropImagePrompt"></span>
+            </div>
+            <input type="file" id="vm_quickLastFileInput" accept="image/*" style="display:none;">
+          </div>
+        </div>
+        <div style="font-size:11px; color:var(--mute); margin-top:-2px; margin-bottom:12px; line-height:1.4;" data-video-i18n="quickFramesHint">
+          💡 Text-to-Video: Bild-Slots einfach leer lassen, um rein aus dem Text-Prompt zu generieren. Mit Startbild wird das Bild animiert (Bild-zu-Video).
+        </div>
+
+        <div class="field">
+          <span data-video-i18n="videoTitleLabel"></span>
+          <input type="text" id="vm_quickTitleInput" data-i18n-placeholder="videoTitlePlaceholder">
+        </div>
+        <div class="field">
+          <span data-video-i18n="quickPromptLabel"></span>
+          <textarea id="vm_quickPrompt" rows="3" data-i18n-placeholder="quickPromptPlaceholder"></textarea>
+        </div>
+        <div class="field">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span data-video-i18n="quickDurationLabel"></span>
+            <div id="vm_quickDurationPresets" style="display:flex; gap:6px;">
+              <button type="button" class="duration-preset-btn" data-dur="3" onclick="setQuickDuration(3)">3s</button>
+              <button type="button" class="duration-preset-btn active" data-dur="5" onclick="setQuickDuration(5)">5s</button>
+              <button type="button" class="duration-preset-btn" data-dur="8" onclick="setQuickDuration(8)">8s</button>
+              <button type="button" class="duration-preset-btn" data-dur="10" onclick="setQuickDuration(10)">10s</button>
+            </div>
+          </div>
+          <input type="number" id="vm_quickDuration" min="2" max="60" value="5" step="0.5">
+        </div>
+
+        <!-- Optionale Tonspur für Quick Clip -->
+        <div class="quick-audio-card" style="margin-top:12px; margin-bottom:12px; background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:10px 12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div>
+              <label class="check" style="margin:0; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                <input type="checkbox" id="vm_chkQuickAudio">
+                <span style="font-size:12px; font-weight:600; color:var(--accent);" data-video-i18n="quickAudioCheckbox">🎵 Auto Sound (automatisch passend zum Video)</span>
+              </label>
+              <div style="font-size:11px; color:var(--mute); margin-top:2px;" data-video-i18n="quickAudioHint">Wählt vollautomatisch eine passende Klangatmosphäre anhand deines Prompts.</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span id="vm_quickAudioBadge" style="display:none; font-size:11px; padding:2px 8px; border-radius:12px; background:rgba(34,197,94,0.15); color:#4ade80; font-weight:600;"></span>
+              <button type="button" class="btn-mini" id="vm_btnSelectQuickAudio" data-video-i18n="btnSelectQuickAudio">📂 Eigener Sound</button>
+              <button type="button" class="btn-mini" id="vm_btnClearQuickAudio" style="display:none; color:var(--danger);" title="Auf Auto-Sound zurücksetzen">✕</button>
+            </div>
+          </div>
+          <input type="file" id="vm_quickAudioFileInput" accept="audio/*,.mp3,.wav,.flac,.ogg,.m4a" style="display:none;">
+
+          <div id="vm_quickAudioControls" style="display:none; margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.06);">
+            <!-- Interaktive Wellenform wie in tA-MusicMaker -->
+            <div id="vm_quickWaveformCard" style="margin-bottom:10px; background:#0c0e17; border:1px solid var(--line); border-radius:8px; padding:10px; position:relative;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <button type="button" class="btn-mini" id="vm_btnPreviewQuickAudioRange" style="display:inline-flex; align-items:center; gap:4px; font-weight:600;">
+                    <span id="vm_icoPreviewQuickAudio">▶</span>
+                    <span id="vm_txtPreviewQuickAudio" data-video-i18n="btnPreviewAudioRange">Vorhören</span>
+                  </button>
+                  <span id="vm_quickWaveformInfo" style="font-size:11px; font-family:Consolas, monospace; color:var(--accent2); font-weight:600;">0:00.0 - 0:05.0 (5.0s)</span>
+                </div>
+                <span id="vm_quickAudioDurationInfo" style="font-size:11px; color:var(--mute); font-family:Consolas, monospace;"></span>
+              </div>
+              <div id="vm_quickWaveformWrap" style="position:relative; width:100%; height:74px; overflow:hidden; border-radius:6px; background:#08090f; cursor:crosshair;">
+                <canvas id="vm_quickWaveformCanvas" style="width:100%; height:100%; display:block;"></canvas>
+              </div>
+              <div style="font-size:11px; color:var(--mute); margin-top:5px;" data-video-i18n="quickWaveformHint">
+                💡 Tipp: Mit der Maus auf die Wellenform klicken oder ziehen, um den Bereich zu verschieben.
+              </div>
+            </div>
+
+            <audio id="vm_quickAudioPreview" controls style="width:100%; height:32px; display:none;"></audio>
+            
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-top:10px;">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span style="font-size:11px; color:var(--mute); font-weight:600;" data-video-i18n="quickAudioStartLabel">⏱️ Audio-Startzeit:</span>
+                <input type="number" id="vm_quickAudioStartSec" min="0" max="3600" value="0" step="0.1" style="width:70px; padding:4px 6px; font-size:12px;">
+                <span style="font-size:11px; color:var(--mute);">s</span>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:8px; min-width:200px;">
+                <span style="font-size:11px; color:var(--mute); white-space:nowrap;" id="vm_quickAudioVolumeText">🔊 Lautstärke: 100%</span>
+                <input type="range" id="vm_quickAudioVolume" min="0" max="100" value="100" step="1" style="flex:1; cursor:pointer;">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="primary" id="vm_btnRenderQuick" data-video-i18n="btnRenderQuick"></button>
+
+        <div id="vm_quickProgressBox" style="display:none; margin-top:14px; background:var(--panel-bg); border:1px solid var(--accent); border-radius:8px; padding:12px;">
+          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px; align-items:center;">
+            <b id="vm_quickProgressTitle" style="color:var(--accent);">Generating Clip...</b>
+            <div style="display:flex; gap:12px; align-items:center;">
+              <span style="font-family:Consolas, monospace; color:var(--accent);" id="vm_quickProgressTimer">⏱️ 00:00</span>
+              <span id="vm_quickProgressStats">0%</span>
+              <button class="btn-cancel-render" onclick="cancelActiveRender()" title="Abbrechen" data-video-i18n="btnCancelRender">✕ Abbrechen</button>
+            </div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-bar" id="vm_quickProgressBar" style="width:0%;"></div>
+          </div>
+          <div id="vm_quickDoneBadge" style="display:none; margin-top:8px; font-size:12px; color:var(--accent2); font-weight:600;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2m: Morph / Transformation (AnimateDiff-Style LoRA) -->
+    <div id="vm_tabContentMorph" class="tab-pane" style="display:none;">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:6px;">
+          <h2 style="margin:0;" data-video-i18n="morphTitle">🌀 Morph &amp; Transformation</h2>
+          <span class="lipsync-engine-badge" style="background:linear-gradient(135deg, rgba(168,85,247,0.18), rgba(59,130,246,0.18)); border:1px solid rgba(168,85,247,0.45); color:#c084fc;">✨ AnimateDiff-Style H3 LoRA</span>
+        </div>
+        <p style="font-size:12px; color:var(--mute); margin:0 0 12px 0;" data-video-i18n="morphSubtitle">Fließende, surreale Verwandlungen zwischen Start- und Zielbild (oder rein aus dem Prompt).</p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+          <div>
+            <div style="font-size:12px; color:var(--mute); margin-bottom:4px;" data-video-i18n="startFrameOpt"></div>
+            <div class="frame-dropzone" id="vm_morphFirstFrameDrop" style="height:220px;">
+              <span class="frame-placeholder" data-video-i18n="dropOrPickImage"></span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px; color:var(--mute); margin-bottom:4px;" data-video-i18n="endFrameOpt"></div>
+            <div class="frame-dropzone" id="vm_morphLastFrameDrop" style="height:220px;">
+              <span class="frame-placeholder" data-video-i18n="dropOrPickImage"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <span data-video-i18n="videoTitleLabel"></span>
+          <input type="text" id="vm_morphTitleInput" data-i18n-placeholder="videoTitlePlaceholder">
+        </div>
+        <div class="field">
+          <span data-video-i18n="promptVisualLabel"></span>
+          <textarea id="vm_morphPromptInput" rows="3" data-i18n-placeholder="morphPromptPlaceholder" placeholder="z. B. Seamless surreal morphing transformation, fluid environmental shift, dreamy evolving motion..."></textarea>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:10px;">
+          <div class="field">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span data-video-i18n="durationSecLabel"></span>
+              <div class="duration-presets" style="display:flex; gap:4px;">
+                <button type="button" class="btn-mini" onclick="setMorphDuration(3)" style="padding:2px 8px; font-size:11px;">3s</button>
+                <button type="button" class="btn-mini" onclick="setMorphDuration(5)" style="padding:2px 8px; font-size:11px;">5s</button>
+                <button type="button" class="btn-mini" onclick="setMorphDuration(8)" style="padding:2px 8px; font-size:11px;">8s</button>
+                <button type="button" class="btn-mini" onclick="setMorphDuration(10)" style="padding:2px 8px; font-size:11px;">10s</button>
+              </div>
+            </div>
+            <input type="number" id="vm_morphDuration" min="2" max="15" value="5" step="0.5">
+          </div>
+          <div class="field">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span data-video-i18n="morphStrengthLabel">Morph-LoRA Stärke</span>
+              <span id="vm_morphStrengthVal" style="font-size:12px; color:var(--accent2); font-family:Consolas, monospace;">0.85</span>
+            </div>
+            <input type="range" id="vm_morphLoraStrength" min="0.3" max="1.2" value="0.85" step="0.05" style="cursor:pointer;">
+          </div>
+        </div>
+
+        <div class="field" style="margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <span data-video-i18n="morphEndHoldLabel">Endbild halten (Sek.)</span>
+            <div class="duration-presets" style="display:flex; gap:4px;">
+              <button type="button" class="btn-mini" onclick="setMorphEndHold(0)" style="padding:2px 8px; font-size:11px;">0s</button>
+              <button type="button" class="btn-mini" onclick="setMorphEndHold(1)" style="padding:2px 8px; font-size:11px;">1s</button>
+              <button type="button" class="btn-mini" onclick="setMorphEndHold(1.5)" style="padding:2px 8px; font-size:11px;">1.5s</button>
+              <button type="button" class="btn-mini" onclick="setMorphEndHold(2)" style="padding:2px 8px; font-size:11px;">2s</button>
+              <button type="button" class="btn-mini" onclick="setMorphEndHold(3)" style="padding:2px 8px; font-size:11px;">3s</button>
+            </div>
+          </div>
+          <input type="number" id="vm_morphEndHold" min="0" max="5" value="1.5" step="0.5">
+        </div>
+
+        <label class="check" style="margin-bottom:12px;">
+          <input type="checkbox" id="vm_chkMorphAudio" checked>
+          <span style="font-size:12px;" data-video-i18n="quickAudioCheckbox"></span>
+        </label>
+
+        <button class="primary" id="vm_btnRenderMorph" data-video-i18n="btnRenderMorph">🌀 Morph-Clip generieren</button>
+
+        <div id="vm_morphProgressBox" style="display:none; margin-top:14px; background:var(--panel-bg); border:1px solid var(--accent); border-radius:8px; padding:12px;">
+          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px; align-items:center;">
+            <b id="vm_morphProgressTitle" style="color:var(--accent);">Generating Morph Clip...</b>
+            <div style="display:flex; gap:12px; align-items:center;">
+              <span style="font-family:Consolas, monospace; color:var(--accent);" id="vm_morphProgressTimer">⏱️ 00:00</span>
+              <span id="vm_morphProgressStats">0%</span>
+              <button class="btn-cancel-render" onclick="cancelActiveRender()" title="Abbrechen" data-video-i18n="btnCancelRender">✕ Abbrechen</button>
+            </div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-bar" id="vm_morphProgressBar" style="width:0%;"></div>
+          </div>
+          <div id="vm_morphDoneBadge" style="display:none; margin-top:8px; font-size:12px; color:var(--accent2); font-weight:600;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2a: Long Clip (Continuous MiniMax H3 Generation with Audio Sync & Turbo) -->
+    <div id="vm_tabContentLongclip" class="tab-pane" style="display:none;">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:6px;">
+          <div>
+            <h2 style="margin:0;" data-video-i18n="longClipTitle"></h2>
+            <p style="font-size:12px; color:var(--mute); margin:4px 0 0 0;" data-video-i18n="longClipSubtitle"></p>
+          </div>
+          <span class="lipsync-engine-badge" style="background:linear-gradient(135deg, rgba(34,197,94,0.15), rgba(51,214,166,0.15)); border:1px solid rgba(74,222,128,0.45); color:#4ade80;" data-video-i18n="longClipEngineBadge">✨ MiniMax H3 Ref2Vid • Turbo</span>
+        </div>
+
+        <div class="frame-slots" style="max-width:540px; margin-bottom:8px;">
+          <div class="frame-box">
+            <div class="frame-box-label" style="display:flex; justify-content:space-between; align-items:center;">
+              <span data-video-i18n="firstFrameLabel"></span>
+              <div style="display:flex; gap:4px;">
+                <button type="button" class="btn-mini" id="vm_btnAnalyzeLongStartImage" style="padding:2px 7px; font-size:10px;" title="Startbild mit VLM/Gemini analysieren und als Video-Prompt übernehmen">✨ Bild→Prompt</button>
+                <button type="button" class="btn-mini" id="vm_btnGenLongStartImage" style="padding:2px 7px; font-size:10px;" title="Startbild mit MiniMax H3 Image generieren">🎨 H3 Image</button>
+              </div>
+            </div>
+            <div class="frame-dropzone" id="vm_longFirstFrameDrop" style="height:220px;">
+              <span style="font-size:11px; color:var(--mute);" data-video-i18n="dropImagePrompt"></span>
+            </div>
+            <input type="file" id="vm_longFirstFileInput" accept="image/*" style="display:none;">
+          </div>
+          <div class="frame-box">
+            <div class="frame-box-label">
+              <span data-video-i18n="lastFrameLabel"></span>
+            </div>
+            <div class="frame-dropzone" id="vm_longLastFrameDrop" style="height:220px;">
+              <span style="font-size:11px; color:var(--mute);" data-video-i18n="dropImagePrompt"></span>
+            </div>
+            <input type="file" id="vm_longLastFileInput" accept="image/*" style="display:none;">
+          </div>
+        </div>
+        <div style="font-size:11px; color:var(--mute); margin-top:-2px; margin-bottom:12px; line-height:1.4;" data-video-i18n="longFramesHint">
+          💡 Startbild definiert den Anfang des Takes. Mit optionalem Endbild interpoliert MiniMax die Bewegung kontinuierlich bis zum Zielbild.
+        </div>
+
+        <div class="field">
+          <span data-video-i18n="videoTitleLabel"></span>
+          <input type="text" id="vm_longTitleInput" data-i18n-placeholder="longTitlePlaceholder">
+        </div>
+
+        <div class="field">
+          <span data-video-i18n="longPromptLabel"></span>
+          <textarea id="vm_longPrompt" rows="3" data-i18n-placeholder="longPromptPlaceholder"></textarea>
+        </div>
+
+        <div class="field">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span data-video-i18n="longDurationLabel"></span>
+            <div id="vm_longDurationPresets" style="display:flex; gap:6px;">
+              <button type="button" class="duration-preset-btn" data-dur="10" onclick="setLongDuration(10)">10s</button>
+              <button type="button" class="duration-preset-btn" data-dur="15" onclick="setLongDuration(15)">15s</button>
+              <button type="button" class="duration-preset-btn" data-dur="20" onclick="setLongDuration(20)">20s</button>
+              <button type="button" class="duration-preset-btn active" data-dur="30" onclick="setLongDuration(30)">30s</button>
+            </div>
+          </div>
+          <input type="number" id="vm_longDuration" min="5" max="60" value="30" step="0.5">
+        </div>
+
+        <!-- Audio Track Card for Long Clip -->
+        <div class="quick-audio-card" style="margin-top:12px; margin-bottom:12px; background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:10px 12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div>
+              <span style="font-size:12px; font-weight:600; color:var(--accent);" data-video-i18n="longAudioHeading">🎵 Audio-Track & Musik-Synchronisation</span>
+              <div style="font-size:11px; color:var(--mute); margin-top:2px;" data-video-i18n="longAudioHint"></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span id="vm_longAudioBadge" style="display:none; font-size:11px; padding:2px 8px; border-radius:12px; background:rgba(34,197,94,0.15); color:#4ade80; font-weight:600;"></span>
+              <button type="button" class="btn-mini" id="vm_btnSelectLongAudio" data-video-i18n="btnSelectLongAudio">📁 Audio-Track wählen</button>
+              <button type="button" class="btn-mini" id="vm_btnClearLongAudio" style="display:none; color:var(--danger);" title="Audio entfernen">✕</button>
+            </div>
+          </div>
+          <input type="file" id="vm_longAudioFileInput" accept="audio/*,.mp3,.wav,.flac,.ogg,.m4a" style="display:none;">
+
+          <div id="vm_longAudioControls" style="display:none; margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.06);">
+            <div id="vm_longWaveformCard" style="margin-bottom:10px; background:#0c0e17; border:1px solid var(--line); border-radius:8px; padding:10px; position:relative;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <button type="button" class="btn-mini" id="vm_btnPreviewLongAudioRange" style="display:inline-flex; align-items:center; gap:4px; font-weight:600;">
+                    <span id="vm_icoPreviewLongAudio">▶</span>
+                    <span id="vm_txtPreviewLongAudio" data-video-i18n="btnPreviewAudioRange">Vorhören</span>
+                  </button>
+                  <span id="vm_longWaveformInfo" style="font-size:11px; font-family:Consolas, monospace; color:var(--accent2); font-weight:600;">0:00.0 - 0:30.0 (30.0s)</span>
+                </div>
+                <span id="vm_longAudioDurationInfo" style="font-size:11px; color:var(--mute); font-family:Consolas, monospace;"></span>
+              </div>
+              <div id="vm_longWaveformWrap" style="position:relative; width:100%; height:74px; overflow:hidden; border-radius:6px; background:#08090f; cursor:crosshair;">
+                <canvas id="vm_longWaveformCanvas" style="width:100%; height:100%; display:block;"></canvas>
+              </div>
+              <div style="font-size:11px; color:var(--mute); margin-top:5px;" data-video-i18n="quickWaveformHint">
+                💡 Tipp: Mit der Maus auf die Wellenform klicken oder ziehen, um den Startbereich im Song festzulegen.
+              </div>
+            </div>
+
+            <audio id="vm_longAudioPreview" controls style="width:100%; height:32px; display:none;"></audio>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-top:10px;">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span style="font-size:11px; color:var(--mute); font-weight:600;">⏱️ Audio-Startzeit:</span>
+                <input type="number" id="vm_longAudioStartSec" min="0" max="3600" value="0" step="0.1" style="width:70px; padding:4px 6px; font-size:12px;">
+                <span style="font-size:11px; color:var(--mute);">s</span>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:8px; min-width:200px;">
+                <span style="font-size:11px; color:var(--mute); white-space:nowrap;" id="vm_longAudioVolumeText">🔊 Lautstärke: 100%</span>
+                <input type="range" id="vm_longAudioVolume" min="0" max="100" value="100" step="1" style="flex:1; cursor:pointer;">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px; margin-bottom:14px; background:rgba(255,255,255,0.02); border:1px solid var(--line); border-radius:8px; padding:8px 12px; display:flex; justify-content:space-between; align-items:center;">
+          <label class="check" style="margin:0; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
+            <input type="checkbox" id="vm_chkLongTurbo" checked>
+            <span style="font-size:12px; font-weight:600; color:var(--accent);" data-video-i18n="longTurboCheckbox">⚡ Turbo-Sampling aktivieren (Few-Step LoRA, ~90s Renderzeit)</span>
+          </label>
+          <span style="font-size:11px; color:var(--mute);" data-video-i18n="longTurboHint">Reduziert Steps auf 8 für maximale Geschwindigkeit</span>
+        </div>
+
+        <button class="primary" id="vm_btnRenderLong" data-video-i18n="btnRenderLong">🎵 Long Clip generieren</button>
+
+        <div id="vm_longProgressBox" style="display:none; margin-top:14px; background:var(--panel-bg); border:1px solid var(--accent); border-radius:8px; padding:12px;">
+          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px; align-items:center;">
+            <b id="vm_longProgressTitle" style="color:var(--accent);">Generating Long Clip...</b>
+            <div style="display:flex; gap:12px; align-items:center;">
+              <span style="font-family:Consolas, monospace; color:var(--accent);" id="vm_longProgressTimer">⏱️ 00:00</span>
+              <span id="vm_longProgressStats">0%</span>
+              <button class="btn-cancel-render" onclick="cancelActiveRender()" title="Abbrechen" data-video-i18n="btnCancelRender">✕ Abbrechen</button>
+            </div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-bar" id="vm_longProgressBar" style="width:0%;"></div>
+          </div>
+          <div id="vm_longDoneBadge" style="display:none; margin-top:8px; font-size:12px; color:var(--accent2); font-weight:600;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2b: Lipsync & Avatar Studio (MiniMax H3 Audio-to-Video) -->
+    <div id="vm_tabContentLipsync" class="tab-pane" style="display:none;">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:6px;">
+          <div>
+            <h2 style="margin:0;" data-video-i18n="lipsyncTitle"></h2>
+            <p style="font-size:12px; color:var(--mute); margin:4px 0 0 0;" data-video-i18n="lipsyncSubtitle"></p>
+          </div>
+          <span class="lipsync-engine-badge" data-video-i18n="lipsyncEngineBadge"></span>
+        </div>
+
+        <div class="lipsync-media-grid">
+          <!-- Column 1: Portrait & Optional 2nd Keyframe -->
+          <div class="lipsync-media-box">
+            <div class="frame-slots" style="margin-top:0;">
+              <div class="frame-box">
+                <div class="frame-box-label" style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                  <div>
+                    <span data-video-i18n="lipsyncPortraitLabel"></span>
+                    <span class="h3-token-pill">&lt;Picture 1&gt; / &lt;Subject 1&gt;</span>
+                  </div>
+                  <button type="button" class="btn-mini" id="vm_btnGenLipsyncStartImage" style="padding:2px 7px; font-size:10px;" title="Porträt mit MiniMax H3 Image generieren">🎨 H3 Image</button>
+                </div>
+                <div class="frame-dropzone" id="vm_lipsyncPortraitDrop" style="height:220px;">
+                  <span style="font-size:11px; color:var(--mute);" data-video-i18n="dropImagePrompt"></span>
+                </div>
+                <input type="file" id="vm_lipsyncPortraitFileInput" accept="image/*" style="display:none;">
+              </div>
+              <div class="frame-box">
+                <div class="frame-box-label">
+                  <span data-video-i18n="lipsyncSecondFrameLabel"></span>
+                  <span class="h3-token-pill">&lt;Picture 2&gt;</span>
+                </div>
+                <div class="frame-dropzone" id="vm_lipsyncSecondDrop" style="height:220px;">
+                  <span style="font-size:11px; color:var(--mute);" data-video-i18n="dropImagePrompt"></span>
+                </div>
+                <input type="file" id="vm_lipsyncSecondFileInput" accept="image/*" style="display:none;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Audio Dropzone, Player & Trim Controls -->
+          <div class="lipsync-media-box">
+            <div class="frame-box-label" style="margin-bottom:4px;">
+              <span data-video-i18n="lipsyncAudioLabel"></span>
+              <span id="vm_lipsyncAudioNameBadge" style="color:var(--accent2); font-weight:600;"></span>
+            </div>
+            <div class="audio-dropzone" id="vm_lipsyncAudioDrop">
+              <span id="vm_lipsyncAudioDropText" style="font-size:12px; color:var(--mute);" data-video-i18n="dropAudioPrompt"></span>
+            </div>
+            <input type="file" id="vm_lipsyncAudioFileInput" accept="audio/*,.mp3,.wav,.flac,.ogg,.m4a" style="display:none;">
+
+            <audio id="vm_lipsyncAudioPreview" controls style="width:100%; height:34px; margin-top:8px; display:none;"></audio>
+
+            <div class="lipsync-trim-row">
+              <div class="field" style="flex:1; margin:0;">
+                <span data-video-i18n="lipsyncStartSecLabel"></span>
+                <input type="number" id="vm_lipsyncStartSec" min="0" max="600" value="0" step="0.5">
+              </div>
+              <div class="field" style="flex:1; margin:0;">
+                <span data-video-i18n="lipsyncDurationSecLabel"></span>
+                <input type="number" id="vm_lipsyncDurationSec" min="1" max="120" value="10" step="0.5">
+              </div>
+              <div class="field" style="flex:1; margin:0;">
+                <span data-video-i18n="lipsyncStrengthLabel"></span>
+                <input type="number" id="vm_lipsyncStrength" min="0.1" max="1.0" value="0.99" step="0.01">
+              </div>
+            </div>
+            <div id="vm_lipsyncSegmentBadge" class="h3-segment-info"></div>
+          </div>
+        </div>
+
+        <div class="h3-structured-grid">
+          <div class="field" style="margin:0;">
+            <span data-video-i18n="videoTitleLabel"></span>
+            <input type="text" id="vm_lipsyncTitleInput" data-i18n-placeholder="videoTitlePlaceholder">
+          </div>
+          <div class="field" style="margin:0;">
+            <span data-video-i18n="lipsyncSubjectLabel"></span>
+            <input type="text" id="vm_lipsyncSubjectInput" data-i18n-placeholder="lipsyncSubjectPlaceholder">
+          </div>
+          <div class="field" style="margin:0;">
+            <span data-video-i18n="lipsyncDialogueLangLabel"></span>
+            <select id="vm_selLipsyncDialogueLang">
+              <option value="German" data-video-i18n="langOptGerman">Deutsch ([German])</option>
+              <option value="English" data-video-i18n="langOptEnglish">English ([English])</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+            <span data-video-i18n="lipsyncDialogueLabel"></span>
+            <button type="button" class="btn-mini" id="vm_btnTranscribeAudio" data-video-i18n="btnTranscribeAudio"></button>
+          </div>
+          <textarea id="vm_lipsyncDialogueInput" rows="2" data-i18n-placeholder="lipsyncDialoguePlaceholder"></textarea>
+        </div>
+
+        <div class="field">
+          <span data-video-i18n="lipsyncPromptLabel"></span>
+          <textarea id="vm_lipsyncPrompt" rows="2" data-i18n-placeholder="lipsyncPromptPlaceholder"></textarea>
+        </div>
+
+        <div class="h3-camera-grid">
+          <div class="field" style="margin:0;">
+            <span data-video-i18n="lipsyncCameraPresetLabel"></span>
+            <select id="vm_selLipsyncCameraPreset">
+              <option value="steady_closeup" data-video-i18n="camPresetSteadyCloseup"></option>
+              <option value="slow_push_in" data-video-i18n="camPresetSlowPushIn"></option>
+              <option value="subtle_orbit" data-video-i18n="camPresetSubtleOrbit"></option>
+              <option value="subtle_tilt" data-video-i18n="camPresetSubtleTilt"></option>
+              <option value="over_shoulder" data-video-i18n="camPresetOverShoulder"></option>
+              <option value="dynamic_stage" data-video-i18n="camPresetDynamicStage"></option>
+              <option value="custom" data-video-i18n="camPresetCustom"></option>
+            </select>
+          </div>
+          <div class="field" style="margin:0;">
+            <span data-video-i18n="lipsyncCutLabel"></span>
+            <input type="text" id="vm_lipsyncCutInput" data-i18n-placeholder="lipsyncCutPlaceholder">
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:10px;">
+          <span data-video-i18n="lipsyncMusicStyleLabel"></span>
+          <input type="text" id="vm_lipsyncMusicStyle" data-i18n-placeholder="lipsyncMusicStylePlaceholder">
+        </div>
+
+        <!-- Optionale Hintergrundmusik & Lautstärkeregler -->
+        <div class="lipsync-bgm-card" style="margin-top:10px; background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:10px 12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:12px; font-weight:600; color:var(--accent);" data-video-i18n="lipsyncBgmLabel"></span>
+              <span id="vm_lipsyncBgmBadge" style="display:none; font-size:11px; padding:2px 8px; border-radius:12px; background:rgba(34,197,94,0.15); color:#4ade80; font-weight:600;"></span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button type="button" class="btn-mini" id="vm_btnSelectLipsyncBgm" data-video-i18n="btnSelectBgm">📂 Musik wählen</button>
+              <button type="button" class="btn-mini" id="vm_btnClearLipsyncBgm" style="display:none; color:var(--danger);" title="Entfernen">✕</button>
+            </div>
+          </div>
+          <input type="file" id="vm_lipsyncBgmFileInput" accept="audio/*,.mp3,.wav,.flac,.ogg,.m4a" style="display:none;">
+
+          <div id="vm_lipsyncBgmControls" style="display:none; align-items:center; gap:12px; margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.06); flex-wrap:wrap;">
+            <audio id="vm_lipsyncBgmPreview" controls style="flex:1; min-width:180px; height:32px;"></audio>
+            <div style="display:flex; align-items:center; gap:8px; min-width:220px;">
+              <span style="font-size:11px; color:var(--mute); white-space:nowrap;" id="vm_lipsyncBgmVolumeText">🔊 Musik-Lautstärke: 25%</span>
+              <input type="range" id="vm_lipsyncBgmVolume" min="0" max="100" value="25" step="1" style="flex:1; cursor:pointer;">
+            </div>
+          </div>
+        </div>
+
+        <div class="lipsync-options-bar">
+          <label class="check">
+            <input type="checkbox" id="vm_chkLipsyncAlignPauses" checked>
+            <span data-video-i18n="lipsyncAlignPausesLabel"></span>
+          </label>
+          <label class="check">
+            <input type="checkbox" id="vm_chkLipsyncDemucs">
+            <span data-video-i18n="lipsyncDemucsLabel"></span>
+          </label>
+          <label class="check">
+            <input type="checkbox" id="vm_chkLipsyncCaptions">
+            <span data-video-i18n="lipsyncCaptionsLabel"></span>
+          </label>
+        </div>
+
+        <div class="field" id="vm_lipsyncCaptionsBox" style="display:none; margin-top:8px;">
+          <span data-video-i18n="lipsyncLyricsTextLabel"></span>
+          <textarea id="vm_lipsyncCaptionsText" rows="3" data-i18n-placeholder="lipsyncLyricsPlaceholder"></textarea>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+          <button class="primary" id="vm_btnRenderLipsyncAi" data-video-i18n="btnRenderLipsyncAi"></button>
+          <button class="secondary" id="vm_btnRenderLipsyncPreview" data-video-i18n="btnRenderLipsyncPreview"></button>
+          <button class="secondary" id="vm_btnAddLipsyncToStoryboard" style="display:none;" data-video-i18n="btnAddLipsyncToStoryboard"></button>
+        </div>
+
+        <div id="vm_lipsyncProgressBox" style="display:none; margin-top:14px; background:var(--panel-bg); border:1px solid var(--accent); border-radius:8px; padding:12px;">
+          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px; align-items:center;">
+            <b id="vm_lipsyncProgressTitle" style="color:var(--accent);">Rendering Lipsync Video...</b>
+            <div style="display:flex; gap:12px; align-items:center;">
+              <span style="font-family:Consolas, monospace; color:var(--accent);" id="vm_lipsyncProgressTimer">⏱️ 00:00</span>
+              <span id="vm_lipsyncProgressStats">0%</span>
+              <button class="btn-cancel-render" onclick="cancelActiveRender()" title="Abbrechen" data-video-i18n="btnCancelRender">✕ Abbrechen</button>
+            </div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-bar" id="vm_lipsyncProgressBar" style="width:0%;"></div>
+          </div>
+          <div id="vm_lipsyncDoneBadge" style="display:none; margin-top:8px; font-size:12px; color:var(--accent2); font-weight:600;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Studio Player & Edit -->
+    <div id="vm_tabContentPlayer" class="tab-pane" style="display:none;">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h2 style="margin:0;" data-video-i18n="playerTitle"></h2>
+          <button class="secondary" id="vm_btnOpenOutputFolderPlayer" style="padding:6px 14px; font-size:12px;">📂 <span data-video-i18n="btnOpenOutputFolder"></span></button>
+        </div>
+        <div style="background:#000; border-radius:8px; overflow:hidden; display:flex; justify-content:center; align-items:center; min-height:360px;">
+          <video id="vm_studioVideoPlayer" controls style="max-width:100%; max-height:480px;"></video>
+        </div>
+        <div style="margin-top:14px; display:flex; gap:10px; align-items:center;">
+          <span style="font-size:12px; color:var(--mute);" data-video-i18n="bgmLabel"></span>
+          <input type="text" id="vm_bgmPath" data-i18n-placeholder="bgmPlaceholder" style="flex:1;">
+          <button class="secondary" id="vm_btnReStitch" data-video-i18n="btnReStitch"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4: Models & Hardware -->
+    <div id="vm_tabContentModels" class="tab-pane" style="display:none;">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:10px;">
+          <h2 style="margin:0;" data-video-i18n="modelsTitle"></h2>
+          <select id="vm_modelTierSelect" style="width:auto; min-width:250px; padding:5px 10px; font-size:12px;">
+            <option value="minimax_h3">MiniMax H3 Video (FL2VA / FastH3)</option>
+            <option value="morph_lora">🌀 Morph & Transform LoRA (AnimateDiff Style)</option>
+            <option value="relayvsr">✨ RelayVSR AI 2x Upscaler (480p → 1080p)</option>
+            <option value="minimax_h3_image">MiniMax H3 Image (Startbild / Multi-Ref)</option>
+            <option value="wan_2.2">Wan 2.2 (TI2V 5B / 14B MoE / LightX2V)</option>
+            <option value="wan_2.1">Wan 2.1 (Legacy / InfiniteTalk)</option>
+          </select>
+        </div>
+        <div id="vm_modelStatusContainer">Detecting models...</div>
+        <div style="margin-top:14px; display:flex; gap:10px;">
+          <button class="primary" id="vm_btnManualModelCheck" data-video-i18n="btnCheckNow"></button>
+          <button class="secondary" onclick="window.vmOpenDownloadModal && window.vmOpenDownloadModal()" data-video-i18n="btnOpenDownloadDialog"></button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h2 style="margin:0;" data-video-i18n="extensionsTitle"></h2>
+          <button class="btn-mini" onclick="loadExtensions()" data-video-i18n="btnCheckNow" style="padding:4px 8px; font-size:11px;"></button>
+        </div>
+        <p style="font-size:12px; color:var(--mute); margin:6px 0 12px 0;" data-video-i18n="extensionsSubtitle"></p>
+        <div id="vm_extensionListContainer">Detecting extensions...</div>
+      </div>
+    </div>
+  </section>
+
+  </div>
+
+  <!-- VideoMaker Modals -->
+  <div class="vm-modals-root" id="vmModalsRoot">
+<div class="modal-overlay" id="vm_modelModal">
+  <div class="modal-card">
+    <div class="modal-title">
+      <span>🎬</span>
+      <span data-video-i18n="modelModalTitle"></span>
+    </div>
+
+    <div style="background:rgba(51,214,166,0.12); border:1px solid var(--accent2); border-radius:8px; padding:10px 14px; font-size:13px; color:var(--accent2); font-weight:600;" id="vm_modalGpuNotice">
+      Detecting hardware...
+    </div>
+
+    <p style="margin:0; font-size:13px; color:var(--mute);" data-video-i18n="modelModalIntro"></p>
+    
+    <div class="model-list" id="vm_modalMissingList">
+      <!-- Populated via JS -->
+    </div>
+
+    <div class="field" style="margin:0;">
+      <span data-video-i18n="targetFolderLabel"></span>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="vm_modalTargetDirInput" style="font-size:12px; font-family:Consolas, monospace; flex:1;">
+        <button type="button" class="secondary" id="vm_btnBrowseModalDir" data-video-i18n="btnBrowse" style="white-space:nowrap; padding:6px 12px;"></button>
+      </div>
+      <span style="font-size:11px; color:var(--mute);" data-video-i18n="modelsTip"></span>
+    </div>
+
+    <div class="storage-summary">
+      <div style="display:flex; justify-content:space-between;">
+        <span data-video-i18n="modelSizeLabel"></span>
+        <b id="vm_modalTotalSize" style="color:var(--accent2);">0.0 GB</b>
+      </div>
+      <div style="display:flex; justify-content:space-between;">
+        <span data-video-i18n="freeDiskLabel"></span>
+        <b id="vm_modalFreeDisk">0.0 GB</b>
+      </div>
+      <div id="vm_modalSpaceVerdict" style="font-size:12px; margin-top:4px;"></div>
+    </div>
+
+    <!-- Live Download Progress -->
+    <div id="vm_modalDownloadProgressBox" style="display:none;">
+      <div style="display:flex; justify-content:space-between; font-size:12px;">
+        <span id="vm_dlCurrentFile">Downloading...</span>
+        <span id="vm_dlStats">0% • 0 MB/s</span>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar" id="vm_dlProgressBar"></div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="secondary" id="vm_btnCancelModal" data-video-i18n="btnCancel"></button>
+      <button class="primary" id="vm_btnConfirmDownload" data-video-i18n="btnDownloadNow"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Dialog (like in tA-MusicMaker) -->
+
+<div class="modal-overlay" id="vm_studioAlertModal" style="display:none;">
+  <div class="studio-alert-card">
+    <div class="studio-alert-icon" id="vm_studioAlertIcon">🎬</div>
+    <div class="studio-alert-title" id="vm_studioAlertTitle">Notification</div>
+    <div class="studio-alert-message" id="vm_studioAlertMessage">Message text here...</div>
+    <div style="display:flex; justify-content:center;">
+      <button class="primary" id="vm_btnStudioAlertOk" style="min-width:110px;">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Studio Confirm Modal -->
+<div class="modal-overlay" id="vm_studioConfirmModal" style="display:none;">
+  <div class="studio-alert-card studio-confirm-card">
+    <div class="studio-alert-icon" id="vm_studioConfirmIcon">🛑</div>
+    <div class="studio-alert-title" id="vm_studioConfirmTitle">Bestätigung</div>
+    <div class="studio-alert-message" id="vm_studioConfirmMessage">Bist du sicher?</div>
+    <div class="studio-confirm-actions">
+      <button class="secondary" id="vm_btnStudioConfirmCancel" style="min-width:130px;">Weiterlaufen lassen</button>
+      <button class="danger" id="vm_btnStudioConfirmOk" style="min-width:130px;">✕ Ja, abbrechen</button>
+    </div>
+  </div>
+</div>
+
 
   </div>
 
@@ -2092,6 +2961,7 @@
           <div class="gal-lb-actions-row">
             <button type="button" class="btn-action" id="btnGalLbFav">☆ Favorit</button>
             <button type="button" class="btn-action" id="btnGalLbGif">👾 DiscordGIF</button>
+            <button type="button" class="btn-action" id="btnGalLbVideoBtn">🎬 VideoMaker</button>
             <button type="button" class="btn-action" id="btnGalLbFolder" title="Im Explorer zeigen">📁 Ordner</button>
             <button type="button" class="btn-action" id="btnGalLbDelete" title="Löschen" style="color:var(--danger);">🗑️</button>
           </div>
@@ -2121,8 +2991,9 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=1.00"></script>
+  <script src="/app.js?v=1.01"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=4"></script>
+  <script src="/video_module.js?v=1.00"></script>
 </body>
 </html>

@@ -287,9 +287,11 @@
     const imgView = $("moduleImageView");
     const gifView = $("moduleGifView");
     const galView = $("moduleGalleryView");
+    const videoView = $("moduleVideoView");
     if (imgView) imgView.style.display = moduleName === "image" ? "" : "none";
     if (gifView) gifView.style.display = moduleName === "gif" ? "flex" : "none";
     if (galView) galView.style.display = moduleName === "gallery" ? "flex" : "none";
+    if (videoView) videoView.style.display = moduleName === "video" ? "grid" : "none";
 
     document.querySelectorAll("#studioNav .studio-nav-btn").forEach((btn) => {
       btn.classList.toggle("active", btn.dataset.module === moduleName);
@@ -891,6 +893,20 @@
         reader.readAsDataURL(blob);
       } catch (_) {
         notify("Bild konnte nicht übernommen werden.", "error");
+      }
+    });
+
+    $("btnSendToVideoMaker")?.addEventListener("click", async () => {
+      const mainImg = $("mainPreview");
+      const cmpImg = $("compareAfterImg");
+      const imgEl = (mainImg && mainImg.style.display !== "none" && mainImg.src) ? mainImg : cmpImg;
+      const src = imgEl?.src;
+      if (!src) {
+        notify("Kein Bild im Viewer ausgewählt.", "warn");
+        return;
+      }
+      if (typeof window.sendImageToVideoMaker === "function") {
+        await window.sendImageToVideoMaker(src, "quick");
       }
     });
 

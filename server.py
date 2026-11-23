@@ -36,9 +36,9 @@ from PIL import Image
 
 import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
-from modules import discord_gif, gallery_indexer, updater
+from modules import discord_gif, gallery_indexer, updater, video_maker
 
-APP_VERSION = "1.00"
+APP_VERSION = "1.01"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
 OUTPUT_DIR = ""
@@ -658,6 +658,8 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             return
         elif discord_gif.handle_get(self, path, parsed):
             return
+        elif video_maker.handle_get(self, path, parsed):
+            return
         elif gallery_indexer.handle_get(self, path, parsed):
             return
         elif updater.handle_get(self, path, parsed):
@@ -719,6 +721,8 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             self.forward_to_comfy("POST", path, parsed.query, post_body)
             return
         elif discord_gif.handle_post(self, path, parsed, post_body):
+            return
+        elif video_maker.handle_post(self, path, parsed, post_body):
             return
         elif gallery_indexer.handle_post(self, path, parsed, post_body):
             return
@@ -4214,6 +4218,13 @@ def main():
 
     load_config()
     discord_gif.init_module(DATA_ROOT, BUNDLE_DIR, load_config)
+    video_maker.init_module(
+        DATA_ROOT,
+        BUNDLE_DIR,
+        load_config,
+        get_output_dir,
+        lambda field: get_decrypted_api_keys().get("GEMINI_API_KEY", "") if field == "gemini_api_key" else "",
+    )
     gallery_indexer.init_module(DATA_ROOT, get_output_dir, extract_image_metadata)
 
     socketserver.TCPServer.allow_reuse_address = sys.platform != "win32"
