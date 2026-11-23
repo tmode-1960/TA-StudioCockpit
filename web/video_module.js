@@ -2,8 +2,14 @@
 (function () {
   "use strict";
 
+  const _STUDIO_HEADER_IDS = new Set([
+    "gpuText", "hwBadge", "comfyStatus", "comfyStatusText", "brandVersion", "btnSettings"
+  ]);
   function vmGetEl(id) {
-    return document.getElementById("vm_" + id) || document.getElementById(id);
+    const vmEl = document.getElementById("vm_" + id);
+    if (vmEl) return vmEl;
+    if (_STUDIO_HEADER_IDS.has(id)) return null;
+    return document.getElementById(id);
   }
 
   // Sync language with StudioCockpit
@@ -1521,7 +1527,7 @@ function initTabs() {
       }
 
       document.querySelectorAll("#moduleVideoView .tab-pane").forEach(pane => pane.style.display = "none");
-      const targetPane = document.getElementById("tabContent" + tab.charAt(0).toUpperCase() + tab.slice(1));
+      const targetPane = vmGetEl("tabContent" + tab.charAt(0).toUpperCase() + tab.slice(1));
       if (targetPane) targetPane.style.display = "block";
 
       if (tab === "quick") {
@@ -1601,7 +1607,9 @@ async function pollStatus() {
     const gpuTextEl = vmGetEl("gpuText");
 
     if (data.hardware) {
-      gpuTextEl.textContent = `GPU: ${data.hardware.gpu_name} • ${data.hardware.vram_gb} GB VRAM`;
+      if (gpuTextEl) {
+        gpuTextEl.textContent = `GPU: ${data.hardware.gpu_name} • ${data.hardware.vram_gb} GB VRAM`;
+      }
       
       if (!state.modelsCheckedOnStartup) {
         state.modelsCheckedOnStartup = true;
@@ -1626,8 +1634,8 @@ async function pollStatus() {
     }
 
     if (data.comfy_alive) {
-      statusEl.className = "status ok";
-      statusTextEl.textContent = t("comfyConnected");
+      if (statusEl) statusEl.className = "status ok";
+      if (statusTextEl) statusTextEl.textContent = t("comfyConnected");
       state.directorNodeReady = Boolean(data.minimax_node_installed);
 
       if (data.minimax_node_installed === false && !state.autoFixAttempted) {
@@ -1645,13 +1653,14 @@ async function pollStatus() {
           .catch(e => console.log("[AutoFix] Check error:", e));
       }
     } else {
-      statusEl.className = "status bad";
-      statusTextEl.textContent = t("comfyDisconnected");
+      if (statusEl) statusEl.className = "status bad";
+      if (statusTextEl) statusTextEl.textContent = t("comfyDisconnected");
     }
   } catch (err) {
     const statusEl = vmGetEl("comfyStatus");
-    statusEl.className = "status bad";
-    vmGetEl("comfyStatusText").textContent = t("comfyDisconnected");
+    const statusTextEl = vmGetEl("comfyStatusText");
+    if (statusEl) statusEl.className = "status bad";
+    if (statusTextEl) statusTextEl.textContent = t("comfyDisconnected");
   }
 }
 
@@ -1697,7 +1706,7 @@ async function syncAndSaveModelsDir(newDir) {
 
 // --- Folder Browser Helper ---
 async function handleBrowseFolder(inputElId, onSelectCallback = null) {
-  const currentVal = document.getElementById(inputElId).value.trim();
+  const currentVal = vmGetEl(inputElId).value.trim();
   try {
     const res = await fetch("/api/video/browse_folder", {
       method: "POST",
@@ -1707,7 +1716,7 @@ async function handleBrowseFolder(inputElId, onSelectCallback = null) {
     if (!res.ok) return;
     const data = await res.json();
     if (data.ok && data.path) {
-      document.getElementById(inputElId).value = data.path;
+      vmGetEl(inputElId).value = data.path;
       if (onSelectCallback) onSelectCallback(data.path, data.free_space_gb);
     }
   } catch (err) {
@@ -1975,7 +1984,7 @@ async function loadExtensions() {
 }
 
 async function restartComfyUI(btnId) {
-  const btn = btnId ? document.getElementById(btnId) : null;
+  const btn = btnId ? vmGetEl(btnId) : null;
   if (btn) {
     btn.disabled = true;
     btn.textContent = t("restartingComfy");
@@ -2002,7 +2011,7 @@ async function restartComfyUI(btnId) {
 }
 
 async function installExtension(repoUrl, folderName, btnId) {
-  const btn = document.getElementById(btnId);
+  const btn = vmGetEl(btnId);
   if (btn) {
     btn.disabled = true;
     btn.textContent = t("installingNode");
@@ -2538,7 +2547,7 @@ function retakeSingleScene(idx) {
 // --- Single Scene Render ---
 async function renderSingleScene(idx) {
   const sc = state.scenes[idx];
-  const btn = document.getElementById(`btnRenderScene_${idx}`);
+  const btn = vmGetEl(`btnRenderScene_${idx}`);
   if (btn) {
     btn.disabled = true;
     btn.textContent = "⏳ Rendering...";
@@ -4787,7 +4796,7 @@ function initEventListeners() {
   }
 
   ["lipsyncDurationSec", "selFps"].forEach(id => {
-    const el = document.getElementById(id);
+    const el = vmGetEl(id);
     if (el) {
       el.addEventListener("input", updateLipsyncSegmentBadge);
       el.addEventListener("change", updateLipsyncSegmentBadge);
@@ -4890,7 +4899,7 @@ function initEventListeners() {
     "lipsyncCaptionsText",
   ];
   persistedIds.forEach(id => {
-    const el = document.getElementById(id);
+    const el = vmGetEl(id);
     if (el) {
       el.addEventListener("change", saveUiState);
       if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
@@ -4931,7 +4940,7 @@ function resetMorphFrame(type) {
   const isFirst = type === "first";
   if (isFirst) state.morphClip.first_frame = null;
   else state.morphClip.last_frame = null;
-  const drop = document.getElementById(isFirst ? "morphFirstFrameDrop" : "morphLastFrameDrop");
+  const drop = vmGetEl(isFirst ? "morphFirstFrameDrop" : "morphLastFrameDrop");
   if (drop) {
     drop.classList.remove("has-image");
     drop.innerHTML = `<span class="frame-placeholder">${t("dropOrPickImage")}</span>`;
@@ -4940,7 +4949,7 @@ function resetMorphFrame(type) {
 }
 
 function _bindMorphDropzone(dropId, frameKey) {
-  const drop = document.getElementById(dropId);
+  const drop = vmGetEl(dropId);
   if (!drop) return;
   const input = document.createElement("input");
   input.type = "file";

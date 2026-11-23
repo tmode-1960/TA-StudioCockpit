@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.01 - FLEXMOD & Multi-Module Edition)
+# thomo.ART StudioCockpit (v1.02 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, and AI video production — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
