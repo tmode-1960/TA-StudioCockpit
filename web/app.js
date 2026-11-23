@@ -3120,11 +3120,9 @@
     applyLLMDefaultsForMode(currentLLMMode, false);
   }
 
-  selModelPreset.addEventListener("change", (e) => {
-    const val = e.target.value;
+  function handleModelPresetChange(val) {
     updateModelSelection(val, true);
     updateSVEUI();
-
 
     const newMatchedCat = getModelCategoryMatch(val);
     if (newMatchedCat && Array.isArray(fullLoraMasterList)) {
@@ -3144,6 +3142,10 @@
       filterAndRenderLoras();
     }
     saveState();
+  }
+
+  selModelPreset.addEventListener("change", (e) => {
+    handleModelPresetChange(e.target.value);
   });
 
   modelQuickPills.addEventListener("click", (e) => {
@@ -3167,11 +3169,10 @@
 
     if (matchedVal) {
       selModelPreset.value = matchedVal;
-      updateModelSelection(matchedVal, true);
+      handleModelPresetChange(matchedVal);
     } else {
-      updateModelSelection(model, true);
+      handleModelPresetChange(model);
     }
-    saveState();
   });
 
   // 2. Sampler Selection Sync
