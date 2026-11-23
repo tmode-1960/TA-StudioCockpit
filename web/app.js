@@ -4805,8 +4805,8 @@
     if (txtLLMGeneratedPrompt) {
       if (s.last_llm_prompt && !s.last_llm_prompt.startsWith("⏳")) {
         txtLLMGeneratedPrompt.value = s.last_llm_prompt;
-        if (llmPromptResultGroup && s.llm_mode && s.llm_mode !== "off") {
-          llmPromptResultGroup.style.display = "block";
+        if (llmPromptResultGroup) {
+          llmPromptResultGroup.style.display = (currentLLMMode !== "off") ? "block" : "none";
         }
       } else {
         txtLLMGeneratedPrompt.value = "";
@@ -5078,9 +5078,13 @@
     }
 
     updateLLMExecStatusBadge("");
-    if (currentLLMMode !== "off" && llmPromptResultGroup && txtLLMGeneratedPrompt) {
-      llmPromptResultGroup.style.display = "block";
-      txtLLMGeneratedPrompt.value = "⏳ " + t("llm_generating_prompt", "LLM generiert Prompt...");
+    if (llmPromptResultGroup) {
+      if (currentLLMMode !== "off" && txtLLMGeneratedPrompt) {
+        llmPromptResultGroup.style.display = "block";
+        txtLLMGeneratedPrompt.value = "⏳ " + t("llm_generating_prompt", "LLM generiert Prompt...");
+      } else {
+        llmPromptResultGroup.style.display = "none";
+      }
     }
 
     const payload = collectState();
@@ -5123,13 +5127,15 @@
             const job = await pollRes.json();
 
             // 1. Live LLM prompt & status display immediately upon LLM execution (before image is finished!)
-            if (job.llm_prompt && txtLLMGeneratedPrompt) {
+            if (currentLLMMode !== "off" && job.llm_prompt && txtLLMGeneratedPrompt) {
               if (txtLLMGeneratedPrompt.value !== job.llm_prompt) {
                 txtLLMGeneratedPrompt.value = job.llm_prompt;
                 txtLLMGeneratedPrompt.style.borderColor = "var(--accent)";
                 if (llmPromptResultGroup) llmPromptResultGroup.style.display = "block";
                 saveStateDebounced();
               }
+            } else if (currentLLMMode === "off" && llmPromptResultGroup) {
+              llmPromptResultGroup.style.display = "none";
             }
             if (job.llm_status) {
               updateLLMExecStatusBadge(job.llm_status);
@@ -5174,7 +5180,7 @@
               clearInterval(pollInterval);
               btnProgressFill.style.width = "100%";
               if (txtLLMGeneratedPrompt) {
-                if (job.llm_prompt) {
+                if (currentLLMMode !== "off" && job.llm_prompt) {
                   txtLLMGeneratedPrompt.value = job.llm_prompt;
                   txtLLMGeneratedPrompt.style.borderColor = "var(--accent)";
                   if (llmPromptResultGroup) llmPromptResultGroup.style.display = "block";
@@ -5184,6 +5190,8 @@
                   txtLLMGeneratedPrompt.value = t("llm_no_prompt_warning", `⚠️ Kein Prompt vom LLM erhalten${reason}.\n\nBitte prüfen, ob der lokale Server ('lms server') auf Port 1234 aktiv ist.`).replace("{reason}", reason);
                   txtLLMGeneratedPrompt.style.borderColor = "var(--danger)";
                   if (llmPromptResultGroup) llmPromptResultGroup.style.display = "block";
+                } else if (llmPromptResultGroup) {
+                  llmPromptResultGroup.style.display = "none";
                 }
                 updateLLMExecStatusBadge(job.llm_status || "");
               }
