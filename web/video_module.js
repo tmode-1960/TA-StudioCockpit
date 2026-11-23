@@ -1132,6 +1132,32 @@ function saveUiState() {
   }, 250);
 }
 
+function _normalizeLegacyMediaUrls(obj) {
+  if (!obj || typeof obj !== "object") return;
+  if (Array.isArray(obj)) {
+    for (let i = 0; i < obj.length; i++) {
+      if (typeof obj[i] === "string") {
+        if (obj[i].startsWith("/uploads/") || obj[i].startsWith("/output/")) {
+          obj[i] = "/api/video" + obj[i];
+        }
+      } else {
+        _normalizeLegacyMediaUrls(obj[i]);
+      }
+    }
+    return;
+  }
+  for (const k of Object.keys(obj)) {
+    const v = obj[k];
+    if (typeof v === "string") {
+      if (v.startsWith("/uploads/") || v.startsWith("/output/")) {
+        obj[k] = "/api/video" + v;
+      }
+    } else if (v && typeof v === "object") {
+      _normalizeLegacyMediaUrls(v);
+    }
+  }
+}
+
 function restoreUiState(customUi = null) {
   let ui = customUi || state.config?.ui_state;
   if (!ui || !ui.saved) {
@@ -1143,6 +1169,7 @@ function restoreUiState(customUi = null) {
     }
   }
   if (!ui || !ui.saved) return;
+  _normalizeLegacyMediaUrls(ui);
 
   state._restoringUi = true;
   state.hasRestoredUiState = true;

@@ -633,8 +633,8 @@ def handle_get(handler, path: str, parsed) -> bool:
     if not path.startswith("/api/video/"):
         return False
 
-    if path.startswith("/api/video/video/output/"):
-        rel = urllib.parse.unquote(path[len("/api/video/video/output/"):])
+    if path.startswith("/api/video/output/"):
+        rel = urllib.parse.unquote(path[len("/api/video/output/"):])
         candidate_dirs = [get_output_dir(), DEFAULT_OUTPUT_DIR]
         try:
             c_out = _get_comfy().get_comfy_output_dir()
@@ -683,16 +683,18 @@ def handle_get(handler, path: str, parsed) -> bool:
         handler.send_error(404, "File not found")
         return
 
-    if path.startswith("/api/video/video/uploads/"):
-        rel = urllib.parse.unquote(path[len("/api/video/video/uploads/"):])
-        abs_uploads = os.path.abspath(UPLOADS_DIR)
-        cand = os.path.abspath(os.path.join(abs_uploads, rel.lstrip("/\\")))
+    if path.startswith("/api/video/uploads/"):
+        rel = urllib.parse.unquote(path[len("/api/video/uploads/"):])
         full_path = None
-        try:
-            if os.path.commonpath([cand, abs_uploads]) == abs_uploads and os.path.isfile(cand):
-                full_path = cand
-        except ValueError:
-            full_path = None
+        for base_dir in _get_upload_search_dirs():
+            abs_uploads = os.path.abspath(base_dir)
+            cand = os.path.abspath(os.path.join(abs_uploads, rel.lstrip("/\\")))
+            try:
+                if os.path.commonpath([cand, abs_uploads]) == abs_uploads and os.path.isfile(cand):
+                    full_path = cand
+                    break
+            except ValueError:
+                continue
 
         if full_path and os.path.isfile(full_path):
             handler.send_response(200)
@@ -807,7 +809,7 @@ def handle_get(handler, path: str, parsed) -> bool:
                                 "name": f,
                                 "size_mb": round(os.path.getsize(fp) / (1024 * 1024), 2),
                                 "modified": os.path.getmtime(fp),
-                                "url": f"/api/video/video/output/{f}",
+                                "url": f"/api/video/output/{f}",
                                 "path": fp,
                             })
                 except Exception:
@@ -889,7 +891,7 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
         try:
             with open(target_path, "wb") as f:
                 f.write(base64.b64decode(b64_data))
-            _send_json(handler, {"ok": True, "url": f"/api/video/video/uploads/{fname}", "path": target_path})
+            _send_json(handler, {"ok": True, "url": f"/api/video/uploads/{fname}", "path": target_path})
         except Exception as ex:
             _send_json(handler, {"ok": False, "error": str(ex)}, status=500)
         return
@@ -909,7 +911,7 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
         try:
             with open(target_path, "wb") as f:
                 f.write(base64.b64decode(b64_data))
-            _send_json(handler, {"ok": True, "url": f"/api/video/video/uploads/{fname}", "path": target_path, "filename": fname})
+            _send_json(handler, {"ok": True, "url": f"/api/video/uploads/{fname}", "path": target_path, "filename": fname})
         except Exception as ex:
             _send_json(handler, {"ok": False, "error": str(ex)}, status=500)
         return
@@ -1067,8 +1069,8 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
             if os.path.isfile(c_str):
                 resolved_clips.append(os.path.abspath(c_str))
                 continue
-            if c_str.startswith("/api/video/video/output/"):
-                rel = urllib.parse.unquote(c_str[len("/api/video/video/output/"):].lstrip("/\\"))
+            if c_str.startswith("/api/video/output/"):
+                rel = urllib.parse.unquote(c_str[len("/api/video/output/"):].lstrip("/\\"))
                 found = False
                 for c_dir in candidate_dirs:
                     cand = os.path.abspath(os.path.join(c_dir, rel))
@@ -1078,8 +1080,8 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
                         break
                 if not found:
                     resolved_clips.append(os.path.abspath(os.path.join(get_output_dir(), rel)))
-            elif c_str.startswith("/api/video/video/uploads/"):
-                rel = urllib.parse.unquote(c_str[len("/api/video/video/uploads/"):].lstrip("/\\"))
+            elif c_str.startswith("/api/video/uploads/"):
+                rel = urllib.parse.unquote(c_str[len("/api/video/uploads/"):].lstrip("/\\"))
                 cand = os.path.abspath(os.path.join(UPLOADS_DIR, rel))
                 resolved_clips.append(cand)
             else:
@@ -1103,7 +1105,7 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
             lut_path=lut_path,
         )
         if ok:
-            _send_json(handler, {"ok": True, "output_file": f"/api/video/video/output/{output_name}", "path": target})
+            _send_json(handler, {"ok": True, "output_file": f"/api/video/output/{output_name}", "path": target})
         else:
             _send_json(handler, {"ok": False, "error": msg}, status=500)
         return
@@ -1178,7 +1180,7 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
             )
 
         if ok:
-            _send_json(handler, {"ok": True, "video_url": f"/api/video/video/output/{clip_name}", "path": out_path})
+            _send_json(handler, {"ok": True, "video_url": f"/api/video/output/{clip_name}", "path": out_path})
         else:
             _send_json(handler, {"ok": False, "error": out_path}, status=500)
         return
@@ -1337,7 +1339,7 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
 
                 _send_json(handler, {
                     "ok": True,
-                    "video_url": f"/api/video/video/output/{clip_name}",
+                    "video_url": f"/api/video/output/{clip_name}",
                     "path": out_path,
                     "elapsed_sec": elapsed_sec,
                     "duration_formatted": formatted_time,
@@ -1504,7 +1506,7 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
 
                 _send_json(handler, {
                     "ok": True,
-                    "video_url": f"/api/video/video/output/{clip_name}",
+                    "video_url": f"/api/video/output/{clip_name}",
                     "path": out_path,
                     "elapsed_sec": elapsed_sec,
                     "duration_formatted": formatted_time,
@@ -1712,16 +1714,34 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
 
     return False
 
+def _get_upload_search_dirs() -> List[str]:
+    """Return current and legacy tA-VideoMaker upload directories."""
+    dirs = [UPLOADS_DIR]
+    for cand in (
+        os.path.join(APP_DIR, "data", "uploads"),
+        os.path.join(BUNDLE_DIR, "data", "uploads"),
+        os.path.join(APP_DIR, "..", "tA-VideoMaker", "dist", "data", "uploads"),
+        os.path.join(APP_DIR, "..", "tA-VideoMaker", "data", "uploads"),
+        r"D:\Workspace\AG\tA-VideoMaker\dist\data\uploads",
+        r"D:\Workspace\AG\tA-VideoMaker\data\uploads",
+    ):
+        abs_c = os.path.abspath(cand)
+        if abs_c not in dirs and os.path.isdir(abs_c):
+            dirs.append(abs_c)
+    return dirs
+
+
 def resolve_image_file(img_ref: Optional[str]) -> Optional[str]:
-    """Resolves a web URL like /uploads/abc.png or local path to absolute file path."""
+    """Resolves a web URL like /api/video/uploads/abc.png or local path to absolute file path."""
     if not img_ref:
         return None
-    if img_ref.startswith("/api/video/uploads/"):
-        rel = urllib.parse.unquote(img_ref[len("/api/video/uploads/"):]).lstrip("/\\")
-        for cand_dir in [UPLOADS_DIR, os.path.join(APP_DIR, "data", "uploads"), os.path.join(BUNDLE_DIR, "data", "uploads")]:
-            p = os.path.abspath(os.path.join(cand_dir, rel))
-            if os.path.isfile(p):
-                return p
+    for prefix in ("/api/video/uploads/", "/uploads/"):
+        if img_ref.startswith(prefix):
+            rel = urllib.parse.unquote(img_ref[len(prefix):]).lstrip("/\\")
+            for cand_dir in _get_upload_search_dirs():
+                p = os.path.abspath(os.path.join(cand_dir, rel))
+                if os.path.isfile(p):
+                    return p
     if os.path.isfile(img_ref):
         return os.path.abspath(img_ref)
     return None
