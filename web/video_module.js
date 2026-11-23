@@ -4370,6 +4370,24 @@ function initEventListeners() {
   }
   vmGetEl("btnStitch").addEventListener("click", stitchAllScenes);
   vmGetEl("btnReStitch").addEventListener("click", stitchAllScenes);
+  const btnOpenOutputFolderPlayer = vmGetEl("btnOpenOutputFolderPlayer");
+  if (btnOpenOutputFolderPlayer) {
+    btnOpenOutputFolderPlayer.addEventListener("click", async () => {
+      try {
+        const res = await fetch("/api/video/open_output_folder", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          showToast(`${t("errorOpeningFolder")} ${data.error || res.statusText}`, "error");
+        }
+      } catch (err) {
+        showToast(`${t("errorOpeningFolder")} ${err.message || err}`, "error");
+      }
+    });
+  }
   vmGetEl("btnRenderQuick").addEventListener("click", renderQuickClip);
   vmGetEl("btnAiDraft").addEventListener("click", generateAiStoryboard);
   vmGetEl("btnCancelModal").addEventListener("click", async () => {

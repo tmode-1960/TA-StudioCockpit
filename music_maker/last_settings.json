@@ -26,11 +26,10 @@
     "stems": false,
     "refine": false,
     "voice_swap": false,
-    "voice_model": "thomas_voice",
+    "voice_model": "",
     "voice_pitch": 0,
     "voice_index_rate": 0.75,
     "srt_en": false,
-    "writer_model": "yue2/gemma4_e4b_it_fp8_scaled.safetensors",
     "export": {
       "flac": true,
       "mp3": false,
