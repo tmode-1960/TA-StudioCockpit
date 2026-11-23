@@ -36,9 +36,9 @@ from PIL import Image
 
 import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
-from modules import discord_gif, gallery_indexer, updater, video_maker
+from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.03"
+APP_VERSION = "1.04"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
 OUTPUT_DIR = ""
@@ -664,6 +664,8 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             return
         elif updater.handle_get(self, path, parsed):
             return
+        elif music_maker.handle_get(self, path, parsed):
+            return
 
         super().do_GET()
 
@@ -727,6 +729,8 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         elif gallery_indexer.handle_post(self, path, parsed, post_body):
             return
         elif updater.handle_post(self, path, parsed, post_body):
+            return
+        elif music_maker.handle_post(self, path, parsed, post_body):
             return
 
         self.send_response(404)
@@ -4226,6 +4230,7 @@ def main():
         lambda field: get_decrypted_api_keys().get("GEMINI_API_KEY", "") if field == "gemini_api_key" else "",
     )
     gallery_indexer.init_module(DATA_ROOT, get_output_dir, extract_image_metadata)
+    music_maker.init_module(DATA_ROOT, BUNDLE_DIR, load_config)
 
     socketserver.TCPServer.allow_reuse_address = sys.platform != "win32"
     try:

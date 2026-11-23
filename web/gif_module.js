@@ -282,16 +282,37 @@
   // -------------------------------------------------------------------------
   // Studio Header Module Switcher (Image is ALWAYS default on startup)
   // -------------------------------------------------------------------------
+  function syncMusicMakerFrame() {
+    const frame = $("musicMakerFrame");
+    if (!frame || !frame.contentWindow) return;
+    try {
+      const themeBase = localStorage.getItem("tAStudio.themeBase") || "midnight";
+      const themeAccent = localStorage.getItem("tAStudio.themeAccent") || "violet";
+      const customAccent = localStorage.getItem("tAStudio.themeCustomAccent") || "";
+      const lang = document.documentElement.lang || "de";
+      frame.contentWindow.postMessage({
+        type: "studio-sync",
+        themeBase,
+        themeAccent,
+        customAccent,
+        lang,
+      }, "*");
+    } catch (_) {}
+  }
+  window.syncMusicMakerFrame = syncMusicMakerFrame;
+
   function switchStudioModule(moduleName) {
     state.activeModule = moduleName;
     const imgView = $("moduleImageView");
     const gifView = $("moduleGifView");
     const galView = $("moduleGalleryView");
     const videoView = $("moduleVideoView");
+    const musicView = $("moduleMusicView");
     if (imgView) imgView.style.display = moduleName === "image" ? "" : "none";
     if (gifView) gifView.style.display = moduleName === "gif" ? "flex" : "none";
     if (galView) galView.style.display = moduleName === "gallery" ? "flex" : "none";
     if (videoView) videoView.style.display = moduleName === "video" ? "grid" : "none";
+    if (musicView) musicView.style.display = moduleName === "music" ? "flex" : "none";
 
     document.querySelectorAll("#studioNav .studio-nav-btn").forEach((btn) => {
       btn.classList.toggle("active", btn.dataset.module === moduleName);
@@ -299,6 +320,16 @@
 
     if (moduleName === "gif") {
       initGifModule();
+    } else if (moduleName === "music") {
+      const frame = $("musicMakerFrame");
+      if (frame) {
+        if (!frame.getAttribute("src") && frame.dataset.src) {
+          frame.addEventListener("load", syncMusicMakerFrame, { once: true });
+          frame.setAttribute("src", frame.dataset.src);
+        } else {
+          syncMusicMakerFrame();
+        }
+      }
     }
     window.dispatchEvent(new CustomEvent("studio-module-changed", { detail: { module: moduleName } }));
   }

@@ -973,6 +973,7 @@
     if (lang !== "de" && lang !== "en") lang = "de";
     currentLang = lang;
     document.documentElement.lang = currentLang;
+    if (window.syncMusicMakerFrame) window.syncMusicMakerFrame();
 
     if (selLanguage && selLanguage.value !== currentLang) {
       selLanguage.value = currentLang;
@@ -1206,6 +1207,7 @@
         }).catch(() => {});
       } catch (e) {}
     }
+    if (window.syncMusicMakerFrame) window.syncMusicMakerFrame();
   }
 
   // Initialize theme immediately from localStorage

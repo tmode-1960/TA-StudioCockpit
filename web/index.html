@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v1.03 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.04 (FLEXMOD Edition)</title>
   <link rel="icon" href="/favicon.ico">
   <script>
     (function () {
@@ -43,6 +43,7 @@
       <button type="button" class="studio-nav-btn" data-module="gallery" data-i18n="nav_gallery">🖼️ Galerie</button>
       <button type="button" class="studio-nav-btn" data-module="gif" data-gif-i18n="nav_gif">👾 DiscordGIF</button>
       <button type="button" class="studio-nav-btn" data-module="video">🎬 VideoMaker</button>
+      <button type="button" class="studio-nav-btn" data-module="music">🎵 MusicMaker</button>
     </nav>
 
     <div class="spacer"></div>
@@ -2940,6 +2941,11 @@
     </aside>
   </div>
 
+  <!-- Module: MusicMaker (hidden by default, embedded iframe) -->
+  <div class="studio-layout studio-layout-music" id="moduleMusicView" style="display:none;">
+    <iframe id="musicMakerFrame" title="thomo.ART MusicMaker" data-src="/music/index.html?embedded=1"></iframe>
+  </div>
+
   <!-- Gallery Lightbox Modal -->
   <div class="gal-lightbox" id="galLightbox" hidden>
     <div class="gal-lightbox-backdrop" id="galLightboxBackdrop"></div>
@@ -2991,7 +2997,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=1.03"></script>
+  <script src="/app.js?v=1.04"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=4"></script>
   <script src="/video_module.js?v=1.00"></script>
