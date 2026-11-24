@@ -16,6 +16,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import threading
 import time
 import urllib.parse
@@ -33,6 +34,7 @@ _GET_OUTPUT_DIR: Optional[Callable[[], str]] = None
 _EXTRACT_META: Optional[Callable[[str], dict]] = None
 _GET_CONFIG: Optional[Callable[[], dict]] = None
 _INDEXER_LOCK = threading.Lock()
+_NO_WINDOW_FLAGS = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
 _INDEXERS: Dict[str, "GalleryIndexer"] = {}
 
 
@@ -490,7 +492,13 @@ class GalleryIndexer:
                         "3",
                         tmp,
                     ]
-                    res = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=12)
+                    res = subprocess.run(
+                        cmd,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                        timeout=12,
+                        creationflags=_NO_WINDOW_FLAGS,
+                    )
                     if res.returncode == 0 and os.path.isfile(tmp) and os.path.getsize(tmp) > 0:
                         os.replace(tmp, thumb_path)
                         return thumb_path
