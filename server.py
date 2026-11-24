@@ -4,7 +4,7 @@ Lightweight HTTP server and native desktop wrapper interfacing with ComfyUI.
 Features:
 - Native Windows desktop app window via pywebview (Edge WebView2)
 - Zero CORS/Origin proxy forwarding to ComfyUI (eliminates ComfyUI 403 warnings)
-- Direct output folder integration (F:\\Outputs\\Bilder-AI\\ComfyUI\\2026)
+- Direct output folder integration (configurable local ComfyUI output directory)
 - Support for ComfyUI in WSL, native Windows, or remote networks
 """
 
@@ -20,6 +20,7 @@ import json
 import os
 import random
 import re
+import shlex
 import shutil
 import socketserver
 import subprocess
@@ -32,13 +33,15 @@ import urllib.request
 import uuid
 import webbrowser
 import zipfile
+from typing import Any
 from PIL import Image
 
 import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.08"
+APP_VERSION = "1.09"
+BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
 OUTPUT_DIR = ""
@@ -61,11 +64,102 @@ WORKFLOW_NAME = "TA-FLEXMOD-LLM v2.92"
 
 # In-memory job state
 ACTIVE_JOBS: dict[str, dict] = {}
+ACTIVE_JOBS_LOCK = threading.Lock()
+_ACTIVE_JOBS_TTL_SEC = 1800
+_ACTIVE_JOBS_MAX_ENTRIES = 200
 
 
 DEFAULT_LAUNCH_CMD = ""
 CONFIG_LOCK = threading.Lock()
 _NO_WINDOW_FLAGS = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+_FORBIDDEN_LAUNCH_TOKENS = (";", "&&", "||", "|", "&", "`", "$(", "<", ">")
+
+
+def _prune_active_jobs_locked(now: float | None = None) -> None:
+    """Prune expired or excess completed entries in ACTIVE_JOBS (caller must hold ACTIVE_JOBS_LOCK)."""
+    ts = now if now is not None else time.time()
+    cutoff = ts - _ACTIVE_JOBS_TTL_SEC
+    terminal_statuses = ("done", "error", "cancelled", "interrupted")
+    expired = [
+        pid for pid, job in ACTIVE_JOBS.items()
+        if job.get("status") in terminal_statuses
+        and (job.get("finished_at") or job.get("start_time") or 0) < cutoff
+    ]
+    for pid in expired:
+        ACTIVE_JOBS.pop(pid, None)
+    if len(ACTIVE_JOBS) > _ACTIVE_JOBS_MAX_ENTRIES:
+        removable = sorted(
+            (job.get("finished_at") or job.get("start_time") or 0, pid)
+            for pid, job in ACTIVE_JOBS.items()
+            if job.get("status") != "running"
+        )
+        excess = len(ACTIVE_JOBS) - _ACTIVE_JOBS_MAX_ENTRIES
+        for _, pid in removable[:excess]:
+            ACTIVE_JOBS.pop(pid, None)
+
+
+def _is_path_within(base_dir: str, target_path: str) -> bool:
+    """Return True iff target_path resolves inside base_dir."""
+    if not base_dir or not target_path:
+        return False
+    try:
+        base_real = os.path.realpath(os.path.abspath(base_dir))
+        target_real = os.path.realpath(os.path.abspath(target_path))
+        return os.path.commonpath([base_real, target_real]) == base_real
+    except (ValueError, OSError):
+        return False
+
+
+def _is_allowed_origin(origin: str) -> bool:
+    """Return True if Origin is empty or matches the local Cockpit host and port."""
+    if not origin:
+        return True
+    if origin.strip().lower() == "null":
+        return False
+    try:
+        parsed = urllib.parse.urlparse(origin)
+    except Exception:
+        return False
+    if parsed.scheme not in ("http", "https"):
+        return False
+    host = (parsed.hostname or "").lower()
+    allowed_hosts = {"127.0.0.1", "localhost", "::1"}
+    if BIND_HOST and BIND_HOST not in ("", "0.0.0.0", "::"):
+        allowed_hosts.add(BIND_HOST.lower())
+    if host not in allowed_hosts:
+        return False
+    port = parsed.port
+    if port is None:
+        return (parsed.scheme == "http" and PORT == 80) or (parsed.scheme == "https" and PORT == 443)
+    return port == PORT
+
+
+def _validate_http_url(url: str, field_name: str = "url") -> str:
+    """Validate that a configured service URL uses http:// or https:// without control characters."""
+    val = str(url or "").strip()
+    if not val:
+        return ""
+    if any(ch in val for ch in ("\r", "\n", "\x00")) or any(ch.isspace() for ch in val):
+        raise ValueError(f"Ungültige URL für {field_name}: Steuer- oder Leerzeichen nicht erlaubt.")
+    try:
+        parsed = urllib.parse.urlparse(val)
+    except Exception as exc:
+        raise ValueError(f"Ungültige URL für {field_name}: {exc}") from exc
+    if parsed.scheme not in ("http", "https") or not parsed.netloc or not parsed.hostname:
+        raise ValueError(f"Ungültige URL für {field_name}: nur http:// und https:// erlaubt.")
+    return val
+
+
+def _validate_launch_command(cmd: str) -> str:
+    """Reject control characters and shell injection operators in configured launch commands."""
+    val = str(cmd or "").strip()
+    if not val:
+        return ""
+    if any(ch in val for ch in ("\r", "\n", "\x00")) or any(tok in val for tok in _FORBIDDEN_LAUNCH_TOKENS):
+        raise ValueError(
+            "Ungültige Zeichen im Start-Befehl (Shell-Operatoren wie ; & | < > ` $() sind nicht erlaubt)."
+        )
+    return val
 
 DEFAULT_MODEL_PRESETS = [
     {"name": "ZImage (BF16)", "model_file": "[D] zimage/z_image_turbo_bf16.safetensors", "clip_name_1": "zimage/qwen_3_4b_bf16.safetensors", "clip_name_2": "", "clip_type": "lumina2", "clip_device": "default", "vae_name": "zimage/zImage_vae.safetensors", "shift": 3, "weight_dtype": "auto"},
@@ -267,6 +361,17 @@ def save_config(updates: dict) -> None:
                     if val:
                         current[field] = _dpapi_encrypt(val)
         current.update(updates_copy)
+        for url_field in ("comfy_url", "lms_url", "ollama_url"):
+            if url_field in updates_copy:
+                raw_url = str(updates_copy.get(url_field) or "").strip()
+                if raw_url:
+                    current[url_field] = _validate_http_url(raw_url, url_field)
+                else:
+                    current[url_field] = ""
+        if "comfy_launch_cmd" in updates_copy:
+            current["comfy_launch_cmd"] = _validate_launch_command(
+                str(updates_copy.get("comfy_launch_cmd") or "")
+            )
         # Don't persist runtime version constants into config.json
         current.pop("app_version", None)
         current.pop("workflow_version", None)
@@ -582,11 +687,30 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Expires", "0")
         super().end_headers()
 
+    def _send_cors_origin_header(self):
+        origin = self.headers.get("Origin", "").strip()
+        if origin and _is_allowed_origin(origin):
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
+
+    def _check_post_origin(self) -> bool:
+        origin = self.headers.get("Origin", "").strip()
+        sec_fetch_site = self.headers.get("Sec-Fetch-Site", "").strip().lower()
+        if (origin and not _is_allowed_origin(origin)) or sec_fetch_site == "cross-site":
+            self.send_json({"error": "Cross-Origin-Anfrage blockiert."}, status=403)
+            return False
+        return True
+
     def do_OPTIONS(self):
+        origin = self.headers.get("Origin", "").strip()
+        if origin and not _is_allowed_origin(origin):
+            self.send_response(403)
+            self.end_headers()
+            return
         self.send_response(200)
-        self.send_header("Access-Control-Allow-Origin", "*")
+        self._send_cors_origin_header()
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "*")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Requested-With")
         self.end_headers()
 
     def do_GET(self):
@@ -608,7 +732,8 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         elif path == "/api/poll_generation":
             query_params = urllib.parse.parse_qs(parsed.query)
             pid = query_params.get("prompt_id", [""])[0]
-            job = ACTIVE_JOBS.get(pid, {"status": "unknown"})
+            with ACTIVE_JOBS_LOCK:
+                job = dict(ACTIVE_JOBS.get(pid, {"status": "unknown"}))
             self.send_json(job)
             return
         elif path.startswith("/output/"):
@@ -670,6 +795,8 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         super().do_GET()
 
     def do_POST(self):
+        if not self._check_post_origin():
+            return
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
 
@@ -741,9 +868,12 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             client = ComfyClient(COMFY_URL)
             int_ok = client.interrupt()
             q_ok = client.clear_queue()
-            for pid, job in ACTIVE_JOBS.items():
-                if job.get("status") == "running":
-                    job["status"] = "cancelled"
+            now = time.time()
+            with ACTIVE_JOBS_LOCK:
+                for pid, job in list(ACTIVE_JOBS.items()):
+                    if job.get("status") == "running":
+                        job["status"] = "cancelled"
+                        job["finished_at"] = now
             self.send_json({"status": "cancelled", "interrupt": int_ok, "queue_cleared": q_ok})
         except Exception as e:
             self.send_json({"error": str(e)}, status=500)
@@ -1914,12 +2044,14 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_json({"error": "ComfyUI konnte den Job nicht in die Queue einreihen."}, status=500)
                 return
 
-            ACTIVE_JOBS[prompt_id] = {
-                "status": "running",
-                "prompt_id": prompt_id,
-                "seed": seed_val,
-                "start_time": time.time(),
-            }
+            with ACTIVE_JOBS_LOCK:
+                _prune_active_jobs_locked()
+                ACTIVE_JOBS[prompt_id] = {
+                    "status": "running",
+                    "prompt_id": prompt_id,
+                    "seed": seed_val,
+                    "start_time": time.time(),
+                }
 
             # Spawn watcher thread with real-time WebSocket streaming
             def watch_job(pid: str, start_files: set, cid: str):
@@ -1933,8 +2065,9 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                     with connect(ws_url, close_timeout=2) as ws:
                         start_time = time.time()
                         while time.time() - start_time < 240.0:
-                            if ACTIVE_JOBS.get(pid, {}).get("status") in ("cancelled", "interrupted"):
-                                break
+                            with ACTIVE_JOBS_LOCK:
+                                if ACTIVE_JOBS.get(pid, {}).get("status") in ("cancelled", "interrupted"):
+                                    break
                             try:
                                 raw = ws.recv(timeout=0.8)
                             except TimeoutError:
@@ -1971,26 +2104,37 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                                     s_txt = _first_str(out, ("text", "string", "STRING"))
                                     if s_txt and (s_txt.upper() != "DISABLED" or not llm_status):
                                         llm_status = s_txt
-                                        ACTIVE_JOBS[pid]["llm_status"] = llm_status
+                                        with ACTIVE_JOBS_LOCK:
+                                            if pid in ACTIVE_JOBS:
+                                                ACTIVE_JOBS[pid]["llm_status"] = llm_status
                                 else:
                                     p_txt = _first_str(out, ("prompt", "text", "string", "STRING"))
                                     if p_txt:
                                         llm_prompt = p_txt
-                                        ACTIVE_JOBS[pid]["llm_prompt"] = llm_prompt
+                                        with ACTIVE_JOBS_LOCK:
+                                            if pid in ACTIVE_JOBS:
+                                                ACTIVE_JOBS[pid]["llm_prompt"] = llm_prompt
 
                                     s_txt = _first_str(out, ("status",))
                                     if s_txt and (s_txt.upper() != "DISABLED" or not llm_status):
                                         llm_status = s_txt
-                                        ACTIVE_JOBS[pid]["llm_status"] = llm_status
+                                        with ACTIVE_JOBS_LOCK:
+                                            if pid in ACTIVE_JOBS:
+                                                ACTIVE_JOBS[pid]["llm_status"] = llm_status
 
                             elif m_type == "progress" and (m_pid == pid or not m_pid):
                                 val = m_data.get("value")
                                 max_val = m_data.get("max")
                                 if val is not None and max_val is not None:
-                                    ACTIVE_JOBS[pid]["progress"] = {"value": val, "max": max_val}
+                                    with ACTIVE_JOBS_LOCK:
+                                        if pid in ACTIVE_JOBS:
+                                            ACTIVE_JOBS[pid]["progress"] = {"value": val, "max": max_val}
 
                             elif m_type == "execution_interrupted" and (m_pid == pid or not m_pid):
-                                ACTIVE_JOBS[pid]["status"] = "interrupted"
+                                with ACTIVE_JOBS_LOCK:
+                                    if pid in ACTIVE_JOBS:
+                                        ACTIVE_JOBS[pid]["status"] = "interrupted"
+                                        ACTIVE_JOBS[pid]["finished_at"] = time.time()
                                 break
 
                             elif m_type == "execution_error" and (m_pid == pid or not m_pid):
@@ -2001,8 +2145,11 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                                         f"Basis-Modell nicht gefunden! Für das Preset '{sel_model}' fehlt die Modelldatei "
                                         f"(z.B. 'flux/flux1-dev-fp8.safetensors') im ComfyUI-Ordner 'models/diffusion_models/' bzw. 'models/unet/'."
                                     )
-                                ACTIVE_JOBS[pid]["status"] = "error"
-                                ACTIVE_JOBS[pid]["error"] = err_msg
+                                with ACTIVE_JOBS_LOCK:
+                                    if pid in ACTIVE_JOBS:
+                                        ACTIVE_JOBS[pid]["status"] = "error"
+                                        ACTIVE_JOBS[pid]["error"] = err_msg
+                                        ACTIVE_JOBS[pid]["finished_at"] = time.time()
                                 break
 
                             elif m_type == "execution_success" and (m_pid == pid or not m_pid):
@@ -2011,8 +2158,9 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                     pass
 
                 # If job was cancelled or interrupted, return early
-                if ACTIVE_JOBS.get(pid, {}).get("status") in ("cancelled", "interrupted"):
-                    return
+                with ACTIVE_JOBS_LOCK:
+                    if ACTIVE_JOBS.get(pid, {}).get("status") in ("cancelled", "interrupted"):
+                        return
 
                 def _pick_node_image(outputs_dict: dict, node_ids: list[str]):
                     for nid in node_ids:
@@ -2170,15 +2318,21 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                         if llm_status and llm_status.upper() != "DISABLED":
                             break
 
-                ACTIVE_JOBS[pid] = {
-                    "status": "done",
-                    "prompt_id": pid,
-                    "image": new_image,
-                    "image_url": image_url,
-                    "before_image_url": before_image_url,
-                    "llm_prompt": llm_prompt,
-                    "llm_status": llm_status,
-                }
+                with ACTIVE_JOBS_LOCK:
+                    cur_job = ACTIVE_JOBS.get(pid, {})
+                    if cur_job.get("status") in ("cancelled", "interrupted"):
+                        return
+                    ACTIVE_JOBS[pid] = {
+                        "status": "done",
+                        "prompt_id": pid,
+                        "start_time": cur_job.get("start_time", time.time()),
+                        "finished_at": time.time(),
+                        "image": new_image,
+                        "image_url": image_url,
+                        "before_image_url": before_image_url,
+                        "llm_prompt": llm_prompt,
+                        "llm_status": llm_status,
+                    }
 
             threading.Thread(target=watch_job, args=(prompt_id, existing_files, job_client_id), daemon=True).start()
 
@@ -2190,10 +2344,10 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             self.send_json({"error": f"Fehler bei Workflow-Generierung: {e}"}, status=500)
 
-    def send_json(self, data: any, status: int = 200):
+    def send_json(self, data: Any, status: int = 200):
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
-        self.send_header("Access-Control-Allow-Origin", "*")
+        self._send_cors_origin_header()
         self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
         self.end_headers()
         self.wfile.write(json.dumps(data).encode("utf-8"))
@@ -2211,10 +2365,22 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                 data = json.loads(post_body.decode("utf-8"))
                 fname = data.get("filename") or data.get("path")
                 if fname:
+                    if not isinstance(fname, str):
+                        self.send_json({"error": "Ungültiger Dateiname."}, status=400)
+                        return
+                    out_dir = get_output_dir()
                     img_name = os.path.basename(fname)
-                    target_path = fname if os.path.isabs(fname) else os.path.join(OUTPUT_DIR, fname)
+                    if os.path.isabs(fname):
+                        target_path = os.path.normpath(fname)
+                    else:
+                        target_path = os.path.normpath(
+                            os.path.join(out_dir, fname.lstrip("/\\").replace("/", os.sep))
+                        )
+                    if not out_dir or not _is_path_within(out_dir, target_path):
+                        self.send_json({"error": "Ungültiger Dateipfad (außerhalb des Ausgabeordners)."}, status=403)
+                        return
                     if not os.path.isfile(target_path):
-                        self.send_json({"error": f"Datei nicht gefunden: {target_path}"}, status=404)
+                        self.send_json({"error": f"Datei nicht gefunden: {img_name}"}, status=404)
                         return
                     img = Image.open(target_path)
             else:
@@ -2274,7 +2440,7 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         pr = json.loads(prompt_str) if prompt_str else {}
         wf = json.loads(workflow_str) if workflow_str else {}
 
-        params: dict[str, any] = {
+        params: dict[str, Any] = {
             "source_image": img_name,
             "success": True,
         }
@@ -3305,24 +3471,28 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_json({"error": "ComfyUI konnte den Background-Remove-Job nicht einreihen."}, status=500)
                 return
 
-            ACTIVE_JOBS[prompt_id] = {
-                "status": "running",
-                "prompt_id": prompt_id,
-                "type": "bg_remove",
-                "node_type": node_type,
-                "start_time": time.time(),
-            }
+            with ACTIVE_JOBS_LOCK:
+                _prune_active_jobs_locked()
+                ACTIVE_JOBS[prompt_id] = {
+                    "status": "running",
+                    "prompt_id": prompt_id,
+                    "type": "bg_remove",
+                    "node_type": node_type,
+                    "start_time": time.time(),
+                }
 
             def watch_bg_remove(pid: str):
                 try:
                     deadline = time.time() + 180.0
                     out_img_info = None
                     while time.time() < deadline:
-                        if ACTIVE_JOBS.get(pid, {}).get("status") in ("cancelled", "interrupted"):
-                            return
+                        with ACTIVE_JOBS_LOCK:
+                            if ACTIVE_JOBS.get(pid, {}).get("status") in ("cancelled", "interrupted"):
+                                return
                         time.sleep(0.4)
-                        if ACTIVE_JOBS.get(pid, {}).get("status") in ("cancelled", "interrupted"):
-                            return
+                        with ACTIVE_JOBS_LOCK:
+                            if ACTIVE_JOBS.get(pid, {}).get("status") in ("cancelled", "interrupted"):
+                                return
                         try:
                             entry = client.get_history(pid, timeout=2.0)
                         except Exception:
@@ -3337,11 +3507,17 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                                     if isinstance(msg_item[1], dict) and msg_item[1].get("exception_message"):
                                         err_msg = str(msg_item[1]["exception_message"]).strip()
                                         break
-                            ACTIVE_JOBS[pid]["status"] = "error"
-                            ACTIVE_JOBS[pid]["error"] = err_msg
+                            with ACTIVE_JOBS_LOCK:
+                                if pid in ACTIVE_JOBS:
+                                    ACTIVE_JOBS[pid]["status"] = "error"
+                                    ACTIVE_JOBS[pid]["error"] = err_msg
+                                    ACTIVE_JOBS[pid]["finished_at"] = time.time()
                             return
                         if status_obj.get("status_str") == "interrupted":
-                            ACTIVE_JOBS[pid]["status"] = "interrupted"
+                            with ACTIVE_JOBS_LOCK:
+                                if pid in ACTIVE_JOBS:
+                                    ACTIVE_JOBS[pid]["status"] = "interrupted"
+                                    ACTIVE_JOBS[pid]["finished_at"] = time.time()
                             return
                         outputs = entry.get("outputs") or {}
                         for node_out in outputs.values():
@@ -3352,12 +3528,16 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                         if out_img_info:
                             break
 
-                    if ACTIVE_JOBS.get(pid, {}).get("status") in ("cancelled", "interrupted"):
-                        return
+                    with ACTIVE_JOBS_LOCK:
+                        if ACTIVE_JOBS.get(pid, {}).get("status") in ("cancelled", "interrupted"):
+                            return
 
                     if not out_img_info:
-                        ACTIVE_JOBS[pid]["status"] = "error"
-                        ACTIVE_JOBS[pid]["error"] = "Zeitüberschreitung bei der Hintergrundentfernung."
+                        with ACTIVE_JOBS_LOCK:
+                            if pid in ACTIVE_JOBS:
+                                ACTIVE_JOBS[pid]["status"] = "error"
+                                ACTIVE_JOBS[pid]["error"] = "Zeitüberschreitung bei der Hintergrundentfernung."
+                                ACTIVE_JOBS[pid]["finished_at"] = time.time()
                         return
 
                     view_qs = urllib.parse.urlencode({
@@ -3386,18 +3566,25 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                         with open(target_path, "wb") as f:
                             f.write(result_bytes)
                         rel_out = f"{rel_dir}/{candidate_name}" if rel_dir else candidate_name
-                        ACTIVE_JOBS[pid]["filename"] = rel_out
-                        ACTIVE_JOBS[pid]["image_url"] = f"/output/{urllib.parse.quote(rel_out, safe='/')}"
+                        out_fn = rel_out
+                        out_url = f"/output/{urllib.parse.quote(rel_out, safe='/')}"
                     else:
-                        ACTIVE_JOBS[pid]["filename"] = out_img_info.get("filename", f"{stem}_nobg.png")
-                        ACTIVE_JOBS[pid]["image_url"] = f"/view?{view_qs}"
+                        out_fn = out_img_info.get("filename", f"{stem}_nobg.png")
+                        out_url = f"/view?{view_qs}"
 
-                    ACTIVE_JOBS[pid]["node_type"] = node_type
-                    ACTIVE_JOBS[pid]["status"] = "done"
+                    with ACTIVE_JOBS_LOCK:
+                        if pid in ACTIVE_JOBS and ACTIVE_JOBS[pid].get("status") not in ("cancelled", "interrupted"):
+                            ACTIVE_JOBS[pid]["filename"] = out_fn
+                            ACTIVE_JOBS[pid]["image_url"] = out_url
+                            ACTIVE_JOBS[pid]["node_type"] = node_type
+                            ACTIVE_JOBS[pid]["status"] = "done"
+                            ACTIVE_JOBS[pid]["finished_at"] = time.time()
                 except Exception as e:
-                    if ACTIVE_JOBS.get(pid, {}).get("status") not in ("cancelled", "interrupted"):
-                        ACTIVE_JOBS[pid]["status"] = "error"
-                        ACTIVE_JOBS[pid]["error"] = str(e)
+                    with ACTIVE_JOBS_LOCK:
+                        if pid in ACTIVE_JOBS and ACTIVE_JOBS[pid].get("status") not in ("cancelled", "interrupted"):
+                            ACTIVE_JOBS[pid]["status"] = "error"
+                            ACTIVE_JOBS[pid]["error"] = str(e)
+                            ACTIVE_JOBS[pid]["finished_at"] = time.time()
 
             threading.Thread(target=watch_bg_remove, args=(prompt_id,), daemon=True).start()
             self.send_json({
@@ -3645,9 +3832,13 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         if not cmd and post_body:
             try:
                 body = json.loads(post_body.decode("utf-8"))
-                cmd = str(body.get("comfy_launch_cmd", "")).strip()
-                if cmd:
+                cand_cmd = str(body.get("comfy_launch_cmd", "")).strip()
+                if cand_cmd:
+                    cmd = _validate_launch_command(cand_cmd)
                     save_config({"comfy_launch_cmd": cmd})
+            except ValueError as ve:
+                self.send_json({"error": str(ve)}, status=400)
+                return
             except Exception:
                 pass
         if not cmd:
@@ -3658,6 +3849,12 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                 },
                 status=400,
             )
+            return
+
+        try:
+            cmd = _validate_launch_command(cmd)
+        except ValueError as ve:
+            self.send_json({"error": str(ve)}, status=400)
             return
 
         try:
@@ -3673,7 +3870,8 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                 )
                 return
 
-            # Prepare WSL login interactive invocation if target is WSL
+            # Prepare WSL login invocation if target is WSL
+            wsl_argv: list[str] = []
             if is_wsl:
                 clean_subcmd = cmd
                 if clean_subcmd.startswith("wsl"):
@@ -3683,11 +3881,16 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                 if not clean_subcmd:
                     self.send_json({"error": "Unvollständiger WSL-Start-Befehl. Bitte Skriptpfad angeben."}, status=400)
                     return
+                if any(ch in clean_subcmd for ch in ("$", "(", ")")):
+                    self.send_json(
+                        {"error": "Ungültige Zeichen im WSL-Start-Befehl ($ und Klammern sind nicht erlaubt)."},
+                        status=400,
+                    )
+                    return
 
                 # -l (login): sources /etc/profile and ~/.bashrc (ensuring conda base and lm-studio path are active).
                 # Do NOT use -i (interactive monitor mode) on script execution, as job-control conflicts with setsid in cei1-dev.sh.
-                # Do NOT include semicolons (;) here because Windows Terminal interprets ; as a tab delimiter!
-                wsl_exec = f'wsl --cd ~ bash -l -c "{clean_subcmd}"'
+                wsl_argv = ["wsl", "--cd", "~", "bash", "-l", "-c", clean_subcmd]
 
             launch_env = os.environ.copy()
             studio_cloud_keys = get_cloud_api_keys(cfg)
@@ -3702,7 +3905,7 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                         wsl_parts.append(env_var)
                 launch_env["WSLENV"] = ":".join(wsl_parts)
 
-            # Launch in Windows Terminal or classic fallback
+            # Launch in Windows Terminal or classic fallback without shell=True
             if sys.platform == "win32":
                 wt_exe = shutil.which("wt") or shutil.which("wt.exe")
                 if not wt_exe:
@@ -3714,25 +3917,44 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                 if wt_exe:
                     wt_used = True
                     profile = get_wt_wsl_profile() if is_wsl else None
-                    profile_arg = f'-p "{profile}" ' if profile else ""
-
                     if is_wsl:
-                        exec_str = f'"{wt_exe}" -w 0 new-tab {profile_arg}--title "ComfyUI (WSL)" {wsl_exec}'
-                    elif cmd.endswith(".bat") or cmd.endswith(".cmd"):
-                        exec_str = f'"{wt_exe}" -w 0 new-tab --title "ComfyUI" cmd.exe /k "{cmd}"'
+                        argv = [wt_exe, "-w", "0", "new-tab"]
+                        if profile:
+                            argv.extend(["-p", profile])
+                        argv.extend(["--title", "ComfyUI (WSL)"])
+                        argv.extend(wsl_argv)
                     else:
-                        exec_str = f'"{wt_exe}" -w 0 new-tab --title "ComfyUI" {cmd}'
-                    subprocess.Popen(exec_str, shell=True, env=launch_env)
+                        unquoted = cmd.strip().strip('"')
+                        if unquoted.lower().endswith((".bat", ".cmd")):
+                            argv = [wt_exe, "-w", "0", "new-tab", "--title", "ComfyUI", "cmd.exe", "/k", unquoted]
+                        else:
+                            parts = [p.strip('"') for p in shlex.split(cmd, posix=False) if p.strip('"')]
+                            if not parts:
+                                self.send_json({"error": "Ungültiger Start-Befehl."}, status=400)
+                                return
+                            argv = [wt_exe, "-w", "0", "new-tab", "--title", "ComfyUI", *parts]
+                    subprocess.Popen(argv, env=launch_env)
                 else:
                     # Fallback to classic console
+                    new_console = getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
                     if is_wsl:
-                        subprocess.Popen(f'cmd.exe /c start "ComfyUI (WSL)" {wsl_exec}', shell=True, env=launch_env)
-                    elif cmd.endswith(".bat") or cmd.endswith(".cmd"):
-                        subprocess.Popen(f'cmd.exe /c start "ComfyUI" "{cmd}"', shell=True, env=launch_env)
+                        subprocess.Popen(wsl_argv, env=launch_env, creationflags=new_console)
                     else:
-                        subprocess.Popen(f'cmd.exe /c start "ComfyUI" cmd.exe /k "{cmd}"', shell=True, env=launch_env)
+                        unquoted = cmd.strip().strip('"')
+                        if unquoted.lower().endswith((".bat", ".cmd")):
+                            subprocess.Popen(["cmd.exe", "/k", unquoted], env=launch_env, creationflags=new_console)
+                        else:
+                            parts = [p.strip('"') for p in shlex.split(cmd, posix=False) if p.strip('"')]
+                            if not parts:
+                                self.send_json({"error": "Ungültiger Start-Befehl."}, status=400)
+                                return
+                            subprocess.Popen(["cmd.exe", "/k", *parts], env=launch_env, creationflags=new_console)
             else:
-                subprocess.Popen(["bash", "-c", cmd], env=launch_env)
+                parts = shlex.split(cmd, posix=True)
+                if not parts:
+                    self.send_json({"error": "Ungültiger Start-Befehl."}, status=400)
+                    return
+                subprocess.Popen(parts, env=launch_env)
 
             self.send_json({"status": "launched", "command": cmd, "terminal": "wt" if wt_used else "classic"})
         except Exception as e:
@@ -3742,8 +3964,7 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         out_dir = get_output_dir()
         rel = urllib.parse.unquote(filename).lstrip("/\\").replace("/", os.sep)
         filepath = os.path.normpath(os.path.join(out_dir, rel))
-        base_dir = os.path.normpath(out_dir)
-        if not filepath.startswith(base_dir) or not os.path.isfile(filepath):
+        if not _is_path_within(out_dir, filepath) or not os.path.isfile(filepath):
             self.send_response(404)
             self.end_headers()
             return
@@ -3756,7 +3977,7 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
 
         self.send_response(200)
         self.send_header("Content-Type", content_type)
-        self.send_header("Access-Control-Allow-Origin", "*")
+        self._send_cors_origin_header()
         self.send_header("Content-Length", str(os.path.getsize(filepath)))
         self.end_headers()
         with open(filepath, "rb") as f:
@@ -3783,12 +4004,25 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
 
     def forward_to_comfy(self, method: str, target_path: str, query: str, body: bytes | None):
         """Forwards request to ComfyUI without Origin header to prevent ComfyUI 403 Forbidden."""
+        try:
+            comfy_base = _validate_http_url(COMFY_URL, "comfy_url")
+            if not comfy_base:
+                raise ValueError("ComfyUI-URL ist nicht konfiguriert.")
+        except ValueError as exc:
+            self.send_json({"error": str(exc)}, status=400)
+            return
+
         clean_target = target_path.lstrip("/")
-        target_url = f"{COMFY_URL}/{clean_target}"
+        first_seg = clean_target.split("/", 1)[0]
+        if clean_target.startswith("/") or "://" in clean_target or "@" in first_seg:
+            self.send_json({"error": "Ungültiger Proxy-Zielpfad."}, status=400)
+            return
+
+        target_url = f"{comfy_base.rstrip('/')}/{clean_target}"
         if query:
             target_url += f"?{query}"
 
-        comfy_netloc = urllib.parse.urlparse(COMFY_URL).netloc
+        comfy_netloc = urllib.parse.urlparse(comfy_base).netloc
         headers = {
             "User-Agent": "tA-StudioCockpit",
             "Host": comfy_netloc,
@@ -3804,7 +4038,7 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                 for header, val in resp.getheaders():
                     if header.lower() not in ("server", "date", "transfer-encoding", "content-length"):
                         self.send_header(header, val)
-                self.send_header("Access-Control-Allow-Origin", "*")
+                self._send_cors_origin_header()
                 data = resp.read()
                 self.send_header("Content-Length", str(len(data)))
                 self.end_headers()
@@ -3812,13 +4046,13 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         except urllib.error.HTTPError as err:
             self.send_response(err.code)
             self.send_header("Content-Type", "application/json")
-            self.send_header("Access-Control-Allow-Origin", "*")
+            self._send_cors_origin_header()
             self.end_headers()
             self.wfile.write(err.read())
         except Exception as e:
             self.send_response(502)
             self.send_header("Content-Type", "application/json")
-            self.send_header("Access-Control-Allow-Origin", "*")
+            self._send_cors_origin_header()
             self.end_headers()
             self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
 
@@ -4213,12 +4447,14 @@ def run_native_window(url: str, server: socketserver.TCPServer) -> bool:
 
 
 def main():
-    global PORT
+    global PORT, BIND_HOST
     parser = argparse.ArgumentParser(description="thomo.ART StudioCockpit")
     parser.add_argument("--browser", action="store_true", help="Im Browser öffnen statt pywebview Desktop-Fenster")
     parser.add_argument("--port", type=int, default=PORT, help=f"HTTP-Port (Standard: {PORT})")
+    parser.add_argument("--host", default=BIND_HOST, help=f"Bind-Adresse (Standard: {BIND_HOST})")
     args = parser.parse_args()
     PORT = args.port
+    BIND_HOST = args.host
 
     load_config()
     discord_gif.init_module(DATA_ROOT, BUNDLE_DIR, load_config)
@@ -4234,7 +4470,7 @@ def main():
 
     socketserver.TCPServer.allow_reuse_address = sys.platform != "win32"
     try:
-        httpd = http.server.ThreadingHTTPServer(("", PORT), StudioHandler)
+        httpd = http.server.ThreadingHTTPServer((BIND_HOST, PORT), StudioHandler)
     except OSError as exc:
         msg = (
             f"Port {PORT} ist bereits belegt ({exc}).\n"
@@ -4267,7 +4503,8 @@ def main():
 
     updater.init_module(APP_VERSION, DATA_ROOT, _request_app_exit)
 
-    url = f"http://127.0.0.1:{PORT}"
+    display_host = "127.0.0.1" if BIND_HOST in ("", "0.0.0.0", "::") else BIND_HOST
+    url = f"http://{display_host}:{PORT}"
 
     print("=" * 60)
     print(f"  thomo.ART StudioCockpit läuft unter: {url}")

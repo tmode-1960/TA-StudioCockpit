@@ -16,6 +16,7 @@ import mimetypes
 import os
 import random
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -51,7 +52,6 @@ _GET_STUDIO_CONFIG = None
 def _migrate_legacy_musicmaker_data() -> None:
     candidates = [
         os.path.join(APP_DIR, "..", "tA-MusicMaker", "data"),
-        r"D:\Workspace\AG\tA-MusicMaker\data",
     ]
     for cand in candidates:
         if not os.path.isdir(cand):
@@ -65,6 +65,49 @@ def _migrate_legacy_musicmaker_data() -> None:
                 except OSError:
                     pass
         break
+
+
+_FORBIDDEN_LAUNCH_TOKENS = (";", "&&", "||", "|", "&", "`", "$(", "<", ">")
+
+
+def _is_path_within(base_dir: str, target_path: str) -> bool:
+    """Return True iff target_path resolves inside base_dir."""
+    if not base_dir or not target_path:
+        return False
+    try:
+        base_real = os.path.realpath(os.path.abspath(base_dir))
+        target_real = os.path.realpath(os.path.abspath(target_path))
+        return os.path.commonpath([base_real, target_real]) == base_real
+    except (ValueError, OSError):
+        return False
+
+
+def _validate_http_url(url: str, field_name: str = "url") -> str:
+    """Validate that a configured URL uses http:// or https:// without control characters."""
+    val = str(url or "").strip()
+    if not val:
+        return ""
+    if any(ch in val for ch in ("\r", "\n", "\x00")) or any(ch.isspace() for ch in val):
+        raise ValueError(f"Invalid URL for {field_name}: whitespace or control characters are not allowed.")
+    try:
+        parsed = urllib.parse.urlparse(val)
+    except Exception as exc:
+        raise ValueError(f"Invalid URL for {field_name}: {exc}") from exc
+    if parsed.scheme not in ("http", "https") or not parsed.netloc or not parsed.hostname:
+        raise ValueError(f"Invalid URL for {field_name}: only http:// and https:// are allowed.")
+    return val
+
+
+def _validate_launch_command(cmd: str) -> str:
+    """Reject control characters and shell injection operators in configured launch commands."""
+    val = str(cmd or "").strip()
+    if not val:
+        return ""
+    if any(ch in val for ch in ("\r", "\n", "\x00")) or any(tok in val for tok in _FORBIDDEN_LAUNCH_TOKENS):
+        raise ValueError(
+            "Invalid characters in start command (shell operators like ; & | < > ` $() are not allowed)."
+        )
+    return val
 
 
 def init_module(data_root: str, bundle_dir: str, get_studio_config=None) -> None:
@@ -2690,7 +2733,15 @@ class _MusicHandlerProxy:
                 save_json(LAST_SETTINGS_PATH, body if isinstance(body, dict) else {})
                 return self._json({"ok": True})
             if path == "/api/config":
-                config().update({k: v for k, v in body.items() if k in DEFAULT_CONFIG})
+                updates = {k: v for k, v in body.items() if k in DEFAULT_CONFIG}
+                if "comfy_url" in updates:
+                    raw_u = str(updates.get("comfy_url") or "").strip()
+                    updates["comfy_url"] = _validate_http_url(raw_u, "comfy_url") if raw_u else ""
+                if "comfy_start_command" in updates:
+                    updates["comfy_start_command"] = _validate_launch_command(
+                        str(updates.get("comfy_start_command") or "")
+                    )
+                config().update(updates)
                 save_json(CONFIG_PATH, config())
                 return self._json(config())
             if path == "/api/comfy/start":
@@ -3089,7 +3140,7 @@ class _MusicHandlerProxy:
         return None
 
     def _start_comfy(self) -> dict:
-        cmd = (config().get("comfy_start_command") or "").strip()
+        cmd = _validate_launch_command(config().get("comfy_start_command") or "")
         if not cmd:
             raise ValueError(_tr(
                 "No start command configured for ComfyUI in settings.",
@@ -3101,7 +3152,7 @@ class _MusicHandlerProxy:
 
         wt_used = False
         is_wsl = cmd.startswith("wsl") or "~/" in cmd or ".sh" in cmd
-        wsl_exec = ""
+        wsl_argv: list[str] = []
         if is_wsl:
             clean_subcmd = cmd
             if clean_subcmd.startswith("wsl"):
@@ -3113,7 +3164,12 @@ class _MusicHandlerProxy:
                     "Incomplete WSL start command. Please provide the script path.",
                     "Unvollständiger WSL-Start-Befehl. Bitte Skriptpfad angeben.",
                 ))
-            wsl_exec = f'wsl --cd ~ bash -l -c "{clean_subcmd}"'
+            if any(ch in clean_subcmd for ch in ("$", "(", ")")):
+                raise ValueError(_tr(
+                    "Invalid characters in WSL start command ($ and parentheses are not allowed).",
+                    "Ungültige Zeichen im WSL-Startbefehl ($ und Klammern sind nicht erlaubt).",
+                ))
+            wsl_argv = ["wsl", "--cd", "~", "bash", "-l", "-c", clean_subcmd]
 
         if sys.platform == "win32":
             wt_exe = shutil.which("wt") or shutil.which("wt.exe")
@@ -3126,24 +3182,42 @@ class _MusicHandlerProxy:
             if wt_exe:
                 wt_used = True
                 profile = self._get_wt_wsl_profile() if is_wsl else None
-                profile_arg = f'-p "{profile}" ' if profile else ""
                 if is_wsl:
-                    exec_str = f'"{wt_exe}" -w 0 new-tab {profile_arg}--title "ComfyUI (WSL)" {wsl_exec}'
-                elif cmd.lower().endswith(".bat") or cmd.lower().endswith(".cmd"):
-                    exec_str = f'"{wt_exe}" -w 0 new-tab --title "ComfyUI" cmd.exe /k "{cmd}"'
+                    argv = [wt_exe, "-w", "0", "new-tab"]
+                    if profile:
+                        argv.extend(["-p", profile])
+                    argv.extend(["--title", "ComfyUI (WSL)"])
+                    argv.extend(wsl_argv)
                 else:
-                    exec_str = f'"{wt_exe}" -w 0 new-tab --title "ComfyUI" {cmd}'
-                subprocess.Popen(exec_str, shell=True, cwd=cwd)
+                    unquoted = cmd.strip().strip('"')
+                    if unquoted.lower().endswith((".bat", ".cmd")):
+                        argv = [wt_exe, "-w", "0", "new-tab", "--title", "ComfyUI", "cmd.exe", "/k", unquoted]
+                    else:
+                        parts = [p.strip('"') for p in shlex.split(cmd, posix=False) if p.strip('"')]
+                        if not parts:
+                            raise ValueError(_tr("Invalid start command.", "Ungültiger Startbefehl."))
+                        argv = [wt_exe, "-w", "0", "new-tab", "--title", "ComfyUI", *parts]
+                subprocess.Popen(argv, cwd=cwd)
             else:
                 flags = getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
                 if is_wsl:
-                    subprocess.Popen(wsl_exec, shell=True, cwd=cwd, creationflags=flags)
-                elif os.path.isfile(cmd):
-                    subprocess.Popen(f'"{cmd}"', shell=True, cwd=cwd, creationflags=flags)
+                    subprocess.Popen(wsl_argv, cwd=cwd, creationflags=flags)
                 else:
-                    subprocess.Popen(cmd, shell=True, cwd=cwd, creationflags=flags)
+                    unquoted = cmd.strip().strip('"')
+                    if unquoted.lower().endswith((".bat", ".cmd")):
+                        subprocess.Popen(["cmd.exe", "/k", unquoted], cwd=cwd, creationflags=flags)
+                    elif os.path.isfile(unquoted):
+                        subprocess.Popen([unquoted], cwd=cwd, creationflags=flags)
+                    else:
+                        parts = [p.strip('"') for p in shlex.split(cmd, posix=False) if p.strip('"')]
+                        if not parts:
+                            raise ValueError(_tr("Invalid start command.", "Ungültiger Startbefehl."))
+                        subprocess.Popen(["cmd.exe", "/k", *parts], cwd=cwd, creationflags=flags)
         else:
-            subprocess.Popen(["bash", "-c", cmd], cwd=cwd)
+            parts = shlex.split(cmd, posix=True)
+            if not parts:
+                raise ValueError(_tr("Invalid start command.", "Ungültiger Startbefehl."))
+            subprocess.Popen(parts, cwd=cwd)
 
         return {"started": True, "status": "launched", "terminal": "wt" if wt_used else "classic"}
 
@@ -3182,20 +3256,22 @@ class _MusicHandlerProxy:
 
         # 2. Fallback on Windows (browser mode): PowerShell WinForms OpenFileDialog
         if sys.platform == "win32":
-            init_escaped = initial_dir.replace("'", "''")
+            env = os.environ.copy()
+            env["TA_INIT_DIR"] = initial_dir if (initial_dir and os.path.isdir(initial_dir)) else ""
             ps_script = (
                 "Add-Type -AssemblyName System.Windows.Forms; "
                 "$d = New-Object System.Windows.Forms.OpenFileDialog; "
                 "$d.Title = 'ComfyUI Start-Skript auswählen'; "
                 "$d.Filter = 'Start-Skripte (*.bat;*.cmd;*.exe;*.sh)|*.bat;*.cmd;*.exe;*.sh|Alle Dateien (*.*)|*.*'; "
-                + (f"if (Test-Path '{init_escaped}') {{ $d.InitialDirectory = '{init_escaped}'; }} " if init_escaped else "")
-                + "if ($d.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Output $d.FileName }"
+                "if ($env:TA_INIT_DIR -and (Test-Path -LiteralPath $env:TA_INIT_DIR)) { $d.InitialDirectory = $env:TA_INIT_DIR; } "
+                "if ($d.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Output $d.FileName }"
             )
             flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
             proc = subprocess.run(
                 ["powershell", "-NoProfile", "-STA", "-Command", ps_script],
                 capture_output=True,
                 text=True,
+                env=env,
                 creationflags=flags,
             )
             selected = (proc.stdout or "").strip()
@@ -3280,14 +3356,13 @@ class _MusicHandlerProxy:
             raise ValueError(_tr("Plenio Player was not found.", "Plenio Player.bat wurde nicht gefunden."))
         cwd = os.path.dirname(bat)
         flags = getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
-        subprocess.Popen([bat, "--port", "8766"], cwd=cwd, shell=True, creationflags=flags)
+        comspec = os.environ.get("ComSpec") or "cmd.exe"
+        subprocess.Popen([comspec, "/c", bat, "--port", "8766"], cwd=cwd, shell=False, creationflags=flags)
         return {"started": True, "port": 8766}
 
     def _translate_srt(self, body: dict) -> dict:
         audio_url = body.get("audio_url") or ""
         target_lang = body.get("target_lang")
-        if not target_lang or target_lang == "auto":
-            target_lang = srt_translate.get_auto_translation_target(fallback_lyrics or "")
         fallback_lyrics = None
         history = load_json(HISTORY_PATH, [])
         for h in history:
@@ -3295,6 +3370,8 @@ class _MusicHandlerProxy:
             if any(m.get("url") == audio_url for m in media):
                 fallback_lyrics = (h.get("sheet") or {}).get("lyrics")
                 break
+        if not target_lang or target_lang == "auto":
+            target_lang = srt_translate.get_auto_translation_target(fallback_lyrics or "")
         items = build_subtitles_for_audio(audio_url, target_lang=target_lang, fallback_lyrics=fallback_lyrics)
         if not items:
             raise ValueError(_tr(
@@ -3339,7 +3416,8 @@ class _MusicHandlerProxy:
             self.send_response(200)
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(data)))
-            self.send_header("Access-Control-Allow-Origin", "*")
+            if hasattr(self._h, "_send_cors_origin_header"):
+                self._h._send_cors_origin_header()
             self.send_header("Cache-Control", "public, max-age=86400")
             self.end_headers()
             self.wfile.write(data)
@@ -3385,7 +3463,8 @@ class _MusicHandlerProxy:
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(content_length))
         self.send_header("Accept-Ranges", "bytes")
-        self.send_header("Access-Control-Allow-Origin", "*")
+        if hasattr(self._h, "_send_cors_origin_header"):
+            self._h._send_cors_origin_header()
         if status == 206:
             self.send_header("Content-Range", f"bytes {start}-{end}/{file_size}")
         if query.get("download") == ["1"] or query.get("dl") == ["1"]:
@@ -3428,7 +3507,8 @@ class _MusicHandlerProxy:
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(data)))
             self.send_header("Accept-Ranges", "bytes")
-            self.send_header("Access-Control-Allow-Origin", "*")
+            if hasattr(self._h, "_send_cors_origin_header"):
+                self._h._send_cors_origin_header()
             if headers.get("Content-Range"):
                 self.send_header("Content-Range", headers["Content-Range"])
             if query.get("download") == ["1"] or query.get("dl") == ["1"]:
@@ -3467,7 +3547,7 @@ class _MusicHandlerProxy:
     def _static(self, path: str):
         rel = "index.html" if path in ("", "/") else path.lstrip("/")
         full = os.path.normpath(os.path.join(WEB_DIR, rel))
-        if not full.startswith(WEB_DIR) or not os.path.isfile(full):
+        if not _is_path_within(WEB_DIR, full) or not os.path.isfile(full):
             return self._fail("Not found", 404)
         with open(full, "rb") as fh:
             data = fh.read()

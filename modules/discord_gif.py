@@ -52,6 +52,8 @@ _HOTKEY_THREAD_STARTED: bool = False
 _ON_HOTKEY_CALLBACK: Callable[[], None] | None = None
 
 AI_STATE_LOCK = threading.Lock()
+CONFIG_FILE_LOCK = threading.RLock()
+LIBRARY_FILE_LOCK = threading.RLock()
 AI_STATE: dict = {
     "busy": False,
     "progress": 0,
@@ -72,6 +74,50 @@ DOWNLOAD_STATE: dict = {
     "status_text": "",
     "error": None,
 }
+
+
+def _is_path_within(base_dir: str, target_path: str) -> bool:
+    """Return True iff target_path resolves inside base_dir."""
+    if not base_dir or not target_path:
+        return False
+    try:
+        base_real = os.path.realpath(os.path.abspath(base_dir))
+        target_real = os.path.realpath(os.path.abspath(target_path))
+        return os.path.commonpath([base_real, target_real]) == base_real
+    except (ValueError, OSError):
+        return False
+
+
+def _atomic_write_json(path: str, payload) -> None:
+    """Atomically write JSON via a thread-unique temp file and os.replace()."""
+    parent = os.path.dirname(path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
+    tmp_path = f"{path}.tmp.{threading.get_ident()}"
+    with open(tmp_path, "w", encoding="utf-8") as fh:
+        json.dump(payload, fh, indent=2, ensure_ascii=False)
+    os.replace(tmp_path, path)
+
+
+def _get_ssl_context() -> ssl.SSLContext:
+    """Return a verifying TLS context using the OS trust store (with certifi fallback)."""
+    ctx = ssl.create_default_context()
+    if not ctx.get_ca_certs():
+        try:
+            import certifi
+            ctx.load_verify_locations(certifi.where())
+        except Exception:
+            pass
+    return ctx
+
+
+def _is_http_url(url: str) -> bool:
+    """Return True iff url is an http:// or https:// URL with a valid host."""
+    try:
+        parsed = urllib.parse.urlparse(str(url or "").strip())
+        return parsed.scheme in ("http", "https") and bool(parsed.netloc) and bool(parsed.hostname)
+    except Exception:
+        return False
 
 # ---------------------------------------------------------------------------
 # Windows Win32 Clipboard & Window Helpers
@@ -164,8 +210,6 @@ def _migrate_legacy_discord_gif_config(defaults: dict) -> None:
     candidates = [
         os.path.join(APP_DIR, "..", "tA-DiscordGIF", "dist", "data", "config.json"),
         os.path.join(APP_DIR, "..", "tA-DiscordGIF", "data", "config.json"),
-        r"D:\Workspace\AG\tA-DiscordGIF\dist\data\config.json",
-        r"D:\Workspace\AG\tA-DiscordGIF\data\config.json",
         os.path.join(os.environ.get("LOCALAPPDATA", ""), "tA-DiscordGIF", "data", "config.json"),
     ]
     for cand in candidates:
@@ -191,52 +235,52 @@ def _migrate_legacy_discord_gif_config(defaults: dict) -> None:
 
 
 def load_config() -> dict:
-    defaults = {
-        "gif_dir": "",
-        "paste_mode": "file",
-        "auto_send": False,
-        "tenor_api_key": "",
-        "comfyui_url": "http://127.0.0.1:8188",
-        "comfyui_dir": "",
-        "ai_workflow": "minimax_h3",
-    }
-    if CONFIG_PATH and os.path.isfile(CONFIG_PATH):
-        try:
-            with open(CONFIG_PATH, "r", encoding="utf-8") as fh:
-                saved = json.load(fh)
-                defaults.update(saved)
-        except Exception:
-            pass
-    if not defaults.get("gif_dir"):
-        _migrate_legacy_discord_gif_config(defaults)
-    # Always mirror central ComfyUI URL from StudioCockpit
-    scfg = _studio_cfg()
-    if scfg.get("comfy_url"):
-        defaults["comfyui_url"] = scfg["comfy_url"]
-    return defaults
+    with CONFIG_FILE_LOCK:
+        defaults = {
+            "gif_dir": "",
+            "paste_mode": "file",
+            "auto_send": False,
+            "tenor_api_key": "",
+            "comfyui_url": "http://127.0.0.1:8188",
+            "comfyui_dir": "",
+            "ai_workflow": "minimax_h3",
+        }
+        if CONFIG_PATH and os.path.isfile(CONFIG_PATH):
+            try:
+                with open(CONFIG_PATH, "r", encoding="utf-8") as fh:
+                    saved = json.load(fh)
+                    defaults.update(saved)
+            except Exception:
+                pass
+        if not defaults.get("gif_dir"):
+            _migrate_legacy_discord_gif_config(defaults)
+        # Always mirror central ComfyUI URL from StudioCockpit
+        scfg = _studio_cfg()
+        if scfg.get("comfy_url"):
+            defaults["comfyui_url"] = scfg["comfy_url"]
+        return defaults
 
 
 def save_config(cfg: dict) -> None:
-    os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
-    with open(CONFIG_PATH, "w", encoding="utf-8") as fh:
-        json.dump(cfg, fh, indent=2, ensure_ascii=False)
+    with CONFIG_FILE_LOCK:
+        _atomic_write_json(CONFIG_PATH, cfg)
 
 
 def load_library() -> list[dict]:
-    if LIBRARY_PATH and os.path.isfile(LIBRARY_PATH):
-        try:
-            with open(LIBRARY_PATH, "r", encoding="utf-8") as fh:
-                data = json.load(fh)
-                return data if isinstance(data, list) else []
-        except Exception:
-            pass
-    return []
+    with LIBRARY_FILE_LOCK:
+        if LIBRARY_PATH and os.path.isfile(LIBRARY_PATH):
+            try:
+                with open(LIBRARY_PATH, "r", encoding="utf-8") as fh:
+                    data = json.load(fh)
+                    return data if isinstance(data, list) else []
+            except Exception:
+                pass
+        return []
 
 
 def save_library(lib: list[dict]) -> None:
-    os.makedirs(os.path.dirname(LIBRARY_PATH), exist_ok=True)
-    with open(LIBRARY_PATH, "w", encoding="utf-8") as fh:
-        json.dump(lib, fh, indent=2, ensure_ascii=False)
+    with LIBRARY_FILE_LOCK:
+        _atomic_write_json(LIBRARY_PATH, lib)
 
 
 def create_starter_gifs() -> None:
@@ -293,10 +337,7 @@ def fetch_tenor_gifs(query: str = "", limit: int = 36) -> list[dict]:
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36",
         "Accept-Language": "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7",
     }
-    try:
-        ssl_ctx = ssl.create_default_context()
-    except Exception:
-        ssl_ctx = ssl._create_unverified_context()
+    ssl_ctx = _get_ssl_context()
 
     q_clean = query.strip()
     if not q_clean or q_clean.lower() in ("trending", "featured", "all"):
@@ -309,12 +350,8 @@ def fetch_tenor_gifs(query: str = "", limit: int = 36) -> list[dict]:
     for url in urls:
         try:
             req = urllib.request.Request(url, headers=headers)
-            try:
-                with urllib.request.urlopen(req, timeout=6, context=ssl_ctx) as resp:
-                    content = resp.read().decode("utf-8", "ignore")
-            except Exception:
-                with urllib.request.urlopen(req, timeout=6, context=ssl._create_unverified_context()) as resp:
-                    content = resp.read().decode("utf-8", "ignore")
+            with urllib.request.urlopen(req, timeout=6, context=ssl_ctx) as resp:
+                content = resp.read().decode("utf-8", "ignore")
 
             if not content:
                 continue
@@ -379,7 +416,7 @@ def fetch_tenor_gifs(query: str = "", limit: int = 36) -> list[dict]:
         )
         try:
             req = urllib.request.Request(api_url, headers=headers)
-            with urllib.request.urlopen(req, timeout=7, context=ssl._create_unverified_context()) as resp:
+            with urllib.request.urlopen(req, timeout=7, context=ssl_ctx) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
             results = []
             for item in data.get("results", []):
@@ -511,22 +548,24 @@ def get_active_library() -> list[dict]:
 def select_folder_dialog(initial_dir: str = "", title: str = "Ordner auswählen") -> str | None:
     if sys.platform != "win32":
         return None
-    safe_title = title.replace('"', "").replace("'", "")
-    init_path = initial_dir.replace("'", "''") if initial_dir and os.path.isdir(initial_dir) else ""
-    ps_script = f"""
+    env = os.environ.copy()
+    env["TA_DIALOG_TITLE"] = str(title or "Ordner auswählen")
+    env["TA_DIALOG_INIT"] = initial_dir if (initial_dir and os.path.isdir(initial_dir)) else ""
+    ps_script = """
     [System.Reflection.Assembly]::LoadWithPartialName('System.windows.forms') | Out-Null
     $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
-    $dialog.Description = '{safe_title}'
+    $dialog.Description = $env:TA_DIALOG_TITLE
     $dialog.ShowNewFolderButton = $true
-    if ('{init_path}' -ne '') {{ $dialog.SelectedPath = '{init_path}' }}
+    if ($env:TA_DIALOG_INIT -and (Test-Path -LiteralPath $env:TA_DIALOG_INIT)) { $dialog.SelectedPath = $env:TA_DIALOG_INIT }
     $top = New-Object System.Windows.Forms.Form
     $top.TopMost = $true
-    if ($dialog.ShowDialog($top) -eq 'OK') {{ Write-Output $dialog.SelectedPath }}
+    if ($dialog.ShowDialog($top) -eq 'OK') { Write-Output $dialog.SelectedPath }
     """
     try:
         out = subprocess.check_output(
             ["powershell", "-NoProfile", "-STA", "-Command", ps_script],
             text=True,
+            env=env,
             creationflags=_NO_WINDOW_FLAGS,
         )
         res = out.strip()
@@ -763,8 +802,6 @@ def auto_detect_comfy_checkpoints() -> str | None:
                 return sub
 
     known_candidates = [
-        r"E:\Tools\ComfyUI\CEI-1\ComfyUI",
-        r"E:\Tools\ComfyUI\CEI-1-DEV\ComfyUI",
         r"C:\ComfyUI_windows_portable\ComfyUI",
         r"D:\ComfyUI_windows_portable\ComfyUI",
         r"E:\ComfyUI_windows_portable\ComfyUI",
@@ -1554,10 +1591,12 @@ def _run_model_download_thread(model_url: str, dest_dir: str, custom_filename: s
                 "status_text": _srv_t("Starte Download...", "Starting download..."),
                 "error": None,
             })
+        if not _is_http_url(model_url):
+            raise ValueError("Ungültige Download-URL (nur http/https erlaubt).")
         filename = custom_filename or os.path.basename(urllib.parse.urlparse(model_url).path)
         os.makedirs(dest_dir, exist_ok=True)
         dest_file = os.path.join(dest_dir, filename)
-        ssl_ctx = ssl._create_unverified_context()
+        ssl_ctx = _get_ssl_context()
         req = urllib.request.Request(model_url, headers={"User-Agent": "Mozilla/5.0"})
         start_time = time.time()
         last_time = start_time
@@ -1655,9 +1694,9 @@ def handle_get(handler, path: str, parsed) -> bool:
         return True
 
     if path.startswith("/gifs/"):
-        rel_name = urllib.parse.unquote(path[len("/gifs/"):]).replace("/", os.sep)
+        rel_name = urllib.parse.unquote(path[len("/gifs/"):]).lstrip("/\\").replace("/", os.sep)
         full_path = os.path.abspath(os.path.join(GIFS_DIR, rel_name))
-        if full_path.startswith(os.path.abspath(GIFS_DIR)) and os.path.isfile(full_path):
+        if _is_path_within(GIFS_DIR, full_path) and os.path.isfile(full_path):
             _send_file(handler, full_path, "image/gif")
             return True
         handler.send_response(404)
@@ -1735,9 +1774,10 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
         body = {}
 
     if path == "/api/gif/settings":
-        cfg = load_config()
-        cfg.update(body)
-        save_config(cfg)
+        with CONFIG_FILE_LOCK:
+            cfg = load_config()
+            cfg.update(body)
+            save_config(cfg)
         handler.send_json({"ok": True, "settings": cfg})
         return True
 
@@ -1802,11 +1842,11 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
                     out.write(raw_bytes)
             except Exception:
                 local_filename = None
-        elif url and (url.startswith("http://") or url.startswith("https://")):
+        elif url and _is_http_url(url):
             try:
                 local_filename = f"{item_id}.gif"
                 req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-                with urllib.request.urlopen(req, timeout=10) as resp, open(os.path.join(GIFS_DIR, local_filename), "wb") as out:
+                with urllib.request.urlopen(req, timeout=10, context=_get_ssl_context()) as resp, open(os.path.join(GIFS_DIR, local_filename), "wb") as out:
                     shutil.copyfileobj(resp, out)
             except Exception:
                 local_filename = None
@@ -1821,61 +1861,64 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
             "use_count": 0,
             "created_at": int(time.time()),
         }
-        lib = load_library()
-        lib.insert(0, gif_item)
-        save_library(lib)
+        with LIBRARY_FILE_LOCK:
+            lib = load_library()
+            lib.insert(0, gif_item)
+            save_library(lib)
         handler.send_json({"ok": True, "gif": gif_item})
         return True
 
     if path == "/api/gif/update":
         gid = body.get("id")
-        lib = load_library()
-        found = False
-        for item in lib:
-            if item.get("id") == gid:
+        with LIBRARY_FILE_LOCK:
+            lib = load_library()
+            found = False
+            for item in lib:
+                if item.get("id") == gid:
+                    if "title" in body:
+                        item["title"] = body["title"]
+                    if "tags" in body:
+                        tr = body["tags"]
+                        item["tags"] = [t.strip().lower() for t in tr.split(",") if t.strip()] if isinstance(tr, str) else tr
+                    if "favorite" in body:
+                        item["favorite"] = bool(body["favorite"])
+                    found = True
+                    break
+            if not found and gid:
+                entry = {"id": gid}
+                if "favorite" in body:
+                    entry["favorite"] = bool(body["favorite"])
                 if "title" in body:
-                    item["title"] = body["title"]
+                    entry["title"] = body["title"].strip()
                 if "tags" in body:
                     tr = body["tags"]
-                    item["tags"] = [t.strip().lower() for t in tr.split(",") if t.strip()] if isinstance(tr, str) else tr
-                if "favorite" in body:
-                    item["favorite"] = bool(body["favorite"])
-                found = True
-                break
-        if not found and gid:
-            entry = {"id": gid}
-            if "favorite" in body:
-                entry["favorite"] = bool(body["favorite"])
-            if "title" in body:
-                entry["title"] = body["title"].strip()
-            if "tags" in body:
-                tr = body["tags"]
-                entry["tags"] = [t.strip().lower() for t in tr.split(",") if t.strip()] if isinstance(tr, str) else tr
-            lib.append(entry)
-        save_library(lib)
+                    entry["tags"] = [t.strip().lower() for t in tr.split(",") if t.strip()] if isinstance(tr, str) else tr
+                lib.append(entry)
+            save_library(lib)
         handler.send_json({"ok": True})
         return True
 
     if path == "/api/gif/delete":
         gid = body.get("id")
-        lib = load_library()
-        item_to_remove = next((item for item in lib if item.get("id") == gid), None) or CUSTOM_GIF_INDEX.get(gid)
-        if item_to_remove:
-            file_path = item_to_remove.get("abs_path") or (
-                os.path.join(GIFS_DIR, item_to_remove["filename"]) if item_to_remove.get("filename") else None
-            )
-            if file_path and os.path.exists(file_path):
-                for p in [file_path, os.path.splitext(file_path)[0] + ".meta.json", os.path.splitext(file_path)[0] + ".source.png"]:
-                    if os.path.exists(p):
-                        try:
-                            os.remove(p)
-                        except Exception:
-                            pass
-            save_library([x for x in lib if x.get("id") != gid])
-            CUSTOM_GIF_INDEX.pop(gid, None)
-            handler.send_json({"ok": True})
-        else:
-            handler.send_json({"ok": False, "error": "GIF not found"}, status=404)
+        with LIBRARY_FILE_LOCK:
+            lib = load_library()
+            item_to_remove = next((item for item in lib if item.get("id") == gid), None) or CUSTOM_GIF_INDEX.get(gid)
+            if item_to_remove:
+                file_path = item_to_remove.get("abs_path") or (
+                    os.path.join(GIFS_DIR, item_to_remove["filename"]) if item_to_remove.get("filename") else None
+                )
+                if file_path and os.path.exists(file_path):
+                    for p in [file_path, os.path.splitext(file_path)[0] + ".meta.json", os.path.splitext(file_path)[0] + ".source.png"]:
+                        if os.path.exists(p):
+                            try:
+                                os.remove(p)
+                            except Exception:
+                                pass
+                save_library([x for x in lib if x.get("id") != gid])
+                CUSTOM_GIF_INDEX.pop(gid, None)
+                handler.send_json({"ok": True})
+            else:
+                handler.send_json({"ok": False, "error": "GIF not found"}, status=404)
         return True
 
     if path == "/api/gif/tenor/download":
@@ -1885,18 +1928,25 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
         if not url:
             handler.send_json({"ok": False, "error": "Keine URL angegeben"}, status=400)
             return True
+        if not _is_http_url(url):
+            handler.send_json({"ok": False, "error": "Ungültige URL (nur http/https erlaubt)."}, status=400)
+            return True
         cfg = load_config()
         target_base = cfg.get("gif_dir", "").strip()
         if not target_base or not os.path.isdir(target_base):
             target_base = GIFS_DIR
-        dest_dir = os.path.join(target_base, subfolder or "Downloads")
+        clean_sub = subfolder.lstrip("/\\") or "Downloads"
+        dest_dir = os.path.normpath(os.path.join(target_base, clean_sub))
+        if not _is_path_within(target_base, dest_dir):
+            handler.send_json({"ok": False, "error": "Ungültiger Unterordner."}, status=400)
+            return True
         os.makedirs(dest_dir, exist_ok=True)
         safe_title = re.sub(r'[\\/*?:"<>|]+', "", title).strip().replace(" ", "_") or "GIF"
         filename = f"{safe_title}_{str(uuid.uuid4())[:6]}.gif"
         dest_file = os.path.join(dest_dir, filename)
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=14, context=ssl._create_unverified_context()) as resp, open(dest_file, "wb") as out:
+            with urllib.request.urlopen(req, timeout=14, context=_get_ssl_context()) as resp, open(dest_file, "wb") as out:
                 shutil.copyfileobj(resp, out)
             handler.send_json({"ok": True, "path": dest_file, "filename": filename})
         except Exception as ex:
@@ -1915,16 +1965,17 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
             handler.send_json({"ok": False, "error": "GIF not found"}, status=404)
             return True
 
-        lib = load_library()
-        found = False
-        for x in lib:
-            if x.get("id") == gid:
-                x["use_count"] = x.get("use_count", 0) + 1
-                found = True
-                break
-        if not found and gid:
-            lib.append({"id": gid, "use_count": 1})
-        save_library(lib)
+        with LIBRARY_FILE_LOCK:
+            lib = load_library()
+            found = False
+            for x in lib:
+                if x.get("id") == gid:
+                    x["use_count"] = x.get("use_count", 0) + 1
+                    found = True
+                    break
+            if not found and gid:
+                lib.append({"id": gid, "use_count": 1})
+            save_library(lib)
 
         local_path = None
         if item.get("abs_path") and os.path.isfile(item["abs_path"]):
@@ -1934,14 +1985,14 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
             if os.path.isfile(cand):
                 local_path = cand
 
-        if item.get("is_tenor") and paste_mode == "file" and item.get("url"):
+        if item.get("is_tenor") and paste_mode == "file" and item.get("url") and _is_http_url(item["url"]):
             temp_dir = os.path.join(DATA_DIR, "temp")
             os.makedirs(temp_dir, exist_ok=True)
             temp_file = os.path.join(temp_dir, f"{item['id']}.gif")
             if not os.path.isfile(temp_file):
                 try:
                     req = urllib.request.Request(item["url"], headers={"User-Agent": "Mozilla/5.0"})
-                    with urllib.request.urlopen(req, timeout=12, context=ssl._create_unverified_context()) as resp, open(temp_file, "wb") as out:
+                    with urllib.request.urlopen(req, timeout=12, context=_get_ssl_context()) as resp, open(temp_file, "wb") as out:
                         shutil.copyfileobj(resp, out)
                 except Exception:
                     pass

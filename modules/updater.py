@@ -174,6 +174,15 @@ def check_for_updates(force: bool = False) -> dict:
     return payload
 
 
+def _sanitize_cli_args_for_batch(argv: list[str]) -> str:
+    """Return safely quoted CLI arguments for batch relaunch, stripping unsafe shell characters."""
+    safe_args = [
+        a for a in argv
+        if isinstance(a, str) and re.fullmatch(r"[A-Za-z0-9_.:/\\=-]+", a)
+    ]
+    return " ".join(f'"{a}"' for a in safe_args)
+
+
 def _set_install_state(**kwargs) -> None:
     with _INSTALL_LOCK:
         _INSTALL_STATE.update(kwargs)
@@ -268,7 +277,7 @@ def _run_install_worker(info: dict) -> None:
         app_exe = os.path.abspath(sys.executable)
         app_dir = os.path.dirname(app_exe)
         pid = os.getpid()
-        cli_args = " ".join(f'"{a}"' for a in sys.argv[1:])
+        cli_args = _sanitize_cli_args_for_batch(sys.argv[1:])
 
         bat_path = os.path.join(staging_dir, "apply_update.bat")
         # Wait for current PID to exit, copy updated files (preserving data/config.json), relaunch, cleanup

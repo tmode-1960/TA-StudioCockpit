@@ -96,7 +96,6 @@ def _migrate_legacy_videomaker_config() -> None:
         return
     candidates = [
         os.path.join(APP_DIR, "..", "tA-VideoMaker", "data", "config.json"),
-        r"D:\Workspace\AG\tA-VideoMaker\data\config.json",
     ]
     for cand in candidates:
         if os.path.isfile(cand):
@@ -1722,8 +1721,6 @@ def _get_upload_search_dirs() -> List[str]:
         os.path.join(BUNDLE_DIR, "data", "uploads"),
         os.path.join(APP_DIR, "..", "tA-VideoMaker", "dist", "data", "uploads"),
         os.path.join(APP_DIR, "..", "tA-VideoMaker", "data", "uploads"),
-        r"D:\Workspace\AG\tA-VideoMaker\dist\data\uploads",
-        r"D:\Workspace\AG\tA-VideoMaker\data\uploads",
     ):
         abs_c = os.path.abspath(cand)
         if abs_c not in dirs and os.path.isdir(abs_c):
@@ -2234,13 +2231,15 @@ def transcribe_audio_local(
         # 3. Fallback: Windows Offline System.Speech.Recognition
         if sys.platform == "win32" and os.path.isfile(temp_wav):
             culture = "de-DE" if lang_code == "de" else "en-US"
+            ps_env = os.environ.copy()
+            ps_env["TA_WAV_PATH"] = os.path.abspath(temp_wav)
             ps_script = (
                 "Add-Type -AssemblyName System.Speech; "
                 f"$culture = New-Object System.Globalization.CultureInfo('{culture}'); "
                 "try { $rec = New-Object System.Speech.Recognition.SpeechRecognitionEngine($culture) } "
                 "catch { $rec = New-Object System.Speech.Recognition.SpeechRecognitionEngine }; "
                 "$rec.LoadGrammar((New-Object System.Speech.Recognition.DictationGrammar)); "
-                f"$rec.SetInputToWaveFile('{os.path.abspath(temp_wav)}'); "
+                "$rec.SetInputToWaveFile($env:TA_WAV_PATH); "
                 "$sb = New-Object System.Text.StringBuilder; "
                 "while ($true) { $r = $rec.Recognize(); if ($null -eq $r) { break }; [void]$sb.Append($r.Text + ' ') }; "
                 "$rec.Dispose(); "
@@ -2252,6 +2251,7 @@ def transcribe_audio_local(
                 stderr=subprocess.PIPE,
                 text=True,
                 timeout=45,
+                env=ps_env,
                 creationflags=NO_WINDOW_FLAG,
             )
             if "TRANSCRIPT_OK:" in (proc.stdout or ""):

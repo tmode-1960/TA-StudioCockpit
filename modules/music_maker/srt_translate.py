@@ -454,9 +454,9 @@ def find_vocal_audio_path(flac_path: str | Path) -> str | None:
     return None
 
 
-def get_auto_translation_target(lyrics_text: str) -> str:
+def get_auto_translation_target(lyrics_text: str, rec: dict | None = None) -> str:
     """Returns 'en' if song is in German, or 'de' if song is in English/other."""
-    brief = (rec or {}).get("brief") or {}
+    brief = (rec if isinstance(rec, dict) else {}).get("brief") or {}
     v_lang = str(brief.get("vocals.language") or brief.get("vocals_language") or "").strip().lower()
     if any(k in v_lang for k in ("engl", "en")):
         lang = "en"

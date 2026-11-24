@@ -1876,10 +1876,10 @@ function showModelModal(data) {
   list.innerHTML = data.missing_models.map(m => `
     <div class="model-item">
       <div>
-        <b>${m.title}</b><br>
-        <span style="font-size:11px; color:var(--mute);">${m.name}</span>
+        <b>${escapeHtml(m.title)}</b><br>
+        <span style="font-size:11px; color:var(--mute);">${escapeHtml(m.name)}</span>
       </div>
-      <div class="model-size">${m.size_gb} GB</div>
+      <div class="model-size">${escapeHtml(String(m.size_gb ?? ""))} GB</div>
     </div>
   `).join("");
 

@@ -5523,7 +5523,11 @@
     let icon = "ℹ️";
     if (type === "success") icon = "✅";
     if (type === "error") icon = "❌";
-    toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+    const iconEl = document.createElement("span");
+    iconEl.textContent = icon;
+    const msgEl = document.createElement("span");
+    msgEl.textContent = String(message ?? "");
+    toast.append(iconEl, msgEl);
     toastContainer.appendChild(toast);
 
     setTimeout(() => {
