@@ -507,6 +507,10 @@
       preset_modal_default_title: "Preset-Editor",
       preset_modal_title_model: "🧠 TA Model Preset Editor (Neues Preset anlegen & verwalten)",
       preset_modal_title_sampler: "⚡ TA Sampler Preset Editor (Neues Preset anlegen & verwalten)",
+      preset_editor_offline_title: "ComfyUI ist nicht gestartet",
+      preset_editor_offline_desc: "Der Preset-Editor wird direkt von ComfyUI bereitgestellt. Bitte starte zuerst ComfyUI, um Presets anzulegen oder zu bearbeiten.",
+      preset_editor_retry: "↻ Erneut versuchen",
+      toast_comfy_offline_preset_editor: "ComfyUI läuft nicht — bitte zuerst ComfyUI starten.",
       btn_open_external: "↗ Im Tab öffnen",
       btn_open_external_title: "In neuem Browser-Tab öffnen",
 
@@ -1104,6 +1108,10 @@
       preset_modal_default_title: "Preset Editor",
       preset_modal_title_model: "🧠 TA Model Preset Editor (Create & Manage Presets)",
       preset_modal_title_sampler: "⚡ TA Sampler Preset Editor (Create & Manage Presets)",
+      preset_editor_offline_title: "ComfyUI is not running",
+      preset_editor_offline_desc: "The Preset Editor is served directly by ComfyUI. Please launch ComfyUI first to create or edit presets.",
+      preset_editor_retry: "↻ Retry",
+      toast_comfy_offline_preset_editor: "ComfyUI is not running — please launch ComfyUI first.",
       btn_open_external: "↗ Open in Tab",
       btn_open_external_title: "Open in new browser tab",
 
@@ -6766,6 +6774,14 @@
       btnLaunchComfy.disabled = true;
       btnLaunchComfy.textContent = t("btn_launch_comfy_running", "✓ ComfyUI läuft");
       btnLaunchComfy.title = t("btn_launch_comfy_running_title", "ComfyUI ist verbunden und läuft");
+      const presetOffline = document.getElementById("presetEditorOfflineNotice");
+      if (presetEditorModal && presetEditorModal.style.display === "flex" && presetOffline && presetOffline.style.display !== "none" && currentPresetEditorUrl) {
+        presetOffline.style.display = "none";
+        if (presetEditorIframe) {
+          presetEditorIframe.style.display = "block";
+          presetEditorIframe.src = currentPresetEditorUrl;
+        }
+      }
     } else {
       btnLaunchComfy.classList.remove("is-online");
       btnLaunchComfy.classList.add("is-offline");
@@ -7381,6 +7397,15 @@
       try {
         const doc = presetEditorIframe.contentDocument;
         if (!doc || !doc.head) return;
+        const bodyText = (doc.body && doc.body.textContent) ? doc.body.textContent.trim() : "";
+        if (bodyText.startsWith("{") && bodyText.includes('"error"')) {
+          const presetOffline = document.getElementById("presetEditorOfflineNotice");
+          if (presetOffline && currentPresetEditorUrl) {
+            presetEditorIframe.style.display = "none";
+            presetOffline.style.display = "flex";
+            return;
+          }
+        }
         const old = doc.getElementById("taCockpitThemeOverride");
         if (old) old.remove();
         const style = doc.createElement("style");
@@ -7466,23 +7491,76 @@
   }
 
   // Preset Editor Modals
+  const presetEditorOfflineNotice = document.getElementById("presetEditorOfflineNotice");
+  const btnLaunchComfyFromPreset = document.getElementById("btnLaunchComfyFromPreset");
+  const btnRetryPresetEditor = document.getElementById("btnRetryPresetEditor");
+
+  function showPresetEditorContent(online) {
+    if (online) {
+      if (presetEditorOfflineNotice) presetEditorOfflineNotice.style.display = "none";
+      if (presetEditorIframe) {
+        presetEditorIframe.style.display = "block";
+        presetEditorIframe.src = currentPresetEditorUrl;
+      }
+    } else {
+      if (presetEditorIframe) {
+        presetEditorIframe.src = "";
+        presetEditorIframe.style.display = "none";
+      }
+      if (presetEditorOfflineNotice) presetEditorOfflineNotice.style.display = "flex";
+    }
+  }
+
+  function openPresetEditor(url, titleKey, titleFallback) {
+    currentPresetEditorUrl = url;
+    presetEditorModalTitle.setAttribute("data-i18n", titleKey);
+    presetEditorModalTitle.textContent = t(titleKey, titleFallback);
+    showPresetEditorContent(isComfyOnline);
+    presetEditorModal.style.display = "flex";
+  }
+
   if (btnEditModelPresets) {
     btnEditModelPresets.addEventListener("click", () => {
-      currentPresetEditorUrl = `/proxy/comfy/ta_model_presets/ui`;
-      presetEditorModalTitle.setAttribute("data-i18n", "preset_modal_title_model");
-      presetEditorModalTitle.textContent = t("preset_modal_title_model", "🧠 TA Model Preset Editor (Neues Preset anlegen & verwalten)");
-      presetEditorIframe.src = currentPresetEditorUrl;
-      presetEditorModal.style.display = "flex";
+      openPresetEditor(
+        `/proxy/comfy/ta_model_presets/ui`,
+        "preset_modal_title_model",
+        "🧠 TA Model Preset Editor (Neues Preset anlegen & verwalten)"
+      );
     });
   }
 
   if (btnEditSamplerPresets) {
     btnEditSamplerPresets.addEventListener("click", () => {
-      currentPresetEditorUrl = `/proxy/comfy/ta_sampler_presets/ui`;
-      presetEditorModalTitle.setAttribute("data-i18n", "preset_modal_title_sampler");
-      presetEditorModalTitle.textContent = t("preset_modal_title_sampler", "⚡ TA Sampler Preset Editor (Neues Preset anlegen & verwalten)");
-      presetEditorIframe.src = currentPresetEditorUrl;
-      presetEditorModal.style.display = "flex";
+      openPresetEditor(
+        `/proxy/comfy/ta_sampler_presets/ui`,
+        "preset_modal_title_sampler",
+        "⚡ TA Sampler Preset Editor (Neues Preset anlegen & verwalten)"
+      );
+    });
+  }
+
+  if (btnLaunchComfyFromPreset) {
+    btnLaunchComfyFromPreset.addEventListener("click", () => {
+      if (btnLaunchComfy && !btnLaunchComfy.disabled) {
+        btnLaunchComfy.click();
+      }
+    });
+  }
+
+  if (btnRetryPresetEditor) {
+    btnRetryPresetEditor.addEventListener("click", async () => {
+      try {
+        const res = await fetch("/api/presets");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.comfy_online) {
+            updateLaunchButtonState(true);
+            showPresetEditorContent(true);
+            return;
+          }
+        }
+      } catch (e) {}
+      showToast(t("toast_comfy_offline_preset_editor", "ComfyUI läuft nicht — bitte zuerst ComfyUI starten."), "error");
     });
   }
 
@@ -7490,12 +7568,17 @@
     btnClosePresetEditor.addEventListener("click", () => {
       presetEditorModal.style.display = "none";
       presetEditorIframe.src = "";
+      if (presetEditorOfflineNotice) presetEditorOfflineNotice.style.display = "none";
       refreshPresetsFromComfy();
     });
   }
 
   if (btnOpenExternalPreset) {
     btnOpenExternalPreset.addEventListener("click", () => {
+      if (!isComfyOnline) {
+        showToast(t("toast_comfy_offline_preset_editor", "ComfyUI läuft nicht — bitte zuerst ComfyUI starten."), "error");
+        return;
+      }
       if (currentPresetEditorUrl) {
         const comfyUrl = inpComfyUrl ? inpComfyUrl.value.trim().replace(/\/+$/, "") : "http://127.0.0.1:8188";
         const directUrl = currentPresetEditorUrl.startsWith("/proxy/comfy/")
