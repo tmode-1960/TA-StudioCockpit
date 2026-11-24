@@ -18,14 +18,21 @@
       scope_all: "🗂️ Alle Medien",
       scope_fav: "⭐ Favoriten",
       scope_root: "📄 (Stammordner)",
+      scope_purgatory: "🕯️ Purgatory",
       folders_header: "ORDNER",
       btn_new_folder: "+ Neu",
       btn_new_folder_title: "Neuen Unterordner anlegen",
-      search_ph: "🔍 Prompt, Modell, Seed oder Dateiname suchen...",
+      search_ph: "🔍 Prompt, Modell, Seed, Notiz oder Dateiname...",
       fmt_title: "Format",
       fmt_all: "Alle Formate",
       fmt_images: "🖼️ Nur Bilder",
       fmt_videos: "🎬 Nur Videos",
+      wf_title: "Workflow-Filter",
+      wf_all: "Alle Workflows",
+      wf_with: "✨ Mit Prompt/WF",
+      wf_without: "📷 Ohne Prompt/WF",
+      btn_filter_notes: "📝",
+      btn_filter_notes_title: "Nur Medien mit persönlicher Notiz",
       sort_title: "Sortierung",
       sort_newest: "Neueste zuerst",
       sort_oldest: "Älteste zuerst",
@@ -41,6 +48,9 @@
       batch_target_title: "Zielordner",
       batch_move: "📁 Verschieben",
       batch_copy: "📋 Kopieren",
+      batch_rescue: "↩️ Wiederherstellen",
+      batch_purgatory: "🕯️ Purgatory",
+      batch_burn: "🔥 Endgültig",
       batch_delete: "🗑️ Löschen",
       batch_clear: "✕ Aufheben",
       empty_media: "Keine Medien gefunden.",
@@ -61,11 +71,24 @@
       lb_fav_active: "★ Favorit",
       lb_folder: "📁 Ordner",
       lb_folder_title: "Im Explorer zeigen",
+      lb_clean_png: "🧼 Clean PNG",
+      lb_clean_png_title: "Metadatenfreies PNG herunterladen",
+      lb_rescue: "↩️",
+      lb_rescue_title: "Aus Purgatory retten",
+      lb_purgatory_title: "In Purgatory verschieben (X)",
+      lb_burn_title: "Endgültig löschen (Shift+X)",
       lb_delete_title: "Löschen",
+      lb_zoom_fit_title: "Einpassen (0)",
+      lb_filmstrip_title: "Filmstrip ein/aus (T)",
+      lb_pure_title: "Pure View (H)",
       lb_model_seed: "Modell / Seed",
+      lb_tech_details: "Technik & LoRAs",
       lb_positive_prompt: "Positiver Prompt",
       lb_additional_prompt: "Zusatz-Prompt",
       lb_negative_prompt: "Negativer Prompt",
+      lb_note: "Persönliche Notiz",
+      lb_note_ph: "Notiz hinzufügen (suchbar)...",
+      lb_note_saved: "Gespeichert",
       card_apply_title: "Parameter ins Cockpit laden",
       card_fav_title: "Favorit umschalten",
       card_select_title: "Auswählen",
@@ -86,14 +109,21 @@
       scope_all: "🗂️ All Media",
       scope_fav: "⭐ Favorites",
       scope_root: "📄 (Root)",
+      scope_purgatory: "🕯️ Purgatory",
       folders_header: "FOLDERS",
       btn_new_folder: "+ New",
       btn_new_folder_title: "Create new subfolder",
-      search_ph: "🔍 Search prompt, model, seed or filename...",
+      search_ph: "🔍 Search prompt, model, seed, note or filename...",
       fmt_title: "Format",
       fmt_all: "All Formats",
       fmt_images: "🖼️ Images only",
       fmt_videos: "🎬 Videos only",
+      wf_title: "Workflow Filter",
+      wf_all: "All Workflows",
+      wf_with: "✨ With Prompt/WF",
+      wf_without: "📷 No Prompt/WF",
+      btn_filter_notes: "📝",
+      btn_filter_notes_title: "Only items with personal note",
       sort_title: "Sort order",
       sort_newest: "Newest first",
       sort_oldest: "Oldest first",
@@ -109,6 +139,9 @@
       batch_target_title: "Target folder",
       batch_move: "📁 Move",
       batch_copy: "📋 Copy",
+      batch_rescue: "↩️ Rescue",
+      batch_purgatory: "🕯️ Purgatory",
+      batch_burn: "🔥 Burn",
       batch_delete: "🗑️ Delete",
       batch_clear: "✕ Clear",
       empty_media: "No media found.",
@@ -129,11 +162,24 @@
       lb_fav_active: "★ Favorite",
       lb_folder: "📁 Folder",
       lb_folder_title: "Show in Explorer",
+      lb_clean_png: "🧼 Clean PNG",
+      lb_clean_png_title: "Download metadata-stripped PNG",
+      lb_rescue: "↩️",
+      lb_rescue_title: "Rescue from Purgatory",
+      lb_purgatory_title: "Move to Purgatory (X)",
+      lb_burn_title: "Delete permanently (Shift+X)",
       lb_delete_title: "Delete",
+      lb_zoom_fit_title: "Fit to view (0)",
+      lb_filmstrip_title: "Toggle Filmstrip (T)",
+      lb_pure_title: "Pure View (H)",
       lb_model_seed: "Model / Seed",
+      lb_tech_details: "Tech & LoRAs",
       lb_positive_prompt: "Positive Prompt",
       lb_additional_prompt: "Additional Prompt",
       lb_negative_prompt: "Negative Prompt",
+      lb_note: "Personal Note",
+      lb_note_ph: "Add note (searchable)...",
+      lb_note_saved: "Saved",
       card_apply_title: "Load parameters into Cockpit",
       card_fav_title: "Toggle favorite",
       card_select_title: "Select",
@@ -224,8 +270,11 @@
     roots: [],
     folder: "",
     favOnly: false,
+    purgatoryOnly: false,
     search: "",
     fmt: "all",
+    hasWf: "all",
+    hasNote: false,
     sort: "newest",
     mode: "masonry",
     layout: { ...DEFAULT_LAYOUT },
@@ -237,6 +286,14 @@
     items: [],
     folders: [],
     lbIndex: -1,
+    lbZoom: 1,
+    lbPanX: 0,
+    lbPanY: 0,
+    lbPure: false,
+    lbFilmstrip: false,
+    lbPanning: false,
+    lbPanStartX: 0,
+    lbPanStartY: 0,
     searchTimer: null,
     fetchSeq: 0,
   };
@@ -313,7 +370,10 @@
       folder: state.folder,
       q: state.search,
       fav: state.favOnly ? "1" : "0",
+      purgatory: state.purgatoryOnly ? "1" : "0",
       fmt: state.fmt,
+      has_wf: state.hasWf,
+      has_note: state.hasNote ? "1" : "0",
       sort: state.sort,
       offset: String(state.offset),
       limit: String(state.limit),
@@ -342,6 +402,7 @@
       if ($("galCountAll")) $("galCountAll").textContent = String(data.total_all || 0);
       if ($("galCountFav")) $("galCountFav").textContent = String(data.favorites_count || 0);
       if ($("galCountRoot")) $("galCountRoot").textContent = String(data.root_count || 0);
+      if ($("galCountPurgatory")) $("galCountPurgatory").textContent = String(data.purgatory_count || 0);
       if ($("galStatsBadge")) {
         $("galStatsBadge").textContent = `${state.items.length} / ${state.totalFiltered}`;
       }
@@ -416,9 +477,10 @@
     if (!tree) return;
     const filterTxt = ($("inpGalFolderFilter")?.value || "").trim().toLowerCase();
 
-    $("btnGalScopeAll")?.classList.toggle("active", !state.favOnly && state.folder === "");
-    $("btnGalScopeFav")?.classList.toggle("active", state.favOnly);
-    $("btnGalScopeRoot")?.classList.toggle("active", !state.favOnly && state.folder === "__root__");
+    $("btnGalScopeAll")?.classList.toggle("active", !state.favOnly && !state.purgatoryOnly && state.folder === "");
+    $("btnGalScopeFav")?.classList.toggle("active", state.favOnly && !state.purgatoryOnly);
+    $("btnGalScopeRoot")?.classList.toggle("active", !state.favOnly && !state.purgatoryOnly && state.folder === "__root__");
+    $("btnGalScopePurgatory")?.classList.toggle("active", state.purgatoryOnly);
 
     tree.innerHTML = "";
     state.folders.forEach((f) => {
@@ -442,6 +504,7 @@
       btn.appendChild(countSpan);
       btn.addEventListener("click", () => {
         state.favOnly = false;
+        state.purgatoryOnly = false;
         state.folder = f.path;
         fetchItems(false);
       });
@@ -457,6 +520,8 @@
     if (cnt) {
       cnt.textContent = gt("batch_count", { n });
     }
+    if ($("btnGalBatchRescue")) $("btnGalBatchRescue").hidden = !state.purgatoryOnly;
+    if ($("btnGalBatchDelete")) $("btnGalBatchDelete").hidden = state.purgatoryOnly;
   }
 
   function toggleCardSelection(item, cardEl) {
@@ -541,6 +606,14 @@
       toggleCardSelection(item, card);
     });
     media.appendChild(selDot);
+
+    if (item.note) {
+      const noteBadge = document.createElement("span");
+      noteBadge.className = "gal-card-note-badge";
+      noteBadge.textContent = "📝";
+      noteBadge.title = item.note;
+      media.appendChild(noteBadge);
+    }
 
     const overlay = document.createElement("div");
     overlay.className = "gal-card-overlay";
@@ -738,12 +811,152 @@
     btn.style.color = item.favorite ? "#fbbf24" : "";
   }
 
+  function applyLbTransform() {
+    const canvas = $("galLbCanvas");
+    if (!canvas) return;
+    canvas.style.transform = `translate(${state.lbPanX}px, ${state.lbPanY}px) scale(${state.lbZoom})`;
+    canvas.classList.toggle("is-zoomed", state.lbZoom > 1.01);
+    const fitBtn = $("btnGalLbZoomFit");
+    if (fitBtn) fitBtn.textContent = `${Math.round(state.lbZoom * 100)}%`;
+  }
+
+  function resetLbZoom() {
+    state.lbZoom = 1;
+    state.lbPanX = 0;
+    state.lbPanY = 0;
+    state.lbPanning = false;
+    applyLbTransform();
+  }
+
+  function zoomLbAt(nextScale, clientX = null, clientY = null) {
+    const clamped = Math.max(1, Math.min(8, nextScale));
+    if (clamped <= 1.01) {
+      resetLbZoom();
+      return;
+    }
+    const stage = $("galLightboxStage");
+    if (stage && clientX !== null && clientY !== null) {
+      const rect = stage.getBoundingClientRect();
+      const cx = clientX - (rect.left + rect.width / 2);
+      const cy = clientY - (rect.top + rect.height / 2);
+      const ratio = clamped / state.lbZoom;
+      state.lbPanX = cx - (cx - state.lbPanX) * ratio;
+      state.lbPanY = cy - (cy - state.lbPanY) * ratio;
+    }
+    state.lbZoom = clamped;
+    applyLbTransform();
+  }
+
+  function setLbZoom11() {
+    const imgEl = $("galLbImg");
+    if (!imgEl || imgEl.hidden || !imgEl.naturalWidth) return;
+    const rect = imgEl.getBoundingClientRect();
+    const baseW = rect.width / (state.lbZoom || 1);
+    if (baseW <= 0) return;
+    const targetScale = Math.max(1, Math.min(8, imgEl.naturalWidth / baseW));
+    state.lbZoom = targetScale;
+    state.lbPanX = 0;
+    state.lbPanY = 0;
+    applyLbTransform();
+  }
+
+  function toggleLbPure(forceVal = null) {
+    const lb = $("galLightbox");
+    if (!lb) return;
+    state.lbPure = forceVal !== null ? !!forceVal : !state.lbPure;
+    lb.classList.toggle("pure-view", state.lbPure);
+    $("btnGalLbPure")?.classList.toggle("active", state.lbPure);
+  }
+
+  function renderLbFilmstrip() {
+    const strip = $("galLbFilmstrip");
+    if (!strip) return;
+    strip.hidden = !state.lbFilmstrip;
+    $("btnGalLbFilmstrip")?.classList.toggle("active", state.lbFilmstrip);
+    if (!state.lbFilmstrip) return;
+    strip.innerHTML = "";
+    state.items.forEach((it, idx) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "gal-lb-film-item" + (idx === state.lbIndex ? " active" : "");
+      btn.title = it.name;
+      const im = document.createElement("img");
+      im.src = it.thumb_url;
+      im.alt = it.name;
+      im.loading = "lazy";
+      btn.appendChild(im);
+      btn.addEventListener("click", () => openLightbox(idx));
+      strip.appendChild(btn);
+    });
+    const activeBtn = strip.querySelector(".gal-lb-film-item.active");
+    if (activeBtn) {
+      activeBtn.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    }
+  }
+
+  async function saveLbNote() {
+    const item = state.items[state.lbIndex];
+    const inp = $("galLbNoteInput");
+    const statusEl = $("galLbNoteStatus");
+    if (!item || !inp) return;
+    const val = inp.value.trim();
+    if (val === (item.note || "")) return;
+    try {
+      const resp = await fetch("/api/gallery/note", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ root: state.root, path: item.path, note: val }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        item.note = data.note || "";
+        if (statusEl) {
+          statusEl.textContent = gt("lb_note_saved");
+          setTimeout(() => {
+            if ($("galLbNoteStatus")) $("galLbNoteStatus").textContent = "";
+          }, 1500);
+        }
+        renderGrid(false, state.items);
+      }
+    } catch (_) {}
+  }
+
+  async function stageOrRescuePurgatory(paths, action = "stage") {
+    if (!paths || paths.length === 0) return false;
+    try {
+      const resp = await fetch("/api/gallery/purgatory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ root: state.root, paths, action }),
+      });
+      return resp.ok;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  async function burnItems(paths) {
+    if (!paths || paths.length === 0) return false;
+    try {
+      const resp = await fetch("/api/gallery/delete_items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ root: state.root, paths }),
+      });
+      return resp.ok;
+    } catch (_) {
+      return false;
+    }
+  }
+
   function openLightbox(index) {
     if (index < 0 || index >= state.items.length) return;
     state.lbIndex = index;
     const item = state.items[index];
     const lb = $("galLightbox");
     if (!lb) return;
+
+    resetLbZoom();
 
     const isVideo = item.media_type === "video";
     const imgEl = $("galLbImg");
@@ -772,6 +985,7 @@
       }
     }
 
+    if ($("galLbZoomBar")) $("galLbZoomBar").hidden = isVideo;
     if ($("btnGalLbApply")) {
       $("btnGalLbApply").hidden = isVideo || item.root !== "primary";
     }
@@ -781,12 +995,45 @@
     if ($("btnGalLbVideoBtn")) {
       $("btnGalLbVideoBtn").hidden = isVideo;
     }
+    if ($("btnGalLbCleanPng")) {
+      $("btnGalLbCleanPng").hidden = isVideo;
+    }
+    if ($("btnGalLbRescue")) {
+      $("btnGalLbRescue").hidden = !item.purgatory;
+    }
+    if ($("btnGalLbDelete")) {
+      $("btnGalLbDelete").hidden = !!item.purgatory;
+    }
 
     $("galLbFilename").textContent = item.name;
     const dims = item.width ? `${item.width} × ${item.height} · ` : "";
     $("galLbMetaRow").textContent = `${dims}${formatBytes(item.size)} · ${formatDate(item.mtime)}`;
     $("galLbModelSeed").textContent = `${item.model || "—"}  |  Seed: ${item.seed ?? "—"}`;
     $("galLbPrompt").textContent = item.prompt || "—";
+
+    const techWrap = $("galLbTechWrap");
+    const techChips = $("galLbTechChips");
+    if (techWrap && techChips) {
+      techChips.innerHTML = "";
+      const chips = [];
+      if (item.sampler) chips.push({ text: `Sampler: ${item.sampler}`, lora: false });
+      if (item.scheduler) chips.push({ text: `Sched: ${item.scheduler}`, lora: false });
+      if (item.steps !== null && item.steps !== undefined) chips.push({ text: `Steps: ${item.steps}`, lora: false });
+      if (item.cfg !== null && item.cfg !== undefined) chips.push({ text: `CFG: ${item.cfg}`, lora: false });
+      if (item.vae) chips.push({ text: `VAE: ${item.vae}`, lora: false });
+      if (Array.isArray(item.loras)) {
+        item.loras.forEach((l) => {
+          if (l && l.name) chips.push({ text: `LoRA: ${l.name} (${l.weight ?? 1})`, lora: true });
+        });
+      }
+      techWrap.hidden = chips.length === 0;
+      chips.forEach((c) => {
+        const span = document.createElement("span");
+        span.className = "gal-lb-tech-chip" + (c.lora ? " is-lora" : "");
+        span.textContent = c.text;
+        techChips.appendChild(span);
+      });
+    }
 
     const addWrap = $("galLbAddWrap");
     if (addWrap) {
@@ -798,12 +1045,22 @@
       negWrap.hidden = !item.neg_prompt;
       $("galLbNegPrompt").textContent = item.neg_prompt || "";
     }
+    if ($("galLbNoteInput")) {
+      $("galLbNoteInput").value = item.note || "";
+    }
+    if ($("galLbNoteStatus")) {
+      $("galLbNoteStatus").textContent = "";
+    }
 
     updateLightboxFavBtn(item);
+    renderLbFilmstrip();
     lb.hidden = false;
   }
 
   function closeLightbox() {
+    saveLbNote();
+    toggleLbPure(false);
+    resetLbZoom();
     const lb = $("galLightbox");
     if (lb) lb.hidden = true;
     const vidEl = $("galLbVideo");
@@ -820,6 +1077,7 @@
       state.root = e.target.value;
       state.folder = "";
       state.favOnly = false;
+      state.purgatoryOnly = false;
       renderRootsSelect();
       fetchItems(false);
     });
@@ -894,17 +1152,26 @@
 
     $("btnGalScopeAll")?.addEventListener("click", () => {
       state.favOnly = false;
+      state.purgatoryOnly = false;
       state.folder = "";
       fetchItems(false);
     });
     $("btnGalScopeFav")?.addEventListener("click", () => {
       state.favOnly = true;
+      state.purgatoryOnly = false;
       state.folder = "";
       fetchItems(false);
     });
     $("btnGalScopeRoot")?.addEventListener("click", () => {
       state.favOnly = false;
+      state.purgatoryOnly = false;
       state.folder = "__root__";
+      fetchItems(false);
+    });
+    $("btnGalScopePurgatory")?.addEventListener("click", () => {
+      state.favOnly = false;
+      state.purgatoryOnly = true;
+      state.folder = "";
       fetchItems(false);
     });
 
@@ -918,6 +1185,15 @@
 
     $("selGalFormat")?.addEventListener("change", (e) => {
       state.fmt = e.target.value;
+      fetchItems(false);
+    });
+    $("selGalWorkflow")?.addEventListener("change", (e) => {
+      state.hasWf = e.target.value;
+      fetchItems(false);
+    });
+    $("btnGalFilterNotes")?.addEventListener("click", () => {
+      state.hasNote = !state.hasNote;
+      $("btnGalFilterNotes")?.classList.toggle("active", state.hasNote);
       fetchItems(false);
     });
     $("selGalSort")?.addEventListener("change", (e) => {
@@ -971,17 +1247,29 @@
       }
     });
 
+    $("btnGalBatchRescue")?.addEventListener("click", async () => {
+      if (state.selectedPaths.size === 0) return;
+      if (await stageOrRescuePurgatory(Array.from(state.selectedPaths), "rescue")) {
+        await fetchItems(false);
+      }
+    });
+
     $("btnGalBatchDelete")?.addEventListener("click", async () => {
+      const n = state.selectedPaths.size;
+      if (n === 0) return;
+      if (await stageOrRescuePurgatory(Array.from(state.selectedPaths), "stage")) {
+        await fetchItems(false);
+      }
+    });
+
+    $("btnGalBatchBurn")?.addEventListener("click", async () => {
       const n = state.selectedPaths.size;
       if (n === 0) return;
       const msg = gt("confirm_batch_delete", { n });
       if (!window.confirm(msg)) return;
-      const resp = await fetch("/api/gallery/delete_items", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ root: state.root, paths: Array.from(state.selectedPaths) }),
-      });
-      if (resp.ok) await fetchItems(false);
+      if (await burnItems(Array.from(state.selectedPaths))) {
+        await fetchItems(false);
+      }
     });
 
     $("btnGalToggleTuning")?.addEventListener("click", () => {
@@ -1090,30 +1378,167 @@
       }
     });
 
+    $("btnGalLbCleanPng")?.addEventListener("click", () => {
+      const item = state.items[state.lbIndex];
+      if (!item || item.media_type === "video") return;
+      const rQ = encodeURIComponent(state.root);
+      const pQ = encodeURIComponent(item.path);
+      const a = document.createElement("a");
+      a.href = `/api/gallery/clean_png?root=${rQ}&path=${pQ}`;
+      a.download = "";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    });
+
+    $("btnGalLbRescue")?.addEventListener("click", async () => {
+      const item = state.items[state.lbIndex];
+      if (!item) return;
+      if (await stageOrRescuePurgatory([item.path], "rescue")) {
+        closeLightbox();
+        await fetchItems(false);
+      }
+    });
+
     $("btnGalLbDelete")?.addEventListener("click", async () => {
+      const item = state.items[state.lbIndex];
+      if (!item) return;
+      if (await stageOrRescuePurgatory([item.path], "stage")) {
+        closeLightbox();
+        await fetchItems(false);
+      }
+    });
+
+    $("btnGalLbBurn")?.addEventListener("click", async () => {
       const item = state.items[state.lbIndex];
       if (!item) return;
       const msg = gt("confirm_single_delete", { name: item.name });
       if (!window.confirm(msg)) return;
-      try {
-        const resp = await fetch("/api/gallery/delete_items", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ root: state.root, paths: [item.path] }),
-        });
-        if (resp.ok) {
-          closeLightbox();
-          await fetchItems(false);
-        }
-      } catch (_) {}
+      if (await burnItems([item.path])) {
+        closeLightbox();
+        await fetchItems(false);
+      }
     });
 
-    document.addEventListener("keydown", (e) => {
+    $("galLbNoteInput")?.addEventListener("blur", () => saveLbNote());
+    $("galLbNoteInput")?.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        saveLbNote();
+      }
+    });
+
+    $("btnGalLbZoomIn")?.addEventListener("click", () => zoomLbAt(state.lbZoom * 1.35));
+    $("btnGalLbZoomOut")?.addEventListener("click", () => zoomLbAt(state.lbZoom / 1.35));
+    $("btnGalLbZoomFit")?.addEventListener("click", resetLbZoom);
+    $("btnGalLbZoom11")?.addEventListener("click", setLbZoom11);
+    $("btnGalLbPure")?.addEventListener("click", () => toggleLbPure());
+    $("btnGalLbFilmstrip")?.addEventListener("click", () => {
+      state.lbFilmstrip = !state.lbFilmstrip;
+      renderLbFilmstrip();
+    });
+
+    const stage = $("galLightboxStage");
+    const canvas = $("galLbCanvas");
+    stage?.addEventListener("wheel", (e) => {
+      const item = state.items[state.lbIndex];
+      if (!item || item.media_type === "video") return;
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 1.18 : 1 / 1.18;
+      zoomLbAt(state.lbZoom * factor, e.clientX, e.clientY);
+    }, { passive: false });
+
+    canvas?.addEventListener("dblclick", (e) => {
+      const item = state.items[state.lbIndex];
+      if (!item || item.media_type === "video") return;
+      if (state.lbZoom > 1.05) resetLbZoom();
+      else zoomLbAt(2.5, e.clientX, e.clientY);
+    });
+
+    canvas?.addEventListener("mousedown", (e) => {
+      if (e.button !== 0 || state.lbZoom <= 1.01) return;
+      state.lbPanning = true;
+      state.lbPanStartX = e.clientX - state.lbPanX;
+      state.lbPanStartY = e.clientY - state.lbPanY;
+      canvas.classList.add("is-panning");
+      e.preventDefault();
+    });
+
+    window.addEventListener("mousemove", (e) => {
+      if (!state.lbPanning) return;
+      state.lbPanX = e.clientX - state.lbPanStartX;
+      state.lbPanY = e.clientY - state.lbPanStartY;
+      applyLbTransform();
+    });
+
+    window.addEventListener("mouseup", () => {
+      if (!state.lbPanning) return;
+      state.lbPanning = false;
+      $("galLbCanvas")?.classList.remove("is-panning");
+    });
+
+    document.addEventListener("keydown", async (e) => {
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+      if (tag === "input" || tag === "textarea" || tag === "select") return;
+
       const lb = $("galLightbox");
-      if (!lb || lb.hidden) return;
-      if (e.key === "Escape") closeLightbox();
-      else if (e.key === "ArrowLeft" && state.lbIndex > 0) openLightbox(state.lbIndex - 1);
-      else if (e.key === "ArrowRight" && state.lbIndex < state.items.length - 1) openLightbox(state.lbIndex + 1);
+      if (lb && !lb.hidden) {
+        if (e.key === "Escape") {
+          if (state.lbPure) toggleLbPure(false);
+          else closeLightbox();
+        } else if (e.key === "ArrowLeft" && state.lbIndex > 0) {
+          openLightbox(state.lbIndex - 1);
+        } else if (e.key === "ArrowRight" && state.lbIndex < state.items.length - 1) {
+          openLightbox(state.lbIndex + 1);
+        } else if (e.key === "0") {
+          resetLbZoom();
+        } else if (e.key === "1") {
+          setLbZoom11();
+        } else if (e.key === "+" || e.key === "=") {
+          zoomLbAt(state.lbZoom * 1.35);
+        } else if (e.key === "-") {
+          zoomLbAt(state.lbZoom / 1.35);
+        } else if (e.key === "h" || e.key === "H") {
+          toggleLbPure();
+        } else if (e.key === "t" || e.key === "T") {
+          state.lbFilmstrip = !state.lbFilmstrip;
+          renderLbFilmstrip();
+        } else if (e.key === "x" || e.key === "X" || e.key === "Delete") {
+          const item = state.items[state.lbIndex];
+          if (!item) return;
+          if (e.shiftKey) {
+            if (window.confirm(gt("confirm_single_delete", { name: item.name }))) {
+              if (await burnItems([item.path])) {
+                closeLightbox();
+                await fetchItems(false);
+              }
+            }
+          } else {
+            const act = item.purgatory ? "rescue" : "stage";
+            if (await stageOrRescuePurgatory([item.path], act)) {
+              closeLightbox();
+              await fetchItems(false);
+            }
+          }
+        }
+        return;
+      }
+
+      // Gallery grid shortcuts when gallery view is visible and items selected
+      const galView = $("moduleGalleryView");
+      if (galView && galView.style.display !== "none" && state.selectedPaths.size > 0) {
+        if (e.key === "x" || e.key === "X" || e.key === "Delete") {
+          const paths = Array.from(state.selectedPaths);
+          if (e.shiftKey) {
+            if (window.confirm(gt("confirm_batch_delete", { n: paths.length }))) {
+              if (await burnItems(paths)) await fetchItems(false);
+            }
+          } else {
+            const act = state.purgatoryOnly ? "rescue" : "stage";
+            if (await stageOrRescuePurgatory(paths, act)) await fetchItems(false);
+          }
+        }
+      }
     });
   }
 

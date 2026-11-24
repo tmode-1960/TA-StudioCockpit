@@ -3831,9 +3831,29 @@ input[type="range"] {
   background: var(--bg-deep);
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   padding: 20px;
+}
+.gal-lb-canvas {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transform-origin: center center;
+  will-change: transform;
+  user-select: none;
+}
+.gal-lb-canvas.is-zoomed {
+  cursor: grab;
+}
+.gal-lb-canvas.is-panning {
+  cursor: grabbing;
 }
 .gal-lightbox-stage img {
   max-width: 100%;
@@ -3841,6 +3861,119 @@ input[type="range"] {
   object-fit: contain;
   border-radius: 6px;
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+.gal-lb-stage-hud {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  right: 12px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+.gal-lb-zoom-bar,
+.gal-lb-hud-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(15, 17, 23, 0.78);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 3px;
+  backdrop-filter: blur(6px);
+  pointer-events: auto;
+}
+.gal-lb-hud-btn {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.gal-lb-hud-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+.gal-lb-hud-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+.gal-lb-filmstrip {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 6px 2px;
+  margin-top: 8px;
+  border-top: 1px solid var(--line);
+  overflow-x: auto;
+  flex-shrink: 0;
+  background: rgba(10, 12, 16, 0.75);
+  border-radius: 8px;
+}
+.gal-lb-filmstrip[hidden] {
+  display: none !important;
+}
+.gal-lb-film-item {
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  background: var(--panel2);
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.65;
+  transition: opacity .12s, border-color .12s, transform .12s;
+}
+.gal-lb-film-item:hover {
+  opacity: 0.95;
+}
+.gal-lb-film-item.active {
+  opacity: 1;
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.gal-lb-film-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  box-shadow: none;
+  display: block;
+}
+.gal-lightbox.pure-view .gal-lightbox-dialog {
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+  border: none;
+}
+.gal-lightbox.pure-view {
+  padding: 0;
+}
+.gal-lightbox.pure-view .gal-lightbox-inspector,
+.gal-lightbox.pure-view .gal-lb-nav,
+.gal-lightbox.pure-view .gal-lb-filmstrip,
+.gal-lightbox.pure-view .gal-lb-zoom-bar,
+.gal-lightbox.pure-view #btnGalLbFilmstrip {
+  display: none !important;
+}
+.gal-lightbox.pure-view .gal-lb-hud-right {
+  opacity: 0.35;
+  transition: opacity .15s;
+}
+.gal-lightbox.pure-view .gal-lb-hud-right:hover {
+  opacity: 1;
 }
 .gal-lb-nav {
   position: absolute;
@@ -3941,6 +4074,59 @@ input[type="range"] {
   word-break: break-word;
   max-height: 180px;
   overflow-y: auto;
+}
+.gal-lb-tech-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.gal-lb-tech-chip {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--text);
+}
+.gal-lb-tech-chip.is-lora {
+  border-color: rgba(124, 92, 255, 0.45);
+  color: var(--accent-soft, #c4b5fd);
+}
+.gal-lb-note-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 6px 8px;
+  resize: vertical;
+  min-height: 54px;
+}
+.gal-lb-note-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.gal-lb-note-status {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: none;
+  color: var(--accent);
+}
+.gal-card-note-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  z-index: 3;
+  background: rgba(15, 17, 23, 0.8);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 2px 5px;
+  font-size: 10px;
+  pointer-events: none;
 }
 
 

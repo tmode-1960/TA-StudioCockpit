@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.18"
+APP_VERSION = "1.19"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -571,6 +571,34 @@ def scan_output_images(out_dir: str) -> list[tuple[float, str, str]]:
     return results
 
 
+def _clean_asset_basename(val: Any) -> str:
+    if not isinstance(val, str):
+        return ""
+    s = val.replace("\\", "/").strip()
+    if not s:
+        return ""
+    s = s.split("/")[-1]
+    return os.path.splitext(s)[0]
+
+
+def _extract_inline_loras(text: str) -> list[dict]:
+    if not text:
+        return []
+    out = []
+    seen = set()
+    for m in re.finditer(r"<lora:([^:>]+)(?::([^:>]+))?(?::[^>]+)?>", text, re.IGNORECASE):
+        name = _clean_asset_basename(m.group(1))
+        if not name or name.lower() in seen:
+            continue
+        seen.add(name.lower())
+        try:
+            w = round(float(m.group(2)), 2) if m.group(2) is not None else 1.0
+        except Exception:
+            w = 1.0
+        out.append({"name": name, "weight": w})
+    return out
+
+
 def extract_image_metadata(img_path: str) -> dict:
     meta = {
         "positive_prompt": "",
@@ -578,12 +606,24 @@ def extract_image_metadata(img_path: str) -> dict:
         "negative_prompt": "",
         "seed": None,
         "model": "",
+        "sampler": "",
+        "scheduler": "",
+        "steps": None,
+        "cfg": None,
+        "vae": "",
+        "loras": [],
+        "has_workflow": False,
     }
     # 1. Prioritize embedded PNG/WebP metadata (contains clean TAPromptHub inputs without concatenated tags)
     try:
         from PIL import Image
         with Image.open(img_path) as im:
             raw_prompt = im.info.get("prompt")
+            raw_workflow = im.info.get("workflow")
+            raw_params = im.info.get("parameters")
+            if raw_prompt or raw_workflow or raw_params:
+                meta["has_workflow"] = True
+
             if raw_prompt and isinstance(raw_prompt, str):
                 pdata = json.loads(raw_prompt)
                 for n in pdata.values():
@@ -608,7 +648,7 @@ def extract_image_metadata(img_path: str) -> dict:
                                 meta["positive_prompt"] = txt.strip()
                                 break
 
-                # Extract seed (prefer easy seed node 1204 or any integer seed)
+                # Extract seed (prefer easy seed node or any integer seed)
                 for nid, n in pdata.items():
                     if n.get("class_type") == "easy seed":
                         s = n.get("inputs", {}).get("seed")
@@ -617,18 +657,119 @@ def extract_image_metadata(img_path: str) -> dict:
                             break
                 if meta["seed"] is None:
                     for nid, n in pdata.items():
-                        s = n.get("inputs", {}).get("seed")
+                        inp = n.get("inputs", {})
+                        s = inp.get("seed") if "seed" in inp else inp.get("noise_seed")
                         if isinstance(s, (int, float)):
                             meta["seed"] = int(s)
                             break
 
-                # Extract model
+                # Extract model (prefer TAModelPreset, fallback to CheckpointLoader/UNETLoader)
                 for nid, n in pdata.items():
                     if n.get("class_type") == "TAModelPreset":
                         meta["model"] = n.get("inputs", {}).get("preset", "")
                         break
+                if not meta["model"]:
+                    for nid, n in pdata.items():
+                        ct = n.get("class_type", "")
+                        inp = n.get("inputs", {})
+                        if ct in ("CheckpointLoaderSimple", "CheckpointLoader", "UNETLoader", "CheckpointLoaderNF4"):
+                            cand = inp.get("ckpt_name") or inp.get("unet_name") or ""
+                            if isinstance(cand, str) and cand.strip():
+                                meta["model"] = _clean_asset_basename(cand)
+                                break
+
+                # Extract sampler, scheduler, steps, cfg
+                for nid, n in pdata.items():
+                    ct = n.get("class_type", "")
+                    inp = n.get("inputs", {})
+                    if "KSampler" in ct or ct in ("SamplerCustom", "SamplerCustomAdvanced"):
+                        if not meta["sampler"] and isinstance(inp.get("sampler_name"), str):
+                            meta["sampler"] = inp["sampler_name"]
+                        if not meta["scheduler"] and isinstance(inp.get("scheduler"), str):
+                            meta["scheduler"] = inp["scheduler"]
+                        if meta["steps"] is None and isinstance(inp.get("steps"), (int, float)):
+                            meta["steps"] = int(inp["steps"])
+                        if meta["cfg"] is None and isinstance(inp.get("cfg"), (int, float)):
+                            meta["cfg"] = round(float(inp["cfg"]), 2)
+                        if meta["sampler"] or meta["steps"] is not None:
+                            break
+
+                # Extract VAE
+                for nid, n in pdata.items():
+                    if n.get("class_type") == "VAELoader":
+                        v = n.get("inputs", {}).get("vae_name")
+                        if isinstance(v, str) and v.strip():
+                            meta["vae"] = _clean_asset_basename(v)
+                            break
+
+                # Extract LoRAs from loader nodes
+                seen_loras = set()
+                for nid, n in pdata.items():
+                    ct = n.get("class_type", "")
+                    inp = n.get("inputs", {})
+                    if "LoraLoader" in ct:
+                        lname = _clean_asset_basename(inp.get("lora_name", ""))
+                        if lname and lname.lower() not in seen_loras:
+                            seen_loras.add(lname.lower())
+                            w = inp.get("strength_model", inp.get("strength", 1.0))
+                            try:
+                                wf = round(float(w), 2)
+                            except Exception:
+                                wf = 1.0
+                            meta["loras"].append({"name": lname, "weight": wf})
+                    elif "Power Lora Loader" in ct:
+                        for k, v in inp.items():
+                            if k.startswith("lora_") and isinstance(v, dict) and v.get("on", True):
+                                lname = _clean_asset_basename(v.get("lora", ""))
+                                if lname and lname.lower() not in seen_loras:
+                                    seen_loras.add(lname.lower())
+                                    try:
+                                        wf = round(float(v.get("strength", 1.0)), 2)
+                                    except Exception:
+                                        wf = 1.0
+                                    meta["loras"].append({"name": lname, "weight": wf})
+
+            elif raw_params and isinstance(raw_params, str):
+                # Fallback: A1111 / Forge parameters text
+                lines = raw_params.strip().splitlines()
+                neg_idx = next((i for i, l in enumerate(lines) if l.startswith("Negative prompt:")), None)
+                steps_idx = next((i for i, l in enumerate(lines) if "Steps:" in l and ("Sampler:" in l or "Seed:" in l)), None)
+                pos_end = neg_idx if neg_idx is not None else (steps_idx if steps_idx is not None else len(lines))
+                meta["positive_prompt"] = "\n".join(lines[:pos_end]).strip()
+                if neg_idx is not None:
+                    neg_end = steps_idx if steps_idx is not None else len(lines)
+                    neg_text = "\n".join(lines[neg_idx:neg_end]).replace("Negative prompt:", "", 1).strip()
+                    meta["negative_prompt"] = neg_text
+                if steps_idx is not None:
+                    kv_line = lines[steps_idx]
+                    m = re.search(r"Steps:\s*(\d+)", kv_line)
+                    if m:
+                        meta["steps"] = int(m.group(1))
+                    m = re.search(r"Sampler:\s*([^,]+)", kv_line)
+                    if m:
+                        meta["sampler"] = m.group(1).strip()
+                    m = re.search(r"Schedule type:\s*([^,]+)", kv_line)
+                    if m:
+                        meta["scheduler"] = m.group(1).strip()
+                    m = re.search(r"CFG scale:\s*([\d.]+)", kv_line)
+                    if m:
+                        meta["cfg"] = round(float(m.group(1)), 2)
+                    m = re.search(r"Seed:\s*(\d+)", kv_line)
+                    if m:
+                        meta["seed"] = int(m.group(1))
+                    m = re.search(r"Model:\s*([^,]+)", kv_line)
+                    if m:
+                        meta["model"] = m.group(1).strip()
     except Exception:
         pass
+
+    # Merge inline <lora:...> tags if not already captured
+    if meta["positive_prompt"]:
+        existing_l = {l["name"].lower() for l in meta["loras"]}
+        for il in _extract_inline_loras(meta["positive_prompt"]):
+            if il["name"].lower() not in existing_l:
+                meta["loras"].append(il)
+                existing_l.add(il["name"].lower())
 
     # 2. Fallback to sidecar .txt file (standard for TASaveImageWithPrompt) if positive_prompt not found
     if not meta["positive_prompt"]:
@@ -643,6 +784,7 @@ def extract_image_metadata(img_path: str) -> dict:
                     # Clean out workflow-added boilerplate if present
                     raw_pos = re.sub(r",\s*This image is a masterpiece\. The subject is sharply depicted with outstanding detail\.?", "", raw_pos, flags=re.IGNORECASE)
                     meta["positive_prompt"] = raw_pos.strip(" ,")
+                    meta["has_workflow"] = True
                 m_neg = re.search(r"NEGATIVE PROMPT:\s*\n(.*?)(?=\n=+|\Z)", content, re.DOTALL)
                 if m_neg:
                     meta["negative_prompt"] = m_neg.group(1).strip()

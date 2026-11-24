@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v1.18 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.19 (FLEXMOD Edition)</title>
   <link rel="icon" href="/favicon.ico">
   <script>
     (function () {
@@ -2841,6 +2841,10 @@
           <span class="gal-tree-name" data-gal-i18n="scope_root">📄 (Stammordner)</span>
           <span class="gal-tree-count" id="galCountRoot">0</span>
         </button>
+        <button type="button" class="gallery-tree-item" data-gal-scope="purgatory" id="btnGalScopePurgatory">
+          <span class="gal-tree-name" data-gal-i18n="scope_purgatory">🕯️ Purgatory</span>
+          <span class="gal-tree-count" id="galCountPurgatory">0</span>
+        </button>
       </div>
       <div class="gallery-tree-divider" style="display:flex; justify-content:space-between; align-items:center;">
         <span data-gal-i18n="folders_header">ORDNER</span>
@@ -2859,10 +2863,18 @@
           <option value="png">PNG</option>
           <option value="webp">WEBP</option>
           <option value="jpg">JPG</option>
+          <option value="gif">GIF</option>
+          <option value="avif">AVIF</option>
           <option value="mp4">MP4</option>
           <option value="webm">WEBM</option>
           <option value="mov">MOV</option>
         </select>
+        <select class="gallery-select" id="selGalWorkflow" title="Workflow-Filter" data-gal-i18n-title="wf_title">
+          <option value="all" data-gal-i18n="wf_all">Alle Workflows</option>
+          <option value="with_wf" data-gal-i18n="wf_with">✨ Mit Prompt/WF</option>
+          <option value="no_wf" data-gal-i18n="wf_without">📷 Ohne Prompt/WF</option>
+        </select>
+        <button type="button" class="btn-action" id="btnGalFilterNotes" title="Nur Medien mit persönlicher Notiz" data-gal-i18n="btn_filter_notes" data-gal-i18n-title="btn_filter_notes_title" style="padding:5px 8px; font-size:12px;">📝</button>
         <select class="gallery-select" id="selGalSort" title="Sortierung" data-gal-i18n-title="sort_title">
           <option value="newest" data-gal-i18n="sort_newest">Neueste zuerst</option>
           <option value="oldest" data-gal-i18n="sort_oldest">Älteste zuerst</option>
@@ -2883,7 +2895,9 @@
         <select class="gallery-select" id="selGalBatchTarget" title="Zielordner" data-gal-i18n-title="batch_target_title"></select>
         <button type="button" class="btn-action" id="btnGalBatchMove" data-gal-i18n="batch_move">📁 Verschieben</button>
         <button type="button" class="btn-action" id="btnGalBatchCopy" data-gal-i18n="batch_copy">📋 Kopieren</button>
-        <button type="button" class="btn-action" id="btnGalBatchDelete" data-gal-i18n="batch_delete" style="color:var(--danger);">🗑️ Löschen</button>
+        <button type="button" class="btn-action" id="btnGalBatchRescue" data-gal-i18n="batch_rescue" hidden>↩️ Wiederherstellen</button>
+        <button type="button" class="btn-action" id="btnGalBatchDelete" data-gal-i18n="batch_purgatory" style="color:var(--warning, #f59e0b);">🕯️ Purgatory</button>
+        <button type="button" class="btn-action" id="btnGalBatchBurn" data-gal-i18n="batch_burn" style="color:var(--danger);">🔥 Endgültig</button>
         <div class="spacer"></div>
         <button type="button" class="btn-action" id="btnGalBatchClear" data-gal-i18n="batch_clear">✕ Aufheben</button>
       </div>
@@ -2960,11 +2974,26 @@
   <div class="gal-lightbox" id="galLightbox" hidden>
     <div class="gal-lightbox-backdrop" id="galLightboxBackdrop"></div>
     <div class="gal-lightbox-dialog">
-      <div class="gal-lightbox-stage">
+      <div class="gal-lightbox-stage" id="galLightboxStage">
+        <div class="gal-lb-stage-hud">
+          <div class="gal-lb-zoom-bar" id="galLbZoomBar">
+            <button type="button" class="gal-lb-hud-btn" id="btnGalLbZoomOut" title="Herauszoomen (-)">−</button>
+            <button type="button" class="gal-lb-hud-btn" id="btnGalLbZoomFit" title="Einpassen (0)" data-gal-i18n-title="lb_zoom_fit_title">100%</button>
+            <button type="button" class="gal-lb-hud-btn" id="btnGalLbZoom11" title="Originalpixel 1:1 (1)">1:1</button>
+            <button type="button" class="gal-lb-hud-btn" id="btnGalLbZoomIn" title="Hineinzoomen (+)">+</button>
+          </div>
+          <div class="gal-lb-hud-right">
+            <button type="button" class="gal-lb-hud-btn" id="btnGalLbFilmstrip" title="Filmstrip ein/aus (T)" data-gal-i18n-title="lb_filmstrip_title">🎞️</button>
+            <button type="button" class="gal-lb-hud-btn" id="btnGalLbPure" title="Pure View (H)" data-gal-i18n-title="lb_pure_title">👁️</button>
+          </div>
+        </div>
         <button type="button" class="gal-lb-nav gal-lb-prev" id="btnGalLbPrev" title="Vorheriges Bild (←)" data-gal-i18n-title="lb_prev_title">‹</button>
-        <img id="galLbImg" src="" alt="">
-        <video id="galLbVideo" controls autoplay loop playsinline hidden></video>
+        <div class="gal-lb-canvas" id="galLbCanvas">
+          <img id="galLbImg" src="" alt="" draggable="false">
+          <video id="galLbVideo" controls autoplay loop playsinline hidden></video>
+        </div>
         <button type="button" class="gal-lb-nav gal-lb-next" id="btnGalLbNext" title="Nächstes Bild (→)" data-gal-i18n-title="lb_next_title">›</button>
+        <div class="gal-lb-filmstrip" id="galLbFilmstrip" hidden></div>
       </div>
       <aside class="gal-lightbox-inspector">
         <div class="gal-lb-head">
@@ -2978,14 +3007,21 @@
             <button type="button" class="btn-action" id="btnGalLbFav" data-gal-i18n="lb_fav">☆ Favorit</button>
             <button type="button" class="btn-action" id="btnGalLbGif">👾 DiscordGIF</button>
             <button type="button" class="btn-action" id="btnGalLbVideoBtn">🎬 VideoMaker</button>
+            <button type="button" class="btn-action" id="btnGalLbCleanPng" title="Metadatenfreies PNG herunterladen" data-gal-i18n="lb_clean_png" data-gal-i18n-title="lb_clean_png_title">🧼 Clean PNG</button>
             <button type="button" class="btn-action" id="btnGalLbFolder" title="Im Explorer zeigen" data-gal-i18n="lb_folder" data-gal-i18n-title="lb_folder_title">📁 Ordner</button>
-            <button type="button" class="btn-action" id="btnGalLbDelete" title="Löschen" data-gal-i18n-title="lb_delete_title" style="color:var(--danger);">🗑️</button>
+            <button type="button" class="btn-action" id="btnGalLbRescue" title="Aus Purgatory retten" data-gal-i18n="lb_rescue" data-gal-i18n-title="lb_rescue_title" hidden>↩️</button>
+            <button type="button" class="btn-action" id="btnGalLbDelete" title="In Purgatory verschieben (X)" data-gal-i18n-title="lb_purgatory_title" style="color:var(--warning, #f59e0b);">🕯️</button>
+            <button type="button" class="btn-action" id="btnGalLbBurn" title="Endgültig löschen (Shift+X)" data-gal-i18n-title="lb_burn_title" style="color:var(--danger);">🔥</button>
           </div>
         </div>
         <div class="gal-lb-fields">
           <div class="gal-lb-field">
             <div class="gal-lb-label" data-gal-i18n="lb_model_seed">Modell / Seed</div>
             <div class="gal-lb-val" id="galLbModelSeed">—</div>
+          </div>
+          <div class="gal-lb-field" id="galLbTechWrap" hidden>
+            <div class="gal-lb-label" data-gal-i18n="lb_tech_details">Technik &amp; LoRAs</div>
+            <div class="gal-lb-tech-chips" id="galLbTechChips"></div>
           </div>
           <div class="gal-lb-field">
             <div class="gal-lb-label" data-gal-i18n="lb_positive_prompt">Positiver Prompt</div>
@@ -2999,6 +3035,13 @@
             <div class="gal-lb-label" data-gal-i18n="lb_negative_prompt">Negativer Prompt</div>
             <div class="gal-lb-text" id="galLbNegPrompt"></div>
           </div>
+          <div class="gal-lb-field" id="galLbNoteWrap">
+            <div class="gal-lb-label" style="display:flex; justify-content:space-between; align-items:center;">
+              <span data-gal-i18n="lb_note">Persönliche Notiz</span>
+              <span class="gal-lb-note-status" id="galLbNoteStatus"></span>
+            </div>
+            <textarea class="gal-lb-note-input" id="galLbNoteInput" rows="2" placeholder="Notiz hinzufügen (suchbar)..." data-gal-i18n-ph="lb_note_ph"></textarea>
+          </div>
         </div>
       </aside>
     </div>
@@ -3007,9 +3050,9 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=1.18"></script>
+  <script src="/app.js?v=1.19"></script>
   <script src="/gif_module.js?v=0.79"></script>
-  <script src="/gallery_module.js?v=4"></script>
+  <script src="/gallery_module.js?v=5"></script>
   <script src="/video_module.js?v=1.00"></script>
 </body>
 </html>

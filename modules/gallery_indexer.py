@@ -9,6 +9,7 @@ Adapted from HammelArt Gallery's zero-pollution incremental os.scandir indexer:
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import mimetypes
 import os
@@ -23,7 +24,7 @@ from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 from PIL import Image, ImageOps
 
-SUPPORTED_IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".webp")
+SUPPORTED_IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".webp", ".gif", ".avif")
 SUPPORTED_VIDEO_EXTS = (".mp4", ".webm", ".mov")
 SUPPORTED_EXTS = SUPPORTED_IMAGE_EXTS + SUPPORTED_VIDEO_EXTS
 
@@ -144,12 +145,17 @@ class GalleryIndexer:
         self.thumb_dir = os.path.join(self.storage_dir, "thumbnails")
         self.index_file = os.path.join(self.storage_dir, "gallery_index.json")
         self.favorites_file = os.path.join(self.storage_dir, "favorites.json")
+        self.purgatory_file = os.path.join(self.storage_dir, "purgatory.json")
+        self.notes_file = os.path.join(self.storage_dir, "notes.json")
         os.makedirs(self.thumb_dir, exist_ok=True)
 
         self._lock = threading.Lock()
         self._last_scan_ts = 0.0
         self._index: Dict[str, Dict[str, Any]] = self._load_json(self.index_file, {})
         self._favorites: Set[str] = set(self._load_json(self.favorites_file, []))
+        self._purgatory: Set[str] = set(self._load_json(self.purgatory_file, []))
+        raw_notes = self._load_json(self.notes_file, {})
+        self._notes: Dict[str, str] = raw_notes if isinstance(raw_notes, dict) else {}
 
     @staticmethod
     def _load_json(path: str, default: Any) -> Any:
@@ -243,6 +249,7 @@ class GalleryIndexer:
                     and abs(existing.get("mtime", 0) - mtime) < 0.01
                     and existing.get("size", 0) == size
                     and "media_type" in existing
+                    and "has_workflow" in existing
                 ):
                     continue
 
@@ -274,6 +281,13 @@ class GalleryIndexer:
                     "neg_prompt": meta.get("negative_prompt", ""),
                     "model": meta.get("model", ""),
                     "seed": meta.get("seed"),
+                    "sampler": meta.get("sampler", ""),
+                    "scheduler": meta.get("scheduler", ""),
+                    "steps": meta.get("steps"),
+                    "cfg": meta.get("cfg"),
+                    "vae": meta.get("vae", ""),
+                    "loras": meta.get("loras", []),
+                    "has_workflow": bool(meta.get("has_workflow", False)),
                 }
                 dirty = True
 
@@ -293,7 +307,10 @@ class GalleryIndexer:
         folder: str = "",
         search: str = "",
         fav_only: bool = False,
+        purgatory_only: bool = False,
         fmt: str = "all",
+        has_wf: str = "all",
+        has_note: bool = False,
         sort: str = "newest",
         offset: int = 0,
         limit: int = 120,
@@ -303,10 +320,22 @@ class GalleryIndexer:
         with self._lock:
             all_items = list(self._index.values())
             favs = set(self._favorites)
+            purg = set(self._purgatory)
+            notes = dict(self._notes)
 
         folder_counts: Dict[str, int] = {d: 0 for d in dirs_seen}
         root_count = 0
+        total_active = 0
+        fav_active_count = 0
+        purg_count = 0
         for item in all_items:
+            rel = item["path"]
+            if rel in purg:
+                purg_count += 1
+                continue
+            total_active += 1
+            if rel in favs:
+                fav_active_count += 1
             fld = item.get("folder", "")
             if not fld:
                 root_count += 1
@@ -323,24 +352,41 @@ class GalleryIndexer:
 
         q = (search or "").strip().lower()
         fmt_l = (fmt or "all").strip().lower()
+        wf_l = (has_wf or "all").strip().lower()
         fld_filter = (folder or "").strip().strip("/")
         r_q = urllib.parse.quote(self.root_id, safe="")
 
         filtered: List[Dict[str, Any]] = []
         for item in all_items:
             rel = item["path"]
+            in_purg = rel in purg
+            if purgatory_only:
+                if not in_purg:
+                    continue
+            else:
+                if in_purg:
+                    continue
+
             is_fav = rel in favs
+            note_text = notes.get(rel, "")
             mtype = item.get("media_type", "image")
 
             if fav_only and not is_fav:
                 continue
-            if fld_filter == "__root__":
-                if item.get("folder", "") != "":
-                    continue
-            elif fld_filter:
-                item_fld = item.get("folder", "")
-                if item_fld != fld_filter and not item_fld.startswith(fld_filter + "/"):
-                    continue
+            if has_note and not note_text.strip():
+                continue
+            if wf_l == "with_wf" and not item.get("has_workflow"):
+                continue
+            if wf_l == "no_wf" and item.get("has_workflow"):
+                continue
+            if not purgatory_only:
+                if fld_filter == "__root__":
+                    if item.get("folder", "") != "":
+                        continue
+                elif fld_filter:
+                    item_fld = item.get("folder", "")
+                    if item_fld != fld_filter and not item_fld.startswith(fld_filter + "/"):
+                        continue
             if fmt_l != "all":
                 ext = item.get("ext", "")
                 if fmt_l == "video":
@@ -355,6 +401,9 @@ class GalleryIndexer:
                 elif ext != fmt_l:
                     continue
             if q:
+                lora_names = " ".join(
+                    str(l.get("name", "")) for l in (item.get("loras") or []) if isinstance(l, dict)
+                )
                 hay = " ".join(
                     [
                         item.get("name", ""),
@@ -362,6 +411,9 @@ class GalleryIndexer:
                         item.get("prompt", ""),
                         item.get("additional_prompt", ""),
                         item.get("model", ""),
+                        item.get("sampler", ""),
+                        lora_names,
+                        note_text,
                         str(item.get("seed") or ""),
                     ]
                 ).lower()
@@ -371,6 +423,8 @@ class GalleryIndexer:
             enriched = dict(item)
             enriched["root"] = self.root_id
             enriched["favorite"] = is_fav
+            enriched["purgatory"] = in_purg
+            enriched["note"] = note_text
             p_q = urllib.parse.quote(rel, safe="")
             enriched["url"] = f"/api/gallery/media?root={r_q}&path={p_q}"
             enriched["thumb_url"] = f"/api/gallery/thumb?root={r_q}&path={p_q}&t={int(item.get('mtime', 0))}"
@@ -389,9 +443,10 @@ class GalleryIndexer:
         return {
             "root": self.root_id,
             "output_dir": self.output_dir,
-            "total_all": len(all_items),
+            "total_all": total_active,
             "root_count": root_count,
-            "favorites_count": sum(1 for it in all_items if it["path"] in favs),
+            "favorites_count": fav_active_count,
+            "purgatory_count": purg_count,
             "total_filtered": total_filtered,
             "folders": folders_list,
             "items": page,
@@ -479,6 +534,57 @@ class GalleryIndexer:
             self._save_json(self.favorites_file, sorted(self._favorites))
             return state
 
+    def set_purgatory(self, rel_paths: List[str], action: str = "stage") -> int:
+        changed = 0
+        with self._lock:
+            for rel in rel_paths:
+                if not rel or rel not in self._index:
+                    continue
+                if action == "rescue":
+                    if rel in self._purgatory:
+                        self._purgatory.discard(rel)
+                        changed += 1
+                elif action == "toggle":
+                    if rel in self._purgatory:
+                        self._purgatory.discard(rel)
+                    else:
+                        self._purgatory.add(rel)
+                    changed += 1
+                else:
+                    if rel not in self._purgatory:
+                        self._purgatory.add(rel)
+                        changed += 1
+            if changed:
+                self._save_json(self.purgatory_file, sorted(self._purgatory))
+        return changed
+
+    def set_note(self, rel_path: str, note: str) -> str:
+        clean = (note or "").strip()
+        with self._lock:
+            if clean:
+                self._notes[rel_path] = clean
+            else:
+                self._notes.pop(rel_path, None)
+            self._save_json(self.notes_file, self._notes)
+        return clean
+
+    def get_clean_png_bytes(self, rel_path: str) -> Optional[bytes]:
+        full = self.resolve_safe_path(rel_path)
+        if not full or not os.path.isfile(full):
+            return None
+        if full.lower().endswith(SUPPORTED_VIDEO_EXTS):
+            return None
+        try:
+            with Image.open(full) as im:
+                im = ImageOps.exif_transpose(im)
+                if im.mode not in ("RGB", "RGBA"):
+                    im = im.convert("RGBA" if "A" in im.getbands() else "RGB")
+                buf = io.BytesIO()
+                im.save(buf, format="PNG")
+                return buf.getvalue()
+        except Exception:
+            return None
+
     def create_folder(self, parent_rel: str, folder_name: str) -> Tuple[bool, str]:
         clean_name = re.sub(r'[<>:"/\\|?*]', "_", (folder_name or "").strip()).strip(". ")
         if not clean_name:
@@ -527,6 +633,13 @@ class GalleryIndexer:
                             self._favorites.discard(rel)
                             self._favorites.add(new_rel)
                             self._save_json(self.favorites_file, sorted(self._favorites))
+                        if rel in self._purgatory:
+                            self._purgatory.discard(rel)
+                            self._purgatory.add(new_rel)
+                            self._save_json(self.purgatory_file, sorted(self._purgatory))
+                        if rel in self._notes:
+                            self._notes[new_rel] = self._notes.pop(rel)
+                            self._save_json(self.notes_file, self._notes)
                 else:
                     shutil.copy2(src, dst)
                 count += 1
@@ -548,11 +661,15 @@ class GalleryIndexer:
                 with self._lock:
                     self._index.pop(rel, None)
                     self._favorites.discard(rel)
+                    self._purgatory.discard(rel)
+                    self._notes.pop(rel, None)
             except Exception:
                 pass
         if count:
             with self._lock:
                 self._save_json(self.favorites_file, sorted(self._favorites))
+                self._save_json(self.purgatory_file, sorted(self._purgatory))
+                self._save_json(self.notes_file, self._notes)
                 self._save_json(self.index_file, self._index)
         return count
 
@@ -629,7 +746,10 @@ def handle_get(handler: Any, path: str, parsed: urllib.parse.ParseResult) -> boo
         folder = qs.get("folder", [""])[0]
         search = qs.get("q", [""])[0]
         fav_only = qs.get("fav", ["0"])[0] in ("1", "true", "yes")
+        purgatory_only = qs.get("purgatory", ["0"])[0] in ("1", "true", "yes")
         fmt = qs.get("fmt", ["all"])[0]
+        has_wf = qs.get("has_wf", ["all"])[0]
+        has_note = qs.get("has_note", ["0"])[0] in ("1", "true", "yes")
         sort = qs.get("sort", ["newest"])[0]
         try:
             offset = max(0, int(qs.get("offset", ["0"])[0]))
@@ -639,7 +759,18 @@ def handle_get(handler: Any, path: str, parsed: urllib.parse.ParseResult) -> boo
             limit = max(1, min(300, int(qs.get("limit", ["120"])[0])))
         except ValueError:
             limit = 120
-        data = idx.get_items(folder=folder, search=search, fav_only=fav_only, fmt=fmt, sort=sort, offset=offset, limit=limit)
+        data = idx.get_items(
+            folder=folder,
+            search=search,
+            fav_only=fav_only,
+            purgatory_only=purgatory_only,
+            fmt=fmt,
+            has_wf=has_wf,
+            has_note=has_note,
+            sort=sort,
+            offset=offset,
+            limit=limit,
+        )
         data["roots"] = get_all_roots()
         handler.send_json(data)
         return True
@@ -687,6 +818,35 @@ def handle_get(handler: Any, path: str, parsed: urllib.parse.ParseResult) -> boo
             return True
         try:
             _serve_file_with_range(handler, full)
+        except Exception:
+            pass
+        return True
+
+    if path == "/api/gallery/clean_png":
+        qs = urllib.parse.parse_qs(parsed.query)
+        root_id = qs.get("root", ["primary"])[0]
+        rel_path = qs.get("path", [""])[0]
+        inline = qs.get("inline", ["0"])[0] in ("1", "true", "yes")
+        idx = _get_indexer(root_id)
+        if idx is None:
+            handler.send_response(404)
+            handler.end_headers()
+            return True
+        png_bytes = idx.get_clean_png_bytes(rel_path)
+        if not png_bytes:
+            handler.send_response(404)
+            handler.end_headers()
+            return True
+        try:
+            stem = os.path.splitext(os.path.basename(rel_path))[0] or "image"
+            safe_name = re.sub(r'[^A-Za-z0-9._-]', "_", stem) + "_clean.png"
+            handler.send_response(200)
+            handler.send_header("Content-Type", "image/png")
+            if not inline:
+                handler.send_header("Content-Disposition", f'attachment; filename="{safe_name}"')
+            handler.send_header("Content-Length", str(len(png_bytes)))
+            handler.end_headers()
+            handler.wfile.write(png_bytes)
         except Exception:
             pass
         return True
@@ -796,6 +956,28 @@ def handle_post(handler: Any, path: str, parsed: urllib.parse.ParseResult, post_
         paths = payload.get("paths") or []
         cnt = idx.delete_items([str(p) for p in paths])
         handler.send_json({"ok": True, "count": cnt})
+        return True
+
+    if path == "/api/gallery/purgatory":
+        if idx is None:
+            handler.send_json({"ok": False}, status=400)
+            return True
+        paths = payload.get("paths") or []
+        action = str(payload.get("action") or "stage").strip().lower()
+        cnt = idx.set_purgatory([str(p) for p in paths], action=action)
+        handler.send_json({"ok": True, "count": cnt})
+        return True
+
+    if path == "/api/gallery/note":
+        if idx is None:
+            handler.send_json({"ok": False}, status=400)
+            return True
+        rel_path = str(payload.get("path") or "").strip()
+        if not rel_path:
+            handler.send_json({"ok": False, "error": _tr("Pfad fehlt", "Missing path")}, status=400)
+            return True
+        saved = idx.set_note(rel_path, str(payload.get("note") or ""))
+        handler.send_json({"ok": True, "path": rel_path, "note": saved})
         return True
 
     return False
