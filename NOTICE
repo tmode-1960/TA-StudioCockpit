@@ -1,0 +1,18 @@
+thomo.ART StudioCockpit
+Copyright 2026 Thomas Möhrling (thomo.ART)
+
+This product includes software developed by Thomas Möhrling (thomo.ART).
+
+Trademarks & Brand Assets:
+"thomo.ART", "StudioCockpit", the thomo.ART logos, and application icons
+(including app.ico and UI branding assets) are trademarks and/or proprietary
+brand assets of Thomas Möhrling (thomo.ART). Under Section 6 of the Apache
+License, Version 2.0, no rights to use these trade names, trademarks,
+logos, or brand assets are granted for derivative works or forks, except as
+required for reasonable and customary use in describing the origin of the
+Work and reproducing this NOTICE file.
+
+Third-Party Components:
+Bundled or external third-party tools, libraries, and models (such as
+ComfyUI, FFmpeg, pywebview, Pillow, or external AI models/LUTs) remain
+subject to their respective original licenses.

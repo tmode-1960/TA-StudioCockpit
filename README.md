@@ -52,3 +52,10 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 1. Start ComfyUI (`http://127.0.0.1:8188`) — or launch it directly from the StudioCockpit header.
 2. Double-click **`start.bat`** or run **`StudioCockpit.exe`**.
 3. The desktop window opens automatically (browser fallback: **`http://127.0.0.1:8095`**).
+
+---
+
+## 📄 License
+
+Licensed under the **Apache License 2.0** — see [LICENSE](LICENSE) and [NOTICE](NOTICE) for details.  
+`thomo.ART`, `StudioCockpit`, logos, and application icons remain reserved brand assets of **Thomas Möhrling (thomo.ART)**.
