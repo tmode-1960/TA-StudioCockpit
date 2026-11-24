@@ -3256,7 +3256,7 @@ function formatTimeSec(sec) {
 // --- Quick Clip Duration Preset Helper ---
 function updateQuickDurationButtons(sec) {
   const val = parseFloat(sec);
-  document.querySelectorAll("#quickDurationPresets .duration-preset-btn").forEach(btn => {
+  document.querySelectorAll("#vm_quickDurationPresets .duration-preset-btn").forEach(btn => {
     const bDur = parseFloat(btn.getAttribute("data-dur"));
     btn.classList.toggle("active", bDur === val);
   });
@@ -3575,7 +3575,7 @@ function resetQuickAudio() {
 // --- Long Clip Duration Preset Helper ---
 function updateLongDurationButtons(sec) {
   const val = parseFloat(sec);
-  document.querySelectorAll("#longDurationPresets .duration-preset-btn").forEach(btn => {
+  document.querySelectorAll("#vm_longDurationPresets .duration-preset-btn").forEach(btn => {
     const bDur = parseFloat(btn.getAttribute("data-dur"));
     btn.classList.toggle("active", bDur === val);
   });
