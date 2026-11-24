@@ -351,6 +351,9 @@
       i2i_drop_title: "Klicken oder Referenzbild hierher ziehen",
       i2i_drop_sub: "PNG, JPG oder WEBP für Vision-Modell-Analyse",
       i2i_loaded: "✓ In ComfyUI geladen (Node 1880)",
+      i2i_uploading: "⏳ Wird an ComfyUI gesendet...",
+      i2i_upload_failed_status: "✗ Upload fehlgeschlagen (nicht in ComfyUI)",
+      toast_i2i_missing_before_gen: "Bitte zuerst ein gültiges I2I-Referenzbild nach ComfyUI hochladen (aktuell ist kein Bild geladen).",
       btn_remove_i2i: "Entfernen",
       btn_remove_i2i_title: "Bild entfernen",
       lbl_llm_result: "✨ Generierter KI-Prompt (LLM Output)",
@@ -952,6 +955,9 @@
       i2i_drop_title: "Click or drag reference image here",
       i2i_drop_sub: "PNG, JPG or WEBP for vision model analysis",
       i2i_loaded: "✓ Loaded into ComfyUI (Node 1880)",
+      i2i_uploading: "⏳ Uploading to ComfyUI...",
+      i2i_upload_failed_status: "✗ Upload failed (not in ComfyUI)",
+      toast_i2i_missing_before_gen: "Please upload a valid I2I reference image to ComfyUI first (no image is currently loaded).",
       btn_remove_i2i: "Remove",
       btn_remove_i2i_title: "Remove image",
       lbl_llm_result: "✨ Generated AI Prompt (LLM Output)",
@@ -3172,6 +3178,7 @@
   const i2iPreviewState = document.getElementById("i2iPreviewState");
   const imgI2IThumb = document.getElementById("imgI2IThumb");
   const lblI2IFilename = document.getElementById("lblI2IFilename");
+  const lblI2IStatus = document.getElementById("lblI2IStatus");
   const i2iFileNameBadge = document.getElementById("i2iFileNameBadge");
   const btnRemoveI2I = document.getElementById("btnRemoveI2I");
   const llmPromptResultGroup = document.getElementById("llmPromptResultGroup");
@@ -4548,6 +4555,23 @@
     });
   }
 
+  function setI2IStatusState(state) {
+    if (!lblI2IStatus) return;
+    if (state === "uploading") {
+      lblI2IStatus.setAttribute("data-i18n", "i2i_uploading");
+      lblI2IStatus.textContent = t("i2i_uploading", "⏳ Wird an ComfyUI gesendet...");
+      lblI2IStatus.style.color = "var(--text-muted)";
+    } else if (state === "error") {
+      lblI2IStatus.setAttribute("data-i18n", "i2i_upload_failed_status");
+      lblI2IStatus.textContent = t("i2i_upload_failed_status", "✗ Upload fehlgeschlagen (nicht in ComfyUI)");
+      lblI2IStatus.style.color = "#ef4444";
+    } else {
+      lblI2IStatus.setAttribute("data-i18n", "i2i_loaded");
+      lblI2IStatus.textContent = t("i2i_loaded", "✓ In ComfyUI geladen (Node 1880)");
+      lblI2IStatus.style.color = "var(--accent2)";
+    }
+  }
+
   // I2I Upload Handler
   async function uploadI2IImage(file) {
     if (!file) return;
@@ -4556,6 +4580,7 @@
       return;
     }
 
+    currentI2IImageFilename = "";
     // 1. Instant local preview in both thumbnail and main viewer
     const localBlobUrl = URL.createObjectURL(file);
     if (imgI2IThumb) imgI2IThumb.src = localBlobUrl;
@@ -4563,6 +4588,7 @@
     if (i2iEmptyState) i2iEmptyState.style.display = "none";
     if (i2iPreviewState) i2iPreviewState.style.display = "flex";
     if (i2iFileNameBadge) i2iFileNameBadge.textContent = t("badge_uploading", "Wird hochgeladen...");
+    setI2IStatusState("uploading");
 
     if (mainPreview) {
       mainPreview.src = localBlobUrl;
@@ -4595,14 +4621,21 @@
         currentI2IImageFilename = uploadedName;
         if (lblI2IFilename) lblI2IFilename.textContent = uploadedName;
         if (i2iFileNameBadge) i2iFileNameBadge.textContent = uploadedName;
+        setI2IStatusState("loaded");
         saveState();
         showToast(t("toast_i2i_uploaded", `I2I-Referenzbild "${uploadedName}" geladen & in ComfyUI bereitgestellt!`).replace("{filename}", uploadedName), "success", 3500);
       } else {
+        currentI2IImageFilename = "";
+        setI2IStatusState("error");
+        saveState();
         showToast(t("toast_i2i_upload_fail", "Fehler beim Hochladen nach ComfyUI (ist ComfyUI online?)"), "error", 4500);
         if (i2iFileNameBadge) i2iFileNameBadge.textContent = t("badge_error", "Fehler");
       }
     } catch (e) {
       console.error("I2I upload failed:", e);
+      currentI2IImageFilename = "";
+      setI2IStatusState("error");
+      saveState();
       showToast(t("toast_i2i_upload_fail", "Verbindungsfehler beim Hochladen nach ComfyUI."), "error", 4500);
       if (i2iFileNameBadge) i2iFileNameBadge.textContent = t("badge_error", "Fehler");
     }
@@ -5180,6 +5213,7 @@
       if (lblI2IFilename) lblI2IFilename.textContent = s.i2i_image;
       if (i2iFileNameBadge) i2iFileNameBadge.textContent = s.i2i_image;
       if (imgI2IThumb) imgI2IThumb.src = `/view?filename=${encodeURIComponent(s.i2i_image)}&type=input`;
+      setI2IStatusState("loaded");
       if (i2iEmptyState) i2iEmptyState.style.display = "none";
       if (i2iPreviewState) i2iPreviewState.style.display = "flex";
     }
@@ -5419,6 +5453,15 @@
   async function startGeneration() {
     if (!isComfyOnline && comfyOfflineModal) {
       comfyOfflineModal.style.display = "flex";
+      return;
+    }
+
+    if (currentLLMMode === "i2i" && !currentI2IImageFilename) {
+      showToast(
+        t("toast_i2i_missing_before_gen", "Bitte zuerst ein gültiges I2I-Referenzbild nach ComfyUI hochladen (aktuell ist kein Bild geladen)."),
+        "error",
+        5000
+      );
       return;
     }
 
