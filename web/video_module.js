@@ -14,9 +14,15 @@
 
   // Sync language with StudioCockpit
   function syncStudioLang() {
-    const l = localStorage.getItem("studio_lang") || document.documentElement.lang || "de";
-    if (typeof setLanguage === "function") {
-      setLanguage(l.startsWith("en") ? "en" : "de");
+    const l = (localStorage.getItem("studio_lang") || document.documentElement.lang || "de").toLowerCase();
+    const nextLang = l.startsWith("en") ? "en" : "de";
+    if (typeof currentLang !== "undefined" && currentLang !== nextLang) {
+      currentLang = nextLang;
+      localStorage.setItem("tavideomaker.lang", currentLang);
+    }
+    if (typeof applyI18n === "function") applyI18n();
+    if (typeof renderScenes === "function" && typeof state !== "undefined" && Array.isArray(state.scenes)) {
+      renderScenes();
     }
   }
 
@@ -300,16 +306,94 @@ const I18N = {
     cfgTeaCacheLabel: "⚡ TeaCache Acceleration (1.5x-2x faster diffusion if node installed)",
     cfgSubtitlesLabel: "🗣️ Automatic .srt subtitle generation from audio transcription",
     lipsyncSrtLabel: "Generate subtitles / lyrics (.srt)",
-    cfgLlmProvider: "AI Storyboard Assistant (LLM Engine)",
-    cfgOllamaUrl: "Ollama Server URL & Model",
-    btnTestLlm: "Test Connection",
-    cfgGeminiKey: "Gemini API Key & Model (Optional)",
-    cfgTeaCacheLabel: "⚡ TeaCache Acceleration (1.5x-2x faster diffusion if node installed)",
-    cfgSubtitlesLabel: "🗣️ Automatic .srt subtitle generation from audio transcription",
-    lipsyncSrtLabel: "Generate subtitles / lyrics (.srt)",
     creditsTitle: "Copyright & Credits",
     creditsText: "I would like to thank CodexMundi for their support and for testing the app.",
     copyrightNotice: "© 2026 thomo.ART • VideoMaker • CodexMundi Edition",
+
+    // Missing HTML / UI keys
+    morphEngineBadge: "✨ AnimateDiff-Style H3 LoRA",
+    startFrameOpt: "Start Frame (Optional)",
+    endFrameOpt: "End Frame (Optional)",
+    dropOrPickImage: "+ Drop or Pick Image",
+    promptVisualLabel: "Prompt / Visual Description:",
+    durationSecLabel: "Duration (Seconds):",
+    progressRenderingScenes: "Rendering Scenes...",
+    progressGeneratingClip: "Generating Clip...",
+    progressGeneratingMorph: "Generating Morph Clip...",
+    progressGeneratingLong: "Generating Long Clip...",
+    progressRenderingLipsync: "Rendering Lipsync Video...",
+    quickAudioVolumeDefault: "🔊 Volume: 100%",
+    longAudioVolumeDefault: "🔊 Volume: 100%",
+    bgmVolumeDefault: "🔊 Music Volume: 25%",
+    btnImageToPrompt: "✨ Image→Prompt",
+    videoTitleTip: "Video title / filename for the exported movie",
+    saveProjectTip: "Save project to file",
+    loadProjectTip: "Load project from file",
+    resetDefaultScenesTip: "Restore demo scenes",
+    clearAllScenesTip: "Clear all scenes in storyboard",
+    btnCancelRenderTip: "Cancel",
+    clearQuickAudioTip: "Reset to Auto-Sound",
+    clearLongAudioTip: "Remove audio",
+    removeBgmTip: "Remove",
+    analyzeStartImageTip: "Analyze start image with VLM/Gemini and use as video prompt",
+    genStartImageTip: "Generate start image with MiniMax H3 Image",
+    genPortraitImageTip: "Generate portrait with MiniMax H3 Image",
+    tierMinimaxH3: "MiniMax H3 Video (FL2VA / FastH3)",
+    tierMorphLora: "🌀 Morph & Transform LoRA (AnimateDiff Style)",
+    tierRelayVsr: "✨ RelayVSR AI 2x Upscaler (480p → 1080p)",
+    tierMinimaxH3Image: "MiniMax H3 Image (Start Frame / Multi-Ref)",
+    tierWan22: "Wan 2.2 (TI2V 5B / 14B MoE / LightX2V)",
+    tierWan21: "Wan 2.1 (Legacy / InfiniteTalk)",
+    detectingModels: "Detecting models...",
+    detectingExtensions: "Detecting extensions...",
+    detectingHardware: "Detecting hardware...",
+    downloading: "Downloading...",
+    initializing: "Initializing...",
+    alertDefaultTitle: "Notification",
+    alertDefaultMsg: "Message text here...",
+    confirmDefaultTitle: "Confirmation",
+    confirmDefaultMsg: "Are you sure?",
+    toastClose: "Close",
+    stopBtn: "Stop",
+    startingStatus: "Starting...",
+    aiDiffusionProgress: "AI Diffusion (ComfyUI)...",
+    animaticProgress: "Generating Animatic Preview...",
+    sceneAnalyzeTip: "Analyze start image and suggest prompt",
+    sceneGenTip: "Generate start image with MiniMax H3 Image",
+    projectSaveError: "Error saving project: ",
+    invalidProjectFormat: "Invalid project format",
+    downloadStartError: "Could not start download",
+    modelDownloadedToast: "{model} downloaded!",
+    downloadFailedToast: "Download failed: ",
+    connectionError: "Connection error: ",
+    imageUploadFailed: "Image upload failed: ",
+    dropUploadFailed: "Drop upload failed: ",
+    imageAnalysisFailed: "Image analysis failed",
+    renderNetworkError: "Render network error: ",
+    renderStartError: "Could not start render: ",
+    renderingError: "Rendering error: ",
+    renderRequestFailed: "Render request failed: ",
+    stitchSuccess: "Film stitched successfully!",
+    stitchFailed: "Stitch failed: ",
+    stitchNetworkError: "Stitch network error: ",
+    quickPromptRequired: "Please enter a prompt for the quick clip.",
+    quickRenderFailed: "Quick clip render failed: ",
+    quickRenderError: "Quick clip error: ",
+    audioUploadFailed: "Audio upload failed: ",
+    longRenderFailed: "Long clip render failed: ",
+    longRenderError: "Long clip error: ",
+    invalidAudioDrop: "Please drop a valid audio file (.mp3, .wav, .flac).",
+    transcriptionFailed: "Transcription failed",
+    transcriptionError: "Transcription error: ",
+    bgmUploadFailed: "BGM upload failed: ",
+    lipsyncStartFailed: "Lipsync start failed",
+    lipsyncError: "Lipsync Error: ",
+    lipsyncRequestError: "Lipsync request error: ",
+    morphLoraMissing: "Morph LoRA missing — opening download dialog.",
+    morphClipFailed: "Morph clip failed: ",
+    morphClipError: "Morph clip error: ",
+    imageAdoptFailed: "Could not adopt image.",
+    imageTransferError: "Image transfer error: ",
   },
   de: {
     // Header & Brand
@@ -589,13 +673,99 @@ const I18N = {
     cfgSubtitlesLabel: "🗣️ Automatischer .srt Untertitel-Export bei Audiotranskription",
     lipsyncSrtLabel: "Untertitel / Karaoke (.srt) erzeugen",
     creditsTitle: "Copyright & Danksagung",
-    creditsText: "I would like to thank CodexMundi for their support and for testing the app.",
+    creditsText: "Ich danke CodexMundi herzlich für die Unterstützung und das Testen der App.",
     copyrightNotice: "© 2026 thomo.ART • VideoMaker • CodexMundi Edition",
+
+    // Fehlende HTML- / UI-Keys
+    morphEngineBadge: "✨ AnimateDiff-Stil H3 LoRA",
+    startFrameOpt: "Startbild (Optional)",
+    endFrameOpt: "Endbild (Optional)",
+    dropOrPickImage: "+ Bild ablegen oder wählen",
+    promptVisualLabel: "Prompt / Bildbeschreibung:",
+    durationSecLabel: "Dauer (Sekunden):",
+    progressRenderingScenes: "Rendere Szenen...",
+    progressGeneratingClip: "Generiere Clip...",
+    progressGeneratingMorph: "Generiere Morph-Clip...",
+    progressGeneratingLong: "Generiere Long Clip...",
+    progressRenderingLipsync: "Rendere Lipsync-Video...",
+    quickAudioVolumeDefault: "🔊 Lautstärke: 100%",
+    longAudioVolumeDefault: "🔊 Lautstärke: 100%",
+    bgmVolumeDefault: "🔊 Musik-Lautstärke: 25%",
+    btnImageToPrompt: "✨ Bild→Prompt",
+    videoTitleTip: "Videotitel / Name für die Filmdatei",
+    saveProjectTip: "Projekt als Datei speichern",
+    loadProjectTip: "Projekt aus Datei laden",
+    resetDefaultScenesTip: "Demo-Szenen wiederherstellen",
+    clearAllScenesTip: "Alle Szenen im Storyboard leeren",
+    btnCancelRenderTip: "Abbrechen",
+    clearQuickAudioTip: "Auf Auto-Sound zurücksetzen",
+    clearLongAudioTip: "Audio entfernen",
+    removeBgmTip: "Entfernen",
+    analyzeStartImageTip: "Startbild mit VLM/Gemini analysieren und als Video-Prompt übernehmen",
+    genStartImageTip: "Startbild mit MiniMax H3 Image generieren",
+    genPortraitImageTip: "Porträt mit MiniMax H3 Image generieren",
+    tierMinimaxH3: "MiniMax H3 Video (FL2VA / FastH3)",
+    tierMorphLora: "🌀 Morph & Transform LoRA (AnimateDiff Stil)",
+    tierRelayVsr: "✨ RelayVSR AI 2x Upscaler (480p → 1080p)",
+    tierMinimaxH3Image: "MiniMax H3 Image (Startbild / Multi-Ref)",
+    tierWan22: "Wan 2.2 (TI2V 5B / 14B MoE / LightX2V)",
+    tierWan21: "Wan 2.1 (Legacy / InfiniteTalk)",
+    detectingModels: "Erkenne Modelle...",
+    detectingExtensions: "Erkenne Erweiterungen...",
+    detectingHardware: "Erkenne Hardware...",
+    downloading: "Lade herunter...",
+    initializing: "Initialisiere...",
+    alertDefaultTitle: "Hinweis",
+    alertDefaultMsg: "Nachrichtentext...",
+    confirmDefaultTitle: "Bestätigung",
+    confirmDefaultMsg: "Bist du sicher?",
+    toastClose: "Schließen",
+    stopBtn: "Stopp",
+    startingStatus: "Starte...",
+    aiDiffusionProgress: "KI-Diffusion (ComfyUI)...",
+    animaticProgress: "Erstelle Animatic-Vorschau...",
+    sceneAnalyzeTip: "Startbild analysieren und Prompt vorschlagen",
+    sceneGenTip: "Startbild mit MiniMax H3 Image generieren",
+    projectSaveError: "Fehler beim Speichern des Projekts: ",
+    invalidProjectFormat: "Ungültiges Projektformat",
+    downloadStartError: "Download konnte nicht gestartet werden",
+    modelDownloadedToast: "{model} heruntergeladen!",
+    downloadFailedToast: "Download fehlgeschlagen: ",
+    connectionError: "Verbindungsfehler: ",
+    imageUploadFailed: "Bild-Upload fehlgeschlagen: ",
+    dropUploadFailed: "Drop-Upload fehlgeschlagen: ",
+    imageAnalysisFailed: "Bildanalyse fehlgeschlagen",
+    renderNetworkError: "Render-Netzwerkfehler: ",
+    renderStartError: "Render konnte nicht gestartet werden: ",
+    renderingError: "Render-Fehler: ",
+    renderRequestFailed: "Render-Anfrage fehlgeschlagen: ",
+    stitchSuccess: "Film erfolgreich zusammengefügt!",
+    stitchFailed: "Zusammenfügen fehlgeschlagen: ",
+    stitchNetworkError: "Netzwerkfehler beim Zusammenfügen: ",
+    quickPromptRequired: "Bitte gib einen Prompt für den Quick Clip ein.",
+    quickRenderFailed: "Quick-Clip-Render fehlgeschlagen: ",
+    quickRenderError: "Quick-Clip-Fehler: ",
+    audioUploadFailed: "Audio-Upload fehlgeschlagen: ",
+    longRenderFailed: "Long-Clip-Render fehlgeschlagen: ",
+    longRenderError: "Long-Clip-Fehler: ",
+    invalidAudioDrop: "Bitte eine gültige Audiodatei (.mp3, .wav, .flac) ablegen.",
+    transcriptionFailed: "Transkription fehlgeschlagen",
+    transcriptionError: "Transkriptionsfehler: ",
+    bgmUploadFailed: "BGM-Upload fehlgeschlagen: ",
+    lipsyncStartFailed: "Lipsync-Start fehlgeschlagen",
+    lipsyncError: "Lipsync-Fehler: ",
+    lipsyncRequestError: "Lipsync-Anfragefehler: ",
+    morphLoraMissing: "Morph LoRA fehlt – Download wird geöffnet.",
+    morphClipFailed: "Morph-Clip fehlgeschlagen: ",
+    morphClipError: "Morph-Clip-Fehler: ",
+    imageAdoptFailed: "Bild konnte nicht übernommen werden.",
+    imageTransferError: "Fehler bei Bildübergabe: ",
   }
 };
 
-// Default language is English
-let currentLang = localStorage.getItem("tavideomaker.lang") || "en";
+// Default language synced from StudioCockpit
+const _initStudioLang = (localStorage.getItem("studio_lang") || document.documentElement.lang || localStorage.getItem("tavideomaker.lang") || "de").toLowerCase();
+let currentLang = _initStudioLang.startsWith("en") ? "en" : "de";
 
 function t(key, vars = {}) {
   let str = (I18N[currentLang] && I18N[currentLang][key]) || (I18N["en"] && I18N["en"][key]) || (I18N["de"] && I18N["de"][key]) || key;
@@ -617,6 +787,10 @@ function applyI18n() {
   document.querySelectorAll("[data-video-i18n-placeholder]").forEach(el => {
     const key = el.getAttribute("data-video-i18n-placeholder");
     el.setAttribute("placeholder", t(key));
+  });
+  document.querySelectorAll("[data-video-i18n-title]").forEach(el => {
+    const key = el.getAttribute("data-video-i18n-title");
+    el.setAttribute("title", t(key));
   });
 }
 
@@ -854,7 +1028,7 @@ function showToast(message, type = "info", durationMs = 4500) {
   toast.innerHTML = `
     <span class="toast-icon">${icon}</span>
     <span class="toast-body">${message}</span>
-    <button class="toast-close" title="Close">×</button>
+    <button class="toast-close" title="${t("toastClose")}">×</button>
   `;
 
   const closeBtn = toast.querySelector(".toast-close");
@@ -1491,9 +1665,9 @@ function saveProjectFile() {
       URL.revokeObjectURL(url);
     }, 150);
 
-    showToast(t("projectSavedToast") || "Projektdatei erfolgreich gespeichert!", "success");
+    showToast(t("projectSavedToast"), "success");
   } catch (err) {
-    showToast("Fehler beim Speichern des Projekts: " + err, "error");
+    showToast(t("projectSaveError") + err, "error");
   }
 }
 
@@ -1505,7 +1679,7 @@ function loadProjectFile(file) {
       const data = JSON.parse(e.target.result);
       const ui = data.ui_state || data;
       if (!ui || typeof ui !== "object") {
-        throw new Error("Ungültiges Projektformat");
+        throw new Error(t("invalidProjectFormat"));
       }
       ui.saved = true;
       restoreUiState(ui);
@@ -1525,7 +1699,8 @@ async function loadServerConfig() {
     const res = await fetch("/api/video/config");
     if (res.ok) {
       state.config = await res.json();
-      currentLang = localStorage.getItem("tavideomaker.lang") || state.config.language || "en";
+      const _cfgLang = (localStorage.getItem("studio_lang") || document.documentElement.lang || localStorage.getItem("tavideomaker.lang") || state.config.language || "de").toLowerCase();
+      currentLang = _cfgLang.startsWith("en") ? "en" : "de";
       applyTheme(state.config.theme || "dark");
     }
   } catch (err) {
@@ -1919,7 +2094,7 @@ async function downloadOptionalModel(modelName, btnEl) {
     });
     const d = await res.json();
     if (!res.ok || !d.ok) {
-      showToast(d.error || "Download konnte nicht gestartet werden", "error", 7000);
+      showToast(d.error || t("downloadStartError"), "error", 7000);
       if (btnEl) {
         btnEl.disabled = false;
         btnEl.textContent = origText;
@@ -1934,7 +2109,7 @@ async function downloadOptionalModel(modelName, btnEl) {
         if (btnEl) btnEl.textContent = `⏳ ${prog.progress_pct}%`;
         if (prog.done) {
           clearInterval(timer);
-          showToast(`${modelName} heruntergeladen!`, "success", 5000);
+          showToast(t("modelDownloadedToast", { model: modelName }), "success", 5000);
           checkModels(false);
         } else if (prog.error) {
           clearInterval(timer);
@@ -1947,7 +2122,7 @@ async function downloadOptionalModel(modelName, btnEl) {
       } catch (_) {}
     }, 1000);
   } catch (err) {
-    showToast("Download fehlgeschlagen: " + err, "error", 7000);
+    showToast(t("downloadFailedToast") + err, "error", 7000);
     if (btnEl) {
       btnEl.disabled = false;
       btnEl.textContent = origText;
@@ -2052,17 +2227,17 @@ async function installExtension(repoUrl, folderName, btnId) {
     });
     const data = await res.json();
     if (data.ok) {
-      showToast(data.message || "Extension successfully installed!", "success", 6000);
+      showToast(data.message || t("extensionInstalled"), "success", 6000);
       loadExtensions();
     } else {
-      showToast("Installation error: " + (data.error || "Unknown error"), "error", 7000);
+      showToast(t("extensionInstallError") + " " + (data.error || ""), "error", 7000);
       if (btn) {
         btn.disabled = false;
         btn.textContent = t("btnInstallNode");
       }
     }
   } catch (err) {
-    showToast("Installation failed: " + err, "error", 7000);
+    showToast(t("extensionInstallError") + " " + err, "error", 7000);
     if (btn) {
       btn.disabled = false;
       btn.textContent = t("btnInstallNode");
@@ -2090,7 +2265,7 @@ async function startModelDownload() {
     });
     if (!res.ok) {
       const err = await res.json();
-      showToast(err.error || "Could not start download", "error");
+      showToast(err.error || t("downloadStartError"), "error");
       vmGetEl("btnConfirmDownload").disabled = false;
       vmGetEl("btnCancelModal").disabled = false;
       return;
@@ -2102,7 +2277,7 @@ async function startModelDownload() {
       const prog = await pRes.json();
 
       vmGetEl("dlProgressBar").style.width = prog.progress_pct + "%";
-      vmGetEl("dlCurrentFile").textContent = prog.current_file || "Initializing...";
+      vmGetEl("dlCurrentFile").textContent = prog.current_file || t("initializing");
       vmGetEl("dlStats").textContent = `${prog.progress_pct}% • ${prog.speed_mbps} MB/s`;
 
       if (prog.done) {
@@ -2118,7 +2293,7 @@ async function startModelDownload() {
     }, 1000);
 
   } catch (err) {
-    showToast("Connection error: " + err, "error");
+    showToast(t("connectionError") + err, "error");
     vmGetEl("btnCancelModal").disabled = false;
   }
 }
@@ -2198,7 +2373,7 @@ function triggerSceneImageUpload(idx, type) {
       }
       renderScenes();
     } catch (err) {
-      showToast("Image upload failed: " + err, "error");
+      showToast(t("imageUploadFailed") + err, "error");
     }
   };
   input.click();
@@ -2288,8 +2463,8 @@ function renderScenes() {
               <span class="h3-token-pill">&lt;Picture 1&gt; / &lt;Subject 1&gt;</span>
             </div>
             <div style="display:flex; gap:4px;">
-              <button type="button" class="btn-mini" style="padding:2px 6px; font-size:10px;" onclick="event.stopPropagation(); analyzeSceneStartImage(${idx}, this)" title="Startbild analysieren und Prompt vorschlagen">✨</button>
-              <button type="button" class="btn-mini" style="padding:2px 6px; font-size:10px;" onclick="event.stopPropagation(); generateSceneStartImage(${idx}, this)" title="Startbild mit MiniMax H3 Image generieren">🎨 H3</button>
+              <button type="button" class="btn-mini" style="padding:2px 6px; font-size:10px;" onclick="event.stopPropagation(); analyzeSceneStartImage(${idx}, this)" title="${t("sceneAnalyzeTip")}">✨</button>
+              <button type="button" class="btn-mini" style="padding:2px 6px; font-size:10px;" onclick="event.stopPropagation(); generateSceneStartImage(${idx}, this)" title="${t("sceneGenTip")}">🎨 H3</button>
             </div>
           </div>
           <div class="frame-dropzone frame-first-drop ${sc.first_frame ? 'has-image' : ''}" onclick="${(!sc.from_prev || idx === 0) ? `triggerSceneImageUpload(${idx}, 'first')` : ''}">
@@ -2332,7 +2507,7 @@ function renderScenes() {
           state.scenes[idx].first_frame = url;
           renderScenes();
         } catch (err) {
-          showToast("Drop upload failed: " + err, "error");
+          showToast(t("dropUploadFailed") + err, "error");
         }
       });
     }
@@ -2343,7 +2518,7 @@ function renderScenes() {
           state.scenes[idx].last_frame = url;
           renderScenes();
         } catch (err) {
-          showToast("Drop upload failed: " + err, "error");
+          showToast(t("dropUploadFailed") + err, "error");
         }
       });
     }
@@ -2539,14 +2714,14 @@ async function analyzeStartImageToPrompt(imageUrl, btnEl, onPrompt) {
     });
     const data = await res.json();
     if (!res.ok || !data.ok) {
-      showToast(data.error || "Bildanalyse fehlgeschlagen", "error", 6000);
+      showToast(data.error || t("imageAnalysisFailed"), "error", 6000);
       return;
     }
     onPrompt(data.prompt);
     saveUiState();
     showToast(currentLang === "de" ? `Prompt erstellt (${data.provider})` : `Prompt created (${data.provider})`, "success");
   } catch (err) {
-    showToast("Bildanalyse fehlgeschlagen: " + err, "error", 6000);
+    showToast(t("imageAnalysisFailed") + ": " + err, "error", 6000);
   } finally {
     if (btnEl) {
       btnEl.disabled = false;
@@ -2635,15 +2810,15 @@ async function renderSingleScene(idx) {
       sc.video_url = data.video_url;
       sc.status = "done";
       renderScenes();
-      showToast(t("sceneRendered") || "Scene rendered successfully!", "success");
+      showToast(t("sceneRendered"), "success");
       playClip(data.video_url, false);
     } else {
-      showToast("Render failed: " + (data.error || "Unknown error"), "error");
+      showToast(t("renderFailed") + " " + (data.error || ""), "error");
       sc.status = "ready";
       renderScenes();
     }
   } catch (err) {
-    showToast("Render network error: " + err, "error");
+    showToast(t("renderNetworkError") + err, "error");
     sc.status = "ready";
     renderScenes();
   }
@@ -2661,11 +2836,7 @@ async function renderAllScenes(engine = "comfyui") {
   if (!state.scenes || state.scenes.length === 0) return;
 
   if (engine === "comfyui" && !state.comfyConnected) {
-    showToast(
-      "ComfyUI ist nicht verbunden. Bitte ComfyUI (http://127.0.0.1:8188) starten oder 'Animatic Preview' wählen.",
-      "warn",
-      6000
-    );
+    showToast(t("comfyOfflineError"), "warn", 6000);
     return;
   }
 
@@ -2693,8 +2864,8 @@ async function renderAllScenes(engine = "comfyui") {
   resetCancelButtons();
   progressBox.style.display = "block";
   progressBar.style.width = "5%";
-  progressStats.textContent = "Starting...";
-  progressTitle.textContent = engine === "comfyui" ? "AI Diffusion (ComfyUI)..." : "Generating Animatic Preview...";
+  progressStats.textContent = t("startingStatus");
+  progressTitle.textContent = engine === "comfyui" ? t("aiDiffusionProgress") : t("animaticProgress");
 
   const titleInput = vmGetEl("storyboardTitleInput");
   const filmTitle = titleInput ? titleInput.value.trim() : "";
@@ -2736,7 +2907,7 @@ async function renderAllScenes(engine = "comfyui") {
     const data = await res.json();
     if (!data.ok) {
       clearInterval(timerInterval);
-      showToast("Could not start render: " + data.error, "error", 6000);
+      showToast(t("renderStartError") + data.error, "error", 6000);
       if (btn) btn.disabled = false;
       if (btnAnimatic) btnAnimatic.disabled = false;
       progressBox.style.display = "none";
@@ -2795,7 +2966,7 @@ async function renderAllScenes(engine = "comfyui") {
           clearInterval(pollTimer);
           if (btn) btn.disabled = false;
           if (btnAnimatic) btnAnimatic.disabled = false;
-          showToast("Rendering error: " + job.error, "error", 8000);
+          showToast(t("renderingError") + job.error, "error", 8000);
           progressBox.style.display = "none";
         }
       } catch (e) {
@@ -2805,7 +2976,7 @@ async function renderAllScenes(engine = "comfyui") {
 
   } catch (err) {
     clearInterval(timerInterval);
-    showToast("Render request failed: " + err, "error");
+    showToast(t("renderRequestFailed") + err, "error");
     if (btn) btn.disabled = false;
     if (btnAnimatic) btnAnimatic.disabled = false;
     progressBox.style.display = "none";
@@ -2842,13 +3013,13 @@ async function stitchAllScenes() {
     });
     const data = await res.json();
     if (data.ok && data.output_file) {
-      showToast("Film stitched successfully!", "success");
+      showToast(t("stitchSuccess"), "success");
       playClip(data.output_file, false);
     } else {
-      showToast("Stitch failed: " + (data.error || "Unknown error"), "error");
+      showToast(t("stitchFailed") + (data.error || ""), "error");
     }
   } catch (err) {
-    showToast("Stitch network error: " + err, "error");
+    showToast(t("stitchNetworkError") + err, "error");
   }
 }
 
@@ -2866,7 +3037,7 @@ function getEffectiveVideoSeed() {
 async function renderQuickClip() {
   const prompt = vmGetEl("quickPrompt").value.trim();
   if (!prompt) {
-    showToast("Please enter a prompt for the quick clip.", "warn");
+    showToast(t("quickPromptRequired"), "warn");
     return;
   }
 
@@ -2974,14 +3145,14 @@ async function renderQuickClip() {
         playClip(data.video_url, false);
       }, 1500);
     } else {
-      showToast("Quick clip render failed: " + (data.error || "Unknown error"), "error");
+      showToast(t("quickRenderFailed") + (data.error || ""), "error");
       pBox.style.display = "none";
       btn.disabled = false;
     }
   } catch (err) {
     clearInterval(timerInterval);
     clearInterval(pollInterval);
-    showToast("Quick clip error: " + err, "error");
+    showToast(t("quickRenderError") + err, "error");
     pBox.style.display = "none";
     btn.disabled = false;
   }
@@ -3319,7 +3490,7 @@ function playQuickAudioRange() {
   const btnIco = vmGetEl("icoPreviewQuickAudio");
   const btnTxt = vmGetEl("txtPreviewQuickAudio");
   if (btnIco) btnIco.textContent = "⏹";
-  if (btnTxt) btnTxt.textContent = "Stop";
+  if (btnTxt) btnTxt.textContent = t("stopBtn");
 
   quickAudioPreviewEl.play().catch(e => console.error("Preview play failed:", e));
 
@@ -3377,7 +3548,7 @@ async function handleQuickAudioSelected(file) {
     saveUiState();
     showToast(currentLang === "de" ? "Sound für Quick Clip geladen!" : "Audio track loaded for Quick Clip!", "success");
   } catch (err) {
-    showToast("Audio-Upload fehlgeschlagen: " + err, "error");
+    showToast(t("audioUploadFailed") + err, "error");
   }
 }
 
@@ -3616,7 +3787,8 @@ function initLongWaveformInteractions() {
 function updateLongAudioVolumeDisplay(val) {
   const txt = vmGetEl("longAudioVolumeText");
   if (txt) {
-    txt.textContent = `🔊 Lautstärke: ${val}%`;
+    const pattern = t("quickAudioVolumePrefix") || (currentLang === "de" ? "🔊 Lautstärke: {vol}%" : "🔊 Volume: {vol}%");
+    txt.textContent = pattern.replace("{vol}", val);
   }
 }
 
@@ -3700,7 +3872,7 @@ async function handleLongAudioSelected(file) {
     saveUiState();
     showToast(currentLang === "de" ? `Audiospur "${file.name}" geladen!` : `Audio track "${file.name}" loaded!`, "success");
   } catch (err) {
-    showToast("Audio-Upload fehlgeschlagen: " + err, "error");
+    showToast(t("audioUploadFailed") + err, "error");
   }
 }
 
@@ -3834,14 +4006,14 @@ async function renderLongClip() {
         playClip(data.video_url, false);
       }, 1500);
     } else {
-      showToast("Long clip render failed: " + (data.error || "Unknown error"), "error");
+      showToast(t("longRenderFailed") + (data.error || ""), "error");
       pBox.style.display = "none";
       btn.disabled = false;
     }
   } catch (err) {
     clearInterval(timerInterval);
     clearInterval(pollInterval);
-    showToast("Long clip error: " + err, "error");
+    showToast(t("longRenderError") + err, "error");
     pBox.style.display = "none";
     btn.disabled = false;
   }
@@ -3903,7 +4075,7 @@ function attachAudioDropHandler(element, onFileDropped) {
       if (f.type.startsWith("audio/") || /\.(mp3|wav|flac|ogg|m4a)$/i.test(f.name)) {
         await onFileDropped(f);
       } else {
-        showToast("Bitte eine gültige Audiodatei (.mp3, .wav, .flac) ablegen.", "warn");
+        showToast(t("invalidAudioDrop"), "warn");
       }
     }
   });
@@ -3974,10 +4146,10 @@ async function transcribeLipsyncAudio() {
         "success"
       );
     } else {
-      showToast(data.error || "Transcription failed", "warn", 6000);
+      showToast(data.error || t("transcriptionFailed"), "warn", 6000);
     }
   } catch (err) {
-    showToast("Transcription error: " + err, "error");
+    showToast(t("transcriptionError") + err, "error");
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -4038,7 +4210,7 @@ async function handleLipsyncAudioSelected(file) {
     }
     saveUiState();
   } catch (err) {
-    showToast("Audio-Upload fehlgeschlagen: " + err, "error");
+    showToast(t("audioUploadFailed") + err, "error");
   }
 }
 
@@ -4070,7 +4242,7 @@ async function handleLipsyncBgmSelected(file) {
     }
     saveUiState();
   } catch (err) {
-    showToast("BGM-Upload fehlgeschlagen: " + err, "error");
+    showToast(t("bgmUploadFailed") + err, "error");
   }
 }
 
@@ -4218,7 +4390,7 @@ async function renderLipsyncVideo(engine = "comfyui") {
     const data = await res.json();
     if (!data.ok) {
       clearInterval(timerInterval);
-      showToast(data.error || "Lipsync start failed", "error", 6000);
+      showToast(data.error || t("lipsyncStartFailed"), "error", 6000);
       if (btnAi) btnAi.disabled = false;
       if (btnPrev) btnPrev.disabled = false;
       if (pBox) pBox.style.display = "none";
@@ -4284,7 +4456,7 @@ async function renderLipsyncVideo(engine = "comfyui") {
           if (btnAi) btnAi.disabled = false;
           if (btnPrev) btnPrev.disabled = false;
           if (pBox) pBox.style.display = "none";
-          showToast("Lipsync Error: " + (job.error || "Unknown"), "error", 8000);
+          showToast(t("lipsyncError") + (job.error || ""), "error", 8000);
         }
       } catch (e) {
         console.warn("Polling lipsync job error:", e);
@@ -4292,7 +4464,7 @@ async function renderLipsyncVideo(engine = "comfyui") {
     }, 1000);
   } catch (err) {
     clearInterval(timerInterval);
-    showToast("Lipsync request error: " + err, "error");
+    showToast(t("lipsyncRequestError") + err, "error");
     if (btnAi) btnAi.disabled = false;
     if (btnPrev) btnPrev.disabled = false;
     if (pBox) pBox.style.display = "none";
@@ -4414,7 +4586,7 @@ function initEventListeners() {
         autoMatchResolutionAspect(url);
         saveUiState();
       } catch (err) {
-        showToast("Image upload failed: " + err, "error");
+        showToast(t("imageUploadFailed") + err, "error");
       }
     });
     attachDropHandler(qFirstDrop, async (file) => {
@@ -4426,7 +4598,7 @@ function initEventListeners() {
         autoMatchResolutionAspect(url);
         saveUiState();
       } catch (err) {
-        showToast("Drop upload failed: " + err, "error");
+        showToast(t("dropUploadFailed") + err, "error");
       }
     });
   }
@@ -4446,7 +4618,7 @@ function initEventListeners() {
         qLastDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetQuickFrame('last')">×</button>`;
         saveUiState();
       } catch (err) {
-        showToast("Image upload failed: " + err, "error");
+        showToast(t("imageUploadFailed") + err, "error");
       }
     });
     attachDropHandler(qLastDrop, async (file) => {
@@ -4457,7 +4629,7 @@ function initEventListeners() {
         qLastDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetQuickFrame('last')">×</button>`;
         saveUiState();
       } catch (err) {
-        showToast("Drop upload failed: " + err, "error");
+        showToast(t("dropUploadFailed") + err, "error");
       }
     });
   }
@@ -4545,7 +4717,7 @@ function initEventListeners() {
         lFirstDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLongFrame('first')">×</button>`;
         saveUiState();
       } catch (err) {
-        showToast("Image upload failed: " + err, "error");
+        showToast(t("imageUploadFailed") + err, "error");
       }
     });
     attachDropHandler(lFirstDrop, async (file) => {
@@ -4556,7 +4728,7 @@ function initEventListeners() {
         lFirstDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLongFrame('first')">×</button>`;
         saveUiState();
       } catch (err) {
-        showToast("Drop upload failed: " + err, "error");
+        showToast(t("dropUploadFailed") + err, "error");
       }
     });
   }
@@ -4598,7 +4770,7 @@ function initEventListeners() {
         lLastDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLongFrame('last')">×</button>`;
         saveUiState();
       } catch (err) {
-        showToast("Image upload failed: " + err, "error");
+        showToast(t("imageUploadFailed") + err, "error");
       }
     });
     attachDropHandler(lLastDrop, async (file) => {
@@ -4609,7 +4781,7 @@ function initEventListeners() {
         lLastDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLongFrame('last')">×</button>`;
         saveUiState();
       } catch (err) {
-        showToast("Drop upload failed: " + err, "error");
+        showToast(t("dropUploadFailed") + err, "error");
       }
     });
   }
@@ -4694,7 +4866,7 @@ function initEventListeners() {
         updateLipsyncSegmentBadge();
         saveUiState();
       } catch (err) {
-        showToast("Image upload failed: " + err, "error");
+        showToast(t("imageUploadFailed") + err, "error");
       }
     });
     attachDropHandler(lsPortraitDrop, async (file) => {
@@ -4706,7 +4878,7 @@ function initEventListeners() {
         updateLipsyncSegmentBadge();
         saveUiState();
       } catch (err) {
-        showToast("Drop upload failed: " + err, "error");
+        showToast(t("dropUploadFailed") + err, "error");
       }
     });
   }
@@ -4740,7 +4912,7 @@ function initEventListeners() {
         updateLipsyncSegmentBadge();
         saveUiState();
       } catch (err) {
-        showToast("Image upload failed: " + err, "error");
+        showToast(t("imageUploadFailed") + err, "error");
       }
     });
     attachDropHandler(lsSecondDrop, async (file) => {
@@ -4752,7 +4924,7 @@ function initEventListeners() {
         updateLipsyncSegmentBadge();
         saveUiState();
       } catch (err) {
-        showToast("Drop upload failed: " + err, "error");
+        showToast(t("dropUploadFailed") + err, "error");
       }
     });
   }
@@ -5012,7 +5184,7 @@ function _bindMorphDropzone(dropId, frameKey) {
       if (frameKey === "first_frame") autoMatchResolutionAspect(url);
       saveUiState();
     } catch (err) {
-      showToast("Image upload failed: " + err, "error");
+      showToast(t("imageUploadFailed") + err, "error");
     }
   };
 
@@ -5123,16 +5295,16 @@ async function renderMorphClip() {
       pBox.style.display = "none";
       btn.disabled = false;
       if (data.missing_tier === "morph_lora") {
-        showToast(data.error || "Morph LoRA fehlt – Download wird geöffnet.", "warn", 5000);
+        showToast(data.error || t("morphLoraMissing"), "warn", 5000);
         checkModels(true, "morph_lora");
       } else {
-        showToast("Morph clip failed: " + (data.error || "Unknown error"), "error");
+        showToast(t("morphClipFailed") + (data.error || ""), "error");
       }
     }
   } catch (err) {
     clearInterval(timerInterval);
     clearInterval(pollInterval);
-    showToast("Morph clip error: " + err, "error");
+    showToast(t("morphClipError") + err, "error");
     pBox.style.display = "none";
     btn.disabled = false;
   }
@@ -5157,7 +5329,7 @@ async function renderMorphClip() {
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
-        showToast(data.error || "Bild konnte nicht übernommen werden.", "error");
+        showToast(data.error || t("imageAdoptFailed"), "error");
         return;
       }
 
@@ -5181,7 +5353,7 @@ async function renderMorphClip() {
         "success"
       );
     } catch (err) {
-      showToast("Fehler bei Bildübergabe: " + err, "error");
+      showToast(t("imageTransferError") + err, "error");
     }
   };
 
@@ -5189,6 +5361,16 @@ async function renderMorphClip() {
     if (ev?.detail?.module === "video") {
       initVideoModuleOnce();
       syncStudioLang();
+    }
+  });
+
+  window.addEventListener("studio-language-changed", (ev) => {
+    const l = (ev?.detail?.lang || localStorage.getItem("studio_lang") || "de").toLowerCase();
+    currentLang = l.startsWith("en") ? "en" : "de";
+    localStorage.setItem("tavideomaker.lang", currentLang);
+    applyI18n();
+    if (typeof renderScenes === "function" && typeof state !== "undefined" && Array.isArray(state.scenes)) {
+      renderScenes();
     }
   });
 })();
