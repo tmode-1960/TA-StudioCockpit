@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.09"
+APP_VERSION = "1.10"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -4465,7 +4465,7 @@ def main():
         get_output_dir,
         lambda field: get_decrypted_api_keys().get("GEMINI_API_KEY", "") if field == "gemini_api_key" else "",
     )
-    gallery_indexer.init_module(DATA_ROOT, get_output_dir, extract_image_metadata)
+    gallery_indexer.init_module(DATA_ROOT, get_output_dir, extract_image_metadata, load_config)
     music_maker.init_module(DATA_ROOT, BUNDLE_DIR, load_config)
 
     socketserver.TCPServer.allow_reuse_address = sys.platform != "win32"

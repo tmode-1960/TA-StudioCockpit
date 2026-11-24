@@ -49,9 +49,12 @@
       card_ai_params: "AI-GIF Parameter",
       ai_model: "AI-Modell / Workflow",
       opt_minimax: "MiniMax H3 (Hailuo) • Action & Mimik",
-      opt_ltx: "LTX-Video 2B • Fast Action",
+      opt_ltx: "LTX-Video 2B • Schnelle Action",
       opt_svd: "SVD-XT • Sanfte Animation",
       ai_res: "Auflösung & VRAM",
+      opt_res_high: "Hoch (576×576 • 16 GB+)",
+      opt_res_standard: "Standard (512×512 • 8–12 GB)",
+      opt_res_fast: "Schnell / Eco (480×272 • 6–8 GB)",
       ai_motion: "Motion-Intensität",
       ai_pingpong: "Nahtloser Ping-Pong Loop",
       ai_reverse: "Rückwärts abspielen",
@@ -81,23 +84,31 @@
       btn_ai_generate: "🚀 Discord-GIF generieren",
       btn_cancel: "Abbrechen",
       ai_generating: "Generiere...",
+      ai_working: "Arbeite...",
       ai_result_done: "✅ Discord-GIF erstellt!",
       btn_send_discord: "💬 In Discord einfügen",
       btn_to_collection: "📁 Zur Sammlung",
       settings_gif_dir: "Lokaler GIF-Ordner (eigene GIFs)",
+      settings_gif_dir_ph: "z. B. D:\\Bilder\\MyGIFs",
       btn_browse: "📁 Durchsuchen",
       ctx_copy: "📋 Kopieren",
       ctx_cut: "✂️ Ausschneiden",
       ctx_paste: "📥 Einfügen",
       ctx_select_all: "🔘 Alles auswählen",
+      discord_checking: "Discord: Prüfe...",
       discord_connected: "Discord: Verbunden",
       discord_offline: "Discord: Nicht offen",
       comfy_online: "ComfyUI: Online",
       comfy_offline: "ComfyUI: Offline",
-      models_ok: "✅ All required models installed",
-      models_missing: "⚠️ Missing ComfyUI models:",
       models_ok: "✅ Alle benötigten Modelle installiert",
       models_missing: "⚠️ Fehlende ComfyUI-Modelle:",
+      btn_download: "Herunterladen",
+      url_ph: "https://.../beispiel.gif",
+      alt_preview: "Vorschau",
+      alt_result: "Ergebnis",
+      card_save_title: "In Sammlung speichern",
+      card_fav_title: "Favorit",
+      card_del_title: "Löschen",
       folder_default: "Standard-Sammlung (lokal)",
       folder_prefix: "Ordner:",
       no_gifs: "Keine GIFs gefunden.",
@@ -114,6 +125,12 @@
       msg_adopted: "Bild an DiscordGIF AI-Studio übergeben!",
       msg_no_viewer_img: "Kein Bild im Viewer ausgewählt.",
       adopted_label: "Übernommen aus Bilder-Studio",
+      err_load_gifs: "Fehler beim Laden der GIFs",
+      err_dl_failed: "Download fehlgeschlagen",
+      err_send_failed: "Senden fehlgeschlagen",
+      err_send_discord: "Fehler beim Senden an Discord",
+      err_start_failed: "Start fehlgeschlagen",
+      err_adopt_img: "Bild konnte nicht übernommen werden.",
     },
     en: {
       nav_images: "🎨 Images",
@@ -147,6 +164,9 @@
       opt_ltx: "LTX-Video 2B • Fast Action",
       opt_svd: "SVD-XT • Gentle Animation",
       ai_res: "Resolution & VRAM",
+      opt_res_high: "High (576×576 • 16 GB+)",
+      opt_res_standard: "Standard (512×512 • 8–12 GB)",
+      opt_res_fast: "Fast / Eco (480×272 • 6–8 GB)",
       ai_motion: "Motion Intensity",
       ai_pingpong: "Seamless Ping-Pong Loop",
       ai_reverse: "Play in Reverse",
@@ -176,23 +196,31 @@
       btn_ai_generate: "🚀 Generate Discord GIF",
       btn_cancel: "Cancel",
       ai_generating: "Generating...",
+      ai_working: "Working...",
       ai_result_done: "✅ Discord GIF created!",
       btn_send_discord: "💬 Paste to Discord",
       btn_to_collection: "📁 To Collection",
       settings_gif_dir: "Local GIF Folder (custom GIFs)",
+      settings_gif_dir_ph: "e.g. D:\\Images\\MyGIFs",
       btn_browse: "📁 Browse",
       ctx_copy: "📋 Copy",
       ctx_cut: "✂️ Cut",
       ctx_paste: "📥 Paste",
       ctx_select_all: "🔘 Select All",
+      discord_checking: "Discord: Checking...",
       discord_connected: "Discord: Connected",
       discord_offline: "Discord: Not open",
       comfy_online: "ComfyUI: Online",
       comfy_offline: "ComfyUI: Offline",
       models_ok: "✅ All required models installed",
       models_missing: "⚠️ Missing ComfyUI models:",
-      models_ok: "✅ Alle benötigten Modelle installiert",
-      models_missing: "⚠️ Fehlende ComfyUI-Modelle:",
+      btn_download: "Download",
+      url_ph: "https://.../example.gif",
+      alt_preview: "Preview",
+      alt_result: "Result",
+      card_save_title: "Save to collection",
+      card_fav_title: "Favorite",
+      card_del_title: "Delete",
       folder_default: "Default collection (local)",
       folder_prefix: "Folder:",
       no_gifs: "No GIFs found.",
@@ -209,11 +237,20 @@
       msg_adopted: "Image sent to DiscordGIF AI Studio!",
       msg_no_viewer_img: "No image selected in viewer.",
       adopted_label: "Sent from Image Studio",
+      err_load_gifs: "Failed to load GIFs",
+      err_dl_failed: "Download failed",
+      err_send_failed: "Send failed",
+      err_send_discord: "Error sending to Discord",
+      err_start_failed: "Failed to start",
+      err_adopt_img: "Could not adopt image.",
     },
   };
 
   function getLang() {
-    const l = (document.documentElement.lang || "de").toLowerCase();
+    let l = (document.documentElement.lang || "").toLowerCase();
+    if (l !== "en" && l !== "de") {
+      try { l = (localStorage.getItem("tAStudio.language") || "de").toLowerCase(); } catch (_) { l = "de"; }
+    }
     return l.startsWith("en") ? "en" : "de";
   }
 
@@ -224,6 +261,7 @@
 
   function applyGifLanguage() {
     document.querySelectorAll("[data-gif-i18n]").forEach((el) => {
+      if (el.id === "gifDropPrompt" && state.pendingFileBase64) return;
       const k = el.getAttribute("data-gif-i18n");
       if (k) el.textContent = gt(k);
     });
@@ -235,6 +273,10 @@
       const k = el.getAttribute("data-gif-i18n-title");
       if (k) el.title = gt(k);
     });
+    document.querySelectorAll("[data-gif-i18n-alt]").forEach((el) => {
+      const k = el.getAttribute("data-gif-i18n-alt");
+      if (k) el.alt = gt(k);
+    });
     if ($("gifGalleryTitle")) {
       $("gifGalleryTitle").textContent = gt(state.source === "tenor" ? "gallery_tenor" : "gallery_title");
     }
@@ -242,6 +284,13 @@
       $("gifFolderHint").textContent = state.settings?.gif_dir
         ? `${gt("folder_prefix")} ${state.settings.gif_dir}`
         : gt("folder_default");
+    }
+    const aiInfo = $("gifAiImageInfo");
+    if (aiInfo && aiInfo.dataset.i18nKey) {
+      aiInfo.textContent = gt(aiInfo.dataset.i18nKey);
+    }
+    if (!state.initialized && $("gifDiscordStatusBadge")) {
+      $("gifDiscordStatusBadge").textContent = gt("discord_checking");
     }
     if (state.initialized) {
       renderCategoryPills();
@@ -405,7 +454,7 @@
           const folder = escHtml(mf.folder_type || "checkpoints");
           const size = mf.size_str ? ` (${escHtml(mf.size_str)})` : "";
           const dl = mf.url
-            ? ` · <a href="${escHtml(mf.url)}" target="_blank" rel="noopener" style="color:var(--accent); text-decoration:underline;">Download</a>`
+            ? ` · <a href="${escHtml(mf.url)}" target="_blank" rel="noopener" style="color:var(--accent); text-decoration:underline;">${escHtml(gt("btn_download"))}</a>`
             : "";
           return `<div style="margin-top:4px;">• <code>${fname}</code>${size}<br><span style="color:var(--mute);">→ ComfyUI/models/${folder}/</span>${dl}</div>`;
         })
@@ -455,7 +504,7 @@
         if (state.source === "local") renderGifGrid();
       }
     } catch (ex) {
-      notify("Fehler beim Laden der GIFs", "error");
+      notify(gt("err_load_gifs"), "error");
     }
   }
 
@@ -529,15 +578,19 @@
       const thumbUrl = item.preview_url || item.url || "";
       const tagsText = Array.isArray(item.tags) ? item.tags.slice(0, 3).join(", ") : "";
 
+      const saveTitle = escHtml(gt("card_save_title"));
+      const favTitle = escHtml(gt("card_fav_title"));
+      const delTitle = escHtml(gt("card_del_title"));
+
       card.innerHTML = `
         <div class="gif-card-thumb">
           <img src="${thumbUrl}" alt="${(item.title || "GIF").replace(/"/g, "&quot;")}" loading="lazy">
           <div class="gif-card-overlay">
             ${
               state.source === "tenor"
-                ? '<button type="button" class="gif-card-icon-btn" data-act="download" title="In Sammlung speichern">⬇️</button>'
-                : `<button type="button" class="gif-card-icon-btn ${item.favorite ? "fav-active" : ""}" data-act="fav" title="Favorit">⭐</button>
-                   <button type="button" class="gif-card-icon-btn" data-act="del" title="Löschen">🗑️</button>`
+                ? `<button type="button" class="gif-card-icon-btn" data-act="download" title="${saveTitle}">⬇️</button>`
+                : `<button type="button" class="gif-card-icon-btn ${item.favorite ? "fav-active" : ""}" data-act="fav" title="${favTitle}">⭐</button>
+                   <button type="button" class="gif-card-icon-btn" data-act="del" title="${delTitle}">🗑️</button>`
             }
           </div>
         </div>
@@ -559,16 +612,16 @@
           } else if (act === "del") {
             const res = await apiPost("/api/gif/delete", { id: item.id });
             if (res.ok) {
-              notify("GIF gelöscht", "info");
+              notify(gt("msg_gif_deleted"), "info");
               await loadLocalGifs();
             }
           } else if (act === "download") {
             const res = await apiPost("/api/gif/tenor/download", { url: item.url, title: item.title });
             if (res.ok) {
-              notify("GIF heruntergeladen!", "success");
+              notify(gt("msg_gif_dl"), "success");
               await loadLocalGifs();
             } else {
-              notify(res.error || "Download fehlgeschlagen", "error");
+              notify(res.error || gt("err_dl_failed"), "error");
             }
           }
           return;
@@ -584,12 +637,12 @@
     try {
       const res = await apiPost("/api/gif/send", { id: gifId });
       if (res.ok) {
-        notify(res.warning || res.message || "In Zwischenablage kopiert!", res.warning ? "warn" : "success");
+        notify(res.warning || res.message || gt("msg_copied"), res.warning ? "warn" : "success");
       } else {
-        notify(res.error || "Senden fehlgeschlagen", "error");
+        notify(res.error || gt("err_send_failed"), "error");
       }
     } catch (_) {
-      notify("Fehler beim Senden an Discord", "error");
+      notify(gt("err_send_discord"), "error");
     }
   }
 
@@ -621,7 +674,7 @@
     }
   }
 
-  function setAiSourceImage(dataUrl, infoText = "") {
+  function setAiSourceImage(dataUrl, infoText = "", i18nKey = "") {
     state.aiImageBase64 = dataUrl;
     const prev = $("gifAiSourcePreview");
     const ph = $("gifAiDropPlaceholder");
@@ -633,7 +686,15 @@
     }
     if (ph) ph.style.display = dataUrl ? "none" : "";
     if (btnClr) btnClr.style.display = dataUrl ? "" : "none";
-    if (info) info.textContent = infoText;
+    if (info) {
+      if (i18nKey) {
+        info.dataset.i18nKey = i18nKey;
+        info.textContent = gt(i18nKey);
+      } else {
+        delete info.dataset.i18nKey;
+        info.textContent = infoText;
+      }
+    }
   }
 
   function readFileAsDataUrl(file, cb) {
@@ -644,7 +705,7 @@
 
   async function startAiGifGeneration() {
     if (!state.aiImageBase64) {
-      notify("Bitte zuerst ein Ausgangsbild wählen.", "warn");
+      notify(gt("msg_need_img"), "warn");
       return;
     }
     const resMap = {
@@ -674,10 +735,11 @@
 
     const res = await apiPost("/api/gif/ai/generate", payload);
     if (!res.ok) {
-      notify(res.error || "Start fehlgeschlagen", "error");
+      notify(res.error || gt("err_start_failed"), "error");
       return;
     }
 
+    if ($("gifAiProgressText")) $("gifAiProgressText").textContent = gt("ai_generating");
     if ($("gifAiProgressBox")) $("gifAiProgressBox").style.display = "block";
     if ($("gifAiResultBox")) $("gifAiResultBox").style.display = "none";
     if ($("btnGifAiGenerate")) $("btnGifAiGenerate").disabled = true;
@@ -690,7 +752,7 @@
   async function pollAiGifProgress() {
     try {
       const st = await apiGet("/api/gif/ai/progress");
-      if ($("gifAiProgressText")) $("gifAiProgressText").textContent = st.status_text || "Arbeite...";
+      if ($("gifAiProgressText")) $("gifAiProgressText").textContent = st.status_text || gt("ai_working");
       if ($("gifAiProgressPct")) $("gifAiProgressPct").textContent = `${st.progress || 0}%`;
       if ($("gifAiProgressBar")) $("gifAiProgressBar").style.width = `${st.progress || 0}%`;
 
@@ -705,7 +767,7 @@
           state.aiResultGif = st.current_gif;
           if ($("gifAiResultImg")) $("gifAiResultImg").src = st.current_gif.url;
           if ($("gifAiResultBox")) $("gifAiResultBox").style.display = "flex";
-          notify("Discord-GIF erfolgreich generiert!", "success");
+          notify(gt("msg_gif_done"), "success");
           await loadLocalGifs();
         }
       }
@@ -751,7 +813,7 @@
         await apiPost("/api/gif/settings", { gif_dir: res.path });
         await loadGifSettings();
         await loadLocalGifs();
-        notify("GIF-Ordner aktualisiert", "success");
+        notify(gt("msg_folder_upd"), "success");
       }
     });
 
@@ -788,7 +850,7 @@
     $("btnGifSave")?.addEventListener("click", async () => {
       const url = ($("gifInputUrl")?.value || "").trim();
       if (!state.pendingFileBase64 && !url) {
-        notify("Bitte eine GIF-Datei oder URL angeben.", "warn");
+        notify(gt("msg_need_file_url"), "warn");
         return;
       }
       const res = await apiPost("/api/gif/add", {
@@ -799,11 +861,11 @@
       });
       if (res.ok) {
         state.pendingFileBase64 = null;
-        if ($("gifDropPrompt")) $("gifDropPrompt").textContent = "📁 GIF hierher ziehen oder klicken";
+        if ($("gifDropPrompt")) $("gifDropPrompt").textContent = gt("drop_gif");
         if ($("gifInputUrl")) $("gifInputUrl").value = "";
         if ($("gifInputTitle")) $("gifInputTitle").value = "";
         if ($("gifInputTags")) $("gifInputTags").value = "";
-        notify("GIF gespeichert!", "success");
+        notify(gt("msg_gif_saved"), "success");
         await loadLocalGifs();
       }
     });
@@ -907,7 +969,7 @@
       const imgEl = (mainImg && mainImg.style.display !== "none" && mainImg.src) ? mainImg : cmpImg;
       const src = imgEl?.src;
       if (!src) {
-        notify("Kein Bild im Viewer ausgewählt.", "warn");
+        notify(gt("msg_no_viewer_img"), "warn");
         return;
       }
       try {
@@ -918,12 +980,12 @@
           switchStudioModule("gif");
           await initGifModule();
           switchGifSource("ai");
-          setAiSourceImage(e.target.result, "Übernommen aus Bilder-Studio");
-          notify("Bild an DiscordGIF AI-Studio übergeben!", "success");
+          setAiSourceImage(e.target.result, "", "adopted_label");
+          notify(gt("msg_adopted"), "success");
         };
         reader.readAsDataURL(blob);
       } catch (_) {
-        notify("Bild konnte nicht übernommen werden.", "error");
+        notify(gt("err_adopt_img"), "error");
       }
     });
 
@@ -933,7 +995,7 @@
       const imgEl = (mainImg && mainImg.style.display !== "none" && mainImg.src) ? mainImg : cmpImg;
       const src = imgEl?.src;
       if (!src) {
-        notify("Kein Bild im Viewer ausgewählt.", "warn");
+        notify(gt("msg_no_viewer_img"), "warn");
         return;
       }
       if (typeof window.sendImageToVideoMaker === "function") {

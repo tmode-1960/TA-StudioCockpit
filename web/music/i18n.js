@@ -99,6 +99,12 @@ const I18N = {
     f_key: "Key", f_meter: "Time Signature", f_length: "Length", f_vocals: "Vocals", f_language: "Language",
     f_voice: "Voice", f_theme: "Theme / Lyric Idea", f_lyrics_from: "Lyrics Source", f_lyrics: "Lyrics Idea or Text", f_arrangement: "Arrangement (experimental)",
     btnRefillTemplate: "📋 Refill from Template", templateApplied: "Template values applied: {name}",
+    selectTemplateFirst: "Please select a template first.",
+    embeddedSettingsTitle: "MusicMaker Settings",
+    lyricsOwnPh: "[Verse 1]\nYour own lyrics...\n\n[Chorus]\nYour chorus...",
+    lyricsIdeaPh: "Idea for the lyrics (will be expanded by the writer)...",
+    audioRangeFull: "Full",
+    deleteErrorPrefix: "Error deleting: ",
     creativity_steady: "steady", creativity_restrained: "restrained", creativity_balanced: "balanced",
     creativity_varied: "varied", creativity_experimental: "experimental", creativity_adventurous: "adventurous",
     creativity_default: "default", creativity_ref: "reference",
@@ -304,10 +310,10 @@ const I18N = {
     tabSheet: "Songtext", tabMastering: "Mastering & Refine", tabPlayer: "Player", tabResult: "Ergebnis", tabHistory: "Verlauf", songSheet: "Song Sheet",
     playerSelectPrompt: "Wähle einen Song aus dem Verlauf oder rendere einen neuen Song, um ihn hier abzuspielen.", openInPlayer: "▶ Im Player abspielen", playerPickSong: "Song wählen:",
     title: "Titel", style: "Stil (Style-Prompt für YuE2)", lyrics: "Songtext", coverPrompt: "Cover-Prompt",
-    stateAuto: "auto", stateManual: "manual",
+    stateAuto: "auto", stateManual: "manuell",
     backToAuto: "Zurück auf Auto", makeManual: "Manuell setzen", useOwnLyrics: "Eigenen Text nutzen",
     sectionTags: "Abschnitts-Tags (das Modell singt Abschnitt für Abschnitt):",
-    sheetHint: "Felder auf „auto“ werden vom Modell geschrieben; „manual“ behält deinen eigenen Text fest bei.",
+    sheetHint: "Felder auf „auto“ werden vom Modell geschrieben; „manuell“ behält deinen eigenen Text fest bei.",
     batch: "Serie", batchHint: "Jeder Durchlauf schreibt einen neuen Song aus dem Briefing und rendert ihn ohne Unterbrechung.",
     songCount: "Anzahl Songs", btnDraft: "✍ Entwurf schreiben", btnRender: "🎵 Song rendern", btnAuto: "🎵 Serie starten",
     noResult: "Noch kein Ergebnis in dieser Sitzung.", cancel: "Abbrechen", save: "Speichern",
@@ -317,13 +323,19 @@ const I18N = {
     cfgVoiceModelsDir: "Voice-Models Ordner (optional)", cfgVoiceModelsDirPh: "z. B. C:\\RVC\\models (leer lassen für Applio-Standard)",
     fixComfyAsr: "🔧 ComfyUI Textprüfung (ASR) reparieren", fixComfyAsrRunning: "Aktualisiere ComfyUI transformers…", fixComfyAsrErr: "Fehler beim Reparieren: ",
     savedFileTitle: "✅ Datei gespeichert", savedFileOpen: "▶ Datei öffnen", savedFileReveal: "📂 Im Ordner anzeigen", close: "Schließen",
-    changelogTitle: "Changelog / Versionshistorie", changelogEmpty: "Keine Changelog-Einträge gefunden.", creditsTitle: "Copyright & Danksagung", creditsText: "I would like to thank CodexMundi for their support and for testing the app.", creditsPlenio: "Basiert auf dem Plenio Music Production System:",
+    changelogTitle: "Changelog / Versionshistorie", changelogEmpty: "Keine Changelog-Einträge gefunden.", creditsTitle: "Copyright & Danksagung", creditsText: "Ich danke CodexMundi für die Unterstützung und das Testen der App.", creditsPlenio: "Basiert auf dem Plenio Music Production System:",
     cfgLang: "Sprache", cfgTheme: "Erscheinungsbild", themeDark: "Dunkel (Standard)", themeLight: "Hell",
     resetBrief: "↺ Zurücksetzen", confirmResetBrief: "Song-Briefing auf die Standardwerte zurücksetzen?", briefResetDone: "Song-Briefing auf Standardwerte zurückgesetzt.",
     templateSearchPlaceholder: "Vorlage suchen oder eingeben…", noTemplateMatch: "Keine passende Vorlage gefunden", f_template: "Vorlage", f_description: "Beschreibung", f_genre: "Genre", f_mood: "Stimmung", f_tempo: "Tempo (BPM)",
     f_key: "Tonart", f_meter: "Takt", f_length: "Länge", f_vocals: "Gesang", f_language: "Sprache",
     f_voice: "Stimme", f_theme: "Thema / Textidee", f_lyrics_from: "Songtext-Quelle", f_lyrics: "Songtext-Idee oder Text", f_arrangement: "Arrangement (experimentell)",
     btnRefillTemplate: "📋 Vorlage anwenden", templateApplied: "Vorlage-Werte übernommen: {name}",
+    selectTemplateFirst: "Bitte zuerst eine Vorlage auswählen.",
+    embeddedSettingsTitle: "MusicMaker-Einstellungen",
+    lyricsOwnPh: "[Verse 1]\nDein eigener Text...\n\n[Chorus]\nDein Refrain...",
+    lyricsIdeaPh: "Idee für den Text (wird vom Writer ausformuliert)...",
+    audioRangeFull: "Vollständig",
+    deleteErrorPrefix: "Fehler beim Löschen: ",
     creativity_steady: "beständig", creativity_restrained: "zurückhaltend", creativity_balanced: "ausgewogen",
     creativity_varied: "abwechslungsreich", creativity_experimental: "experimentell", creativity_adventurous: "abenteuerlustig",
     creativity_default: "Standard", creativity_ref: "Referenz",
@@ -452,10 +464,11 @@ const I18N = {
   },
 };
 
+window.I18N = I18N;
 let LANG = "en";
 function t(key, vars) {
   let s = (I18N[LANG] && I18N[LANG][key]) ?? I18N.en[key] ?? key;
-  for (const [k, v] of Object.entries(vars || {})) s = s.replace(`{${k}}`, v);
+  for (const [k, v] of Object.entries(vars || {})) s = s.replaceAll(`{${k}}`, v);
   return s;
 }
 function applyI18n() {

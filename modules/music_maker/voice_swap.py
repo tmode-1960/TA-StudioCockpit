@@ -37,7 +37,8 @@ def get_applio_paths() -> dict:
     }
 
 
-def _scan_directory_for_models(base_dir: str) -> list[dict]:
+def _scan_directory_for_models(base_dir: str, lang: str = "en") -> list[dict]:
+    epoch_label = "Epochen" if str(lang or "en").lower().startswith("de") else "epochs"
     if not os.path.isdir(base_dir):
         return []
     models = []
@@ -73,7 +74,7 @@ def _scan_directory_for_models(base_dir: str) -> list[dict]:
         best_index = index_files[0].path if index_files else ""
 
         epochs = _epoch_key(best_pth)
-        display_name = f"{folder_name} ({epochs} Epochen)" if epochs else folder_name
+        display_name = f"{folder_name} ({epochs} {epoch_label})" if epochs else folder_name
 
         seen_ids.add(folder_name.lower())
         models.append({
@@ -105,7 +106,7 @@ def _scan_directory_for_models(base_dir: str) -> list[dict]:
             best_index = index_files[0].path
 
         epochs = _epoch_key(f)
-        display_name = f"{model_name} ({epochs} Epochen)" if epochs else model_name
+        display_name = f"{model_name} ({epochs} {epoch_label})" if epochs else model_name
 
         seen_ids.add(model_name.lower())
         models.append({
@@ -121,7 +122,7 @@ def _scan_directory_for_models(base_dir: str) -> list[dict]:
     return models
 
 
-def list_voice_models(models_dir: str | None = None) -> list[dict]:
+def list_voice_models(models_dir: str | None = None, lang: str = "en") -> list[dict]:
     paths = get_applio_paths()
     custom_dir = os.path.abspath(os.path.expanduser(models_dir.strip())) if models_dir and models_dir.strip() else None
 
@@ -129,7 +130,7 @@ def list_voice_models(models_dir: str | None = None) -> list[dict]:
     seen_ids = set()
 
     if custom_dir and os.path.isdir(custom_dir):
-        for m in _scan_directory_for_models(custom_dir):
+        for m in _scan_directory_for_models(custom_dir, lang=lang):
             if m["id"].lower() not in seen_ids:
                 seen_ids.add(m["id"].lower())
                 models.append(m)
@@ -137,7 +138,7 @@ def list_voice_models(models_dir: str | None = None) -> list[dict]:
     # If no custom directory given, or custom directory has no models, check default Applio logs directory
     default_logs = paths["logs_dir"]
     if not models and os.path.isdir(default_logs):
-        for m in _scan_directory_for_models(default_logs):
+        for m in _scan_directory_for_models(default_logs, lang=lang):
             if m["id"].lower() not in seen_ids:
                 seen_ids.add(m["id"].lower())
                 models.append(m)

@@ -21,9 +21,13 @@ class ComfyError(Exception):
 
 
 class ComfyClient:
-    def __init__(self, base_url: str = "http://127.0.0.1:8188"):
+    def __init__(self, base_url: str = "http://127.0.0.1:8188", lang: str = "en"):
         self.base_url = base_url.rstrip("/")
         self.client_id = uuid.uuid4().hex
+        self.lang = str(lang or "en").lower()
+
+    def _tr(self, en: str, de: str) -> str:
+        return de if self.lang.startswith("de") else en
 
     # ------------------------------------------------------------------ HTTP
 
@@ -44,9 +48,9 @@ class ComfyClient:
                 detail = json.loads(detail)
             except ValueError:
                 pass
-            raise ComfyError(_format_http_error(err.code, detail)) from err
+            raise ComfyError(_format_http_error(err.code, detail, self.lang)) from err
         except (urllib.error.URLError, socket.timeout, ConnectionError) as err:
-            raise ComfyError(f"ComfyUI is unreachable ({self.base_url}): {err}") from err
+            raise ComfyError(self._tr(f"ComfyUI is unreachable ({self.base_url}): {err}", f"ComfyUI ist nicht erreichbar ({self.base_url}): {err}")) from err
 
     def is_alive(self) -> bool:
         try:
@@ -121,9 +125,9 @@ class ComfyClient:
                 return json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as err:
             detail = err.read().decode("utf-8", "replace")
-            raise ComfyError(f"Plenio upload HTTP {err.code}: {detail}") from err
+            raise ComfyError(self._tr(f"Plenio upload HTTP {err.code}: {detail}", f"Plenio-Upload HTTP {err.code}: {detail}")) from err
         except (urllib.error.URLError, socket.timeout, ConnectionError) as err:
-            raise ComfyError(f"ComfyUI unreachable: {err}") from err
+            raise ComfyError(self._tr(f"ComfyUI unreachable: {err}", f"ComfyUI nicht erreichbar: {err}")) from err
 
     def plenio_v2_create_job(self, job_data: dict) -> dict:
         return self._request("/plenio/api/v2/jobs", data=job_data, timeout=30)
@@ -151,7 +155,7 @@ class ComfyClient:
     def queue_prompt(self, prompt: dict) -> str:
         res = self._request("/prompt", {"prompt": prompt, "client_id": self.client_id}, timeout=30)
         if "prompt_id" not in res:
-            raise ComfyError(f"Unexpected response from ComfyUI: {res}")
+            raise ComfyError(self._tr(f"Unexpected response from ComfyUI: {res}", f"Unerwartete Antwort von ComfyUI: {res}"))
         return res["prompt_id"]
 
     def history(self, prompt_id: str) -> dict:
@@ -185,7 +189,7 @@ class ComfyClient:
                         self.interrupt()
                     except ComfyError:
                         pass
-                    raise ComfyError("Cancelled.")
+                    raise ComfyError(self._tr("Cancelled.", "Abgebrochen."))
                 try:
                     entry = self.history(prompt_id)
                     consecutive_poll_errs = 0
@@ -198,7 +202,7 @@ class ComfyClient:
                 if entry:
                     status = (entry.get("status") or {})
                     if status.get("status_str") == "error":
-                        raise ComfyError(_history_error(status))
+                        raise ComfyError(_history_error(status, self.lang))
                     if status.get("completed") or entry.get("outputs") is not None:
                         return entry
                 time.sleep(0.8)
@@ -206,25 +210,29 @@ class ComfyClient:
             listener.stop()
 
 
-def _format_http_error(code: int, detail) -> str:
+def _format_http_error(code: int, detail, lang: str = "en") -> str:
+    is_de = str(lang or "en").lower().startswith("de")
     if isinstance(detail, dict):
         err = detail.get("error")
         msg = err.get("message") if isinstance(err, dict) else str(err) if err else ""
         extra = err.get("details") if isinstance(err, dict) else ""
-        parts = [f"ComfyUI rejected prompt (HTTP {code}): {msg} {extra}".strip()]
+        prefix = f"ComfyUI hat Prompt abgelehnt (HTTP {code})" if is_de else f"ComfyUI rejected prompt (HTTP {code})"
+        parts = [f"{prefix}: {msg} {extra}".strip()]
         for node_id, info in (detail.get("node_errors") or {}).items():
             for e in info.get("errors", []):
                 parts.append(f"  Node {node_id} ({info.get('class_type')}): {e.get('message')} {e.get('details', '')}")
         return "\n".join(parts)
-    return f"ComfyUI error (HTTP {code}): {detail}"
+    return f"ComfyUI-Fehler (HTTP {code}): {detail}" if is_de else f"ComfyUI error (HTTP {code}): {detail}"
 
 
-def _history_error(status: dict) -> str:
+def _history_error(status: dict, lang: str = "en") -> str:
+    is_de = str(lang or "en").lower().startswith("de")
     for kind, data in status.get("messages", []):
         if kind == "execution_error":
-            return (f"Error in node {data.get('node_id')} ({data.get('node_type')}): "
+            prefix = "Fehler in Node" if is_de else "Error in node"
+            return (f"{prefix} {data.get('node_id')} ({data.get('node_type')}): "
                     f"{data.get('exception_message', '').strip()}")
-    return "Execution failed in ComfyUI."
+    return "Ausführung in ComfyUI fehlgeschlagen." if is_de else "Execution failed in ComfyUI."
 
 
 class _WsListener(threading.Thread):

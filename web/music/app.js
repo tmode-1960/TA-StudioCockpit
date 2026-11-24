@@ -322,6 +322,7 @@ const S = {
   lastDraft: {}, applioAvailable: true, voiceModels: [], templates: {},
 };
 const STORE = "tamusicmaker.v1";
+let parentSyncedLang = null;
 
 function toast(msg, isErr) {
   const tr = $("#toast");
@@ -353,7 +354,7 @@ function buildCombobox(f, val) {
   clearBtn.type = "button";
   clearBtn.className = "combobox-clear";
   clearBtn.innerHTML = "&times;";
-  clearBtn.title = "Löschen";
+  clearBtn.title = t("del");
   clearBtn.tabIndex = -1;
   clearBtn.style.display = input.value ? "inline-flex" : "none";
 
@@ -568,9 +569,9 @@ function updateLyricsPlaceholder() {
   const el = document.querySelector('#briefForm [data-key="vocals.lyrics"]');
   if (!el) return;
   if (fromVal === "my own, sung as written below") {
-    el.placeholder = "[Verse 1]\nDein eigener Text...\n\n[Chorus]\nDein Refrain...";
+    el.placeholder = t("lyricsOwnPh");
   } else {
-    el.placeholder = "Idee für den Text (wird vom Writer ausformuliert)...";
+    el.placeholder = t("lyricsIdeaPh");
   }
 }
 
@@ -1000,7 +1001,7 @@ async function resetBriefing() {
 function restore(fromStartup = false) {
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(STORE) || "{}"); } catch {}
-  if (saved.lang && I18N[saved.lang]) LANG = saved.lang;
+  if (!parentSyncedLang && saved.lang && I18N[saved.lang]) LANG = saved.lang;
   S.brief = { ...(S.defaults?.brief || {}), ...(saved.brief || {}) };
   const ex = { ...(S.defaults?.export || {}), ...(saved.opts?.export || {}) };
   $("#optCover").checked = !!saved.opts?.cover; $("#optStems").checked = !!saved.opts?.stems; $("#optRefine").checked = !!saved.opts?.refine;
@@ -1126,12 +1127,17 @@ function updateLyricCount() {
 function setLanguage(lang) {
   if (!I18N[lang]) return;
   LANG = lang;
+  const cfgLangEl = $("#cfgLang");
+  if (cfgLangEl) cfgLangEl.value = lang;
   applyI18n();
   updateVoiceSwapUI();
   buildForm();
+  updateLyricsPlaceholder();
   refreshDocBadges();
   setMode(S.mode);
   updateLyricCount();
+  if (typeof updateAudioRangeUI === "function" && videoAudioRange.totalDuration > 0) updateAudioRangeUI();
+  loadPresets();
   loadHistory();
   refreshStatus();
   persist();
@@ -1835,11 +1841,14 @@ function mediaInto(parent, media, extra = {}) {
   btnMute.onclick = () => {
     audioEl.muted = !audioEl.muted;
     btnMute.textContent = audioEl.muted ? "🔇" : "🔊";
+    btnMute.title = audioEl.muted ? t("playerUnmute") : t("playerMute");
   };
   volSlider.oninput = () => {
     audioEl.volume = parseFloat(volSlider.value);
     audioEl.muted = false;
-    btnMute.textContent = audioEl.volume === 0 ? "🔇" : "🔊";
+    const isMuted = audioEl.volume === 0;
+    btnMute.textContent = isMuted ? "🔇" : "🔊";
+    btnMute.title = isMuted ? t("playerUnmute") : t("playerMute");
   };
   volBox.append(btnMute, volSlider);
 
@@ -2393,7 +2402,7 @@ function updateAudioRangeUI() {
 
   if (badge) {
     if (isFull) {
-      badge.textContent = `Full (${formatTimeSec(totalDuration)})`;
+      badge.textContent = `${t("audioRangeFull")} (${formatTimeSec(totalDuration)})`;
       badge.style.color = "var(--accent2)";
       badge.style.background = "rgba(51,214,166,0.15)";
     } else {
@@ -2404,7 +2413,7 @@ function updateAudioRangeUI() {
   }
 
   if (infoLbl) {
-    infoLbl.textContent = `${formatTimeSec(start)} - ${formatTimeSec(endSec)} (${isFull ? "Full" : duration.toFixed(1) + "s"})`;
+    infoLbl.textContent = `${formatTimeSec(start)} - ${formatTimeSec(endSec)} (${isFull ? t("audioRangeFull") : duration.toFixed(1) + "s"})`;
   }
 
   if (inpStart && document.activeElement !== inpStart) {
@@ -3609,7 +3618,7 @@ async function loadHistory() {
         await loadHistory();
         toast(t("songDeleted") || "Song und Dateien von der Festplatte gelöscht.");
       } catch (err) {
-        toast("Fehler beim Löschen: " + (err.message || err), true);
+        toast(t("deleteErrorPrefix") + (err.message || err), true);
       }
     };
     row.append(btnPlayInTab, load, btnNewTake, del); item.append(row); wrap.append(item);
@@ -3656,9 +3665,10 @@ async function loadSongIntoPlayer(songData) {
       const tStr = h.title && h.title !== "(automatisch)" && h.title !== "(automatic)" ? h.title : (h.auto ? t("automatic") : t("untitled"));
       const d = new Date(h.ts * 1000);
       const isToday = d.toDateString() === new Date().toDateString();
+      const locale = LANG === "de" ? "de-DE" : "en-US";
       const dStr = isToday
-        ? d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-        : `${d.toLocaleDateString([], { day: "2-digit", month: "2-digit" })} ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+        ? d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })
+        : `${d.toLocaleDateString(locale, { day: "2-digit", month: "2-digit" })} ${d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}`;
       opt.textContent = `${tStr} (${dStr})`;
       if (h.id === songData.id) opt.selected = true;
       sel.append(opt);
@@ -3696,9 +3706,10 @@ async function ensurePlayerTabLoaded() {
       const tStr = h.title && h.title !== "(automatisch)" && h.title !== "(automatic)" ? h.title : (h.auto ? t("automatic") : t("untitled"));
       const d = new Date(h.ts * 1000);
       const isToday = d.toDateString() === new Date().toDateString();
+      const locale = LANG === "de" ? "de-DE" : "en-US";
       const dStr = isToday
-        ? d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-        : `${d.toLocaleDateString([], { day: "2-digit", month: "2-digit" })} ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+        ? d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })
+        : `${d.toLocaleDateString(locale, { day: "2-digit", month: "2-digit" })} ${d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}`;
       opt.textContent = `${tStr} (${dStr})`;
       if (h.id === currentVal) opt.selected = true;
       sel.append(opt);
@@ -3955,8 +3966,13 @@ async function init() {
   try {
     const savedTheme = localStorage.getItem("tamusicmaker.theme") || "dark";
     applyTheme(savedTheme);
+    const studioLang = localStorage.getItem("tAStudio.language");
+    if (studioLang && I18N[studioLang]) {
+      parentSyncedLang = studioLang;
+      LANG = studioLang;
+    }
     const c = await api("/api/music/config");
-    if (c.language && I18N[c.language]) LANG = c.language;
+    if (!parentSyncedLang && c.language && I18N[c.language]) LANG = c.language;
     if (c.theme) applyTheme(c.theme);
   } catch {}
   try {
@@ -4075,7 +4091,7 @@ async function init() {
     if (S.brief.template && S.brief.template !== "none") {
       applyTemplateValues(S.brief.template, true);
     } else {
-      toast(t("noTemplateMatch") || "Bitte zuerst eine Vorlage auswählen.");
+      toast(t("selectTemplateFirst"));
     }
   });
   api("/api/music/templates").then((res) => {
@@ -4364,9 +4380,9 @@ init();
     } else {
       root.style.removeProperty("--accent");
     }
-    if (d.lang && typeof setLang === "function" && window.I18N && I18N[d.lang]) {
-      setLang(d.lang);
-      if (typeof renderBrief === "function") renderBrief();
+    if (d.lang && I18N[d.lang]) {
+      parentSyncedLang = d.lang;
+      if (LANG !== d.lang) setLanguage(d.lang);
     }
   });
 })();

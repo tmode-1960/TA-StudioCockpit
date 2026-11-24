@@ -220,6 +220,8 @@ def config() -> dict:
             scfg = _GET_STUDIO_CONFIG() or {}
             if scfg.get("comfy_url"):
                 STATE["config"]["comfy_url"] = scfg["comfy_url"]
+            if scfg.get("language"):
+                STATE["config"]["language"] = scfg["language"]
             if scfg.get("comfy_launch_cmd") and not STATE["config"].get("comfy_start_command"):
                 STATE["config"]["comfy_start_command"] = scfg["comfy_launch_cmd"]
         except Exception:
@@ -232,7 +234,7 @@ def _tr(en: str, de: str) -> str:
 
 
 def client() -> ComfyClient:
-    return ComfyClient(config()["comfy_url"])
+    return ComfyClient(config()["comfy_url"], lang=config().get("language", "en"))
 
 
 def workflow_path() -> str:
@@ -804,7 +806,7 @@ def _download_missing_model(model_info: dict[str, str], job: dict) -> str:
             with open(part_path, "wb") as f:
                 while True:
                     if job.get("cancel"):
-                        raise ComfyError("Cancelled.")
+                        raise ComfyError(_tr("Cancelled.", "Abgebrochen."))
                     chunk = resp.read(256 * 1024)
                     if not chunk:
                         break
@@ -1838,7 +1840,7 @@ def start_plenio_v2_job(req: dict) -> dict:
             v2_job = client().plenio_v2_create_job(payload)
             v2_id = v2_job.get("id")
             if not v2_id:
-                raise ComfyError(f"Plenio v2 did not return job id: {v2_job}")
+                raise ComfyError(_tr(f"Plenio v2 did not return job id: {v2_job}", f"Plenio v2 hat keine Job-ID zurückgegeben: {v2_job}"))
 
             while True:
                 if job.get("cancel"):
@@ -1861,7 +1863,7 @@ def start_plenio_v2_job(req: dict) -> dict:
                     if st == "cancelled":
                         job["status"] = "cancelled"
                         return
-                    raise ComfyError(msg or f"Plenio v2 job {st}")
+                    raise ComfyError(msg or _tr(f"Plenio v2 job {st}", f"Plenio v2 Job {st}"))
                 time.sleep(1.5)
 
             os.makedirs(RENDERS_DIR, exist_ok=True)
@@ -2656,7 +2658,7 @@ class _MusicHandlerProxy:
                 models_dir = config().get("voice_models_dir")
                 return self._json({
                     "available": voice_swap.get_applio_paths()["available"],
-                    "models": voice_swap.list_voice_models(models_dir),
+                    "models": voice_swap.list_voice_models(models_dir, lang=config().get("language", "en")),
                 })
             if path == "/api/plenio/models":
                 return self._json(self._plenio_models())
@@ -2753,13 +2755,13 @@ class _MusicHandlerProxy:
             if path == "/api/reveal_file":
                 fpath = str(body.get("path") or "").strip()
                 if not fpath or not os.path.exists(fpath):
-                    return self._json({"ok": False, "error": "File not found"})
+                    return self._json({"ok": False, "error": _tr("File not found", "Datei nicht gefunden")})
                 subprocess.Popen(["explorer", "/select,", os.path.normpath(fpath)])
                 return self._json({"ok": True})
             if path == "/api/open_file":
                 fpath = str(body.get("path") or "").strip()
                 if not fpath or not os.path.isfile(fpath):
-                    return self._json({"ok": False, "error": "File not found"})
+                    return self._json({"ok": False, "error": _tr("File not found", "Datei nicht gefunden")})
                 os.startfile(os.path.normpath(fpath))  # type: ignore[attr-defined]
                 return self._json({"ok": True})
             if path == "/api/plenio_player/launch":
@@ -3261,8 +3263,8 @@ class _MusicHandlerProxy:
             ps_script = (
                 "Add-Type -AssemblyName System.Windows.Forms; "
                 "$d = New-Object System.Windows.Forms.OpenFileDialog; "
-                "$d.Title = 'ComfyUI Start-Skript auswählen'; "
-                "$d.Filter = 'Start-Skripte (*.bat;*.cmd;*.exe;*.sh)|*.bat;*.cmd;*.exe;*.sh|Alle Dateien (*.*)|*.*'; "
+                f"$d.Title = '{_tr('Select ComfyUI start script', 'ComfyUI Start-Skript auswählen')}'; "
+                f"$d.Filter = '{_tr('Start scripts (*.bat;*.cmd;*.exe;*.sh)|*.bat;*.cmd;*.exe;*.sh|All files (*.*)|*.*', 'Start-Skripte (*.bat;*.cmd;*.exe;*.sh)|*.bat;*.cmd;*.exe;*.sh|Alle Dateien (*.*)|*.*')}'; "
                 "if ($env:TA_INIT_DIR -and (Test-Path -LiteralPath $env:TA_INIT_DIR)) { $d.InitialDirectory = $env:TA_INIT_DIR; } "
                 "if ($d.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Output $d.FileName }"
             )
@@ -3540,7 +3542,7 @@ class _MusicHandlerProxy:
                             cand_path = os.path.join(cand_dir, rf)
                             if os.path.isfile(cand_path):
                                 return self._stream_local_file(cand_path, rf, query)
-            return self._fail("File not found locally or in ComfyUI", 404)
+            return self._fail(_tr("File not found locally or in ComfyUI", "Datei weder lokal noch in ComfyUI gefunden"), 404)
         self.end_headers()
         self.wfile.write(data)
 

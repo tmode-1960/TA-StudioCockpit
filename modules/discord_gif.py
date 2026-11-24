@@ -292,7 +292,7 @@ def create_starter_gifs() -> None:
         from PIL import Image, ImageDraw
 
         starter_defs = [
-            ("Lachender Smiley", ["lachen", "funny", "lol", "happy"], (255, 184, 77)),
+            (_srv_t("Lachender Smiley", "Laughing Smiley"), ["lachen", "funny", "lol", "happy"], (255, 184, 77)),
             ("Thumbs Up!", ["super", "yes", "top", "nice"], (51, 214, 166)),
             ("Party Hype", ["party", "dance", "hype", "feier"], (139, 92, 246)),
             ("Mind Blown", ["wow", "boom", "mindblown"], (255, 93, 108)),
@@ -335,7 +335,7 @@ def fetch_tenor_gifs(query: str = "", limit: int = 36) -> list[dict]:
     api_key = cfg.get("tenor_api_key", "").strip()
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36",
-        "Accept-Language": "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Accept-Language": _srv_t("de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7", "en-US,en;q=0.9,de;q=0.7"),
     }
     ssl_ctx = _get_ssl_context()
 
@@ -545,11 +545,11 @@ def get_active_library() -> list[dict]:
     return saved_lib
 
 
-def select_folder_dialog(initial_dir: str = "", title: str = "Ordner auswählen") -> str | None:
+def select_folder_dialog(initial_dir: str = "", title: str = "") -> str | None:
     if sys.platform != "win32":
         return None
     env = os.environ.copy()
-    env["TA_DIALOG_TITLE"] = str(title or "Ordner auswählen")
+    env["TA_DIALOG_TITLE"] = str(title or _srv_t("Ordner auswählen", "Select folder"))
     env["TA_DIALOG_INIT"] = initial_dir if (initial_dir and os.path.isdir(initial_dir)) else ""
     ps_script = """
     [System.Reflection.Assembly]::LoadWithPartialName('System.windows.forms') | Out-Null
@@ -999,7 +999,7 @@ def _format_comfy_validation_error(err_body: str) -> str:
     try:
         data = json.loads(err_body)
     except Exception:
-        return f"ComfyUI Fehler: {err_body}"
+        return _srv_t(f"ComfyUI-Fehler: {err_body}", f"ComfyUI error: {err_body}")
 
     node_errors = data.get("node_errors") or {}
     missing_items = []
@@ -1029,7 +1029,7 @@ def _format_comfy_validation_error(err_body: str) -> str:
             f"ComfyUI validation error:\n{lines}",
         )
     err_msg = (data.get("error") or {}).get("message")
-    return f"ComfyUI Fehler: {err_msg}" if err_msg else f"ComfyUI Fehler: {err_body}"
+    return _srv_t(f"ComfyUI-Fehler: {err_msg}", f"ComfyUI error: {err_msg}") if err_msg else _srv_t(f"ComfyUI-Fehler: {err_body}", f"ComfyUI error: {err_body}")
 
 
 def comfy_queue_prompt(comfy_url: str, workflow_dict: dict, client_id: str) -> str:
@@ -1068,11 +1068,11 @@ def compile_frames_to_gif_pillow(
     try:
         from PIL import Image
     except Exception as ex:
-        return False, f"Pillow import error: {ex}"
+        return False, _srv_t(f"Pillow-Importfehler: {ex}", f"Pillow import error: {ex}")
 
     frame_files = sorted(f for f in os.listdir(frames_dir) if f.lower().startswith("frame_") and f.lower().endswith(".png"))
     if not frame_files:
-        return False, "No PNG frames found."
+        return False, _srv_t("Keine PNG-Frames gefunden.", "No PNG frames found.")
     try:
         loaded = []
         resample = Image.Resampling.LANCZOS if hasattr(Image, "Resampling") else Image.LANCZOS
@@ -1096,9 +1096,9 @@ def compile_frames_to_gif_pillow(
         ]
         quantized[0].save(output_path, save_all=True, append_images=quantized[1:], duration=duration_ms, loop=0, optimize=True)
         ok = os.path.isfile(output_path) and os.path.getsize(output_path) > 0
-        return ok, "" if ok else "Pillow wrote empty GIF."
+        return ok, "" if ok else _srv_t("Pillow hat ein leeres GIF geschrieben.", "Pillow wrote empty GIF.")
     except Exception as ex:
-        return False, f"Pillow GIF error: {ex}"
+        return False, _srv_t(f"Pillow-GIF-Fehler: {ex}", f"Pillow GIF error: {ex}")
 
 
 def compile_frames_to_gif(
@@ -1119,11 +1119,11 @@ def compile_frames_to_gif(
             proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=60, creationflags=_NO_WINDOW_FLAGS)
             if proc.returncode == 0 and os.path.isfile(output_path) and os.path.getsize(output_path) > 0:
                 return True, ""
-            ffmpeg_err = (proc.stderr or "").strip().splitlines()[-1] if proc.stderr else f"exit code {proc.returncode}"
+            ffmpeg_err = (proc.stderr or "").strip().splitlines()[-1] if proc.stderr else _srv_t(f"Exit-Code {proc.returncode}", f"exit code {proc.returncode}")
         except Exception as ex:
             ffmpeg_err = str(ex)
     else:
-        ffmpeg_err = "FFmpeg not found"
+        ffmpeg_err = _srv_t("FFmpeg nicht gefunden", "FFmpeg not found")
 
     pil_ok, pil_err = compile_frames_to_gif_pillow(frames_dir, output_path, fps=fps, scale_width=scale_width, pingpong=pingpong, reverse=reverse)
     if pil_ok:
@@ -1247,7 +1247,7 @@ def _run_ai_generation_thread(params: dict) -> None:
         workflow_id = params.get("workflow_id") or cfg.get("ai_workflow") or "minimax_h3"
         workflow_path = os.path.join(WORKFLOWS_DIR, f"{workflow_id}.json")
         if not os.path.isfile(workflow_path):
-            raise FileNotFoundError(f"Workflow '{workflow_id}.json' nicht gefunden.")
+            raise FileNotFoundError(_srv_t(f"Workflow '{workflow_id}.json' nicht gefunden.", f"Workflow '{workflow_id}.json' not found."))
 
         comfy_status = check_comfyui_status(comfy_url)
         if not comfy_status.get("online"):
@@ -1409,7 +1409,7 @@ def _run_ai_generation_thread(params: dict) -> None:
 
         prompt_id = comfy_queue_prompt(comfy_url, wf_dict, client_id)
         if not prompt_id:
-            raise RuntimeError("ComfyUI hat keine Prompt-ID zurückgegeben.")
+            raise RuntimeError(_srv_t("ComfyUI hat keine Prompt-ID zurückgegeben.", "ComfyUI did not return a prompt ID."))
 
         with AI_STATE_LOCK:
             AI_STATE["prompt_id"] = prompt_id
@@ -1444,7 +1444,7 @@ def _run_ai_generation_thread(params: dict) -> None:
             time.sleep(0.8)
 
         if not output_images:
-            raise RuntimeError("ComfyUI hat keine gerenderten Bilder ausgegeben.")
+            raise RuntimeError(_srv_t("ComfyUI hat keine gerenderten Bilder ausgegeben.", "ComfyUI did not output any rendered images."))
 
         with AI_STATE_LOCK:
             AI_STATE["progress"] = 88
@@ -1476,7 +1476,7 @@ def _run_ai_generation_thread(params: dict) -> None:
 
         with AI_STATE_LOCK:
             AI_STATE["progress"] = 93
-            AI_STATE["status_text"] = _srv_t("Optimiere Discord-GIF (FFmpeg Palette)...", "Optimizing Discord GIF...")
+            AI_STATE["status_text"] = _srv_t("Optimiere Discord-GIF (FFmpeg Palette)...", "Optimizing Discord GIF (FFmpeg palette)...")
 
         custom_dir = cfg.get("gif_dir", "").strip()
         target_base = custom_dir if custom_dir and os.path.isdir(custom_dir) else GIFS_DIR
@@ -1502,7 +1502,7 @@ def _run_ai_generation_thread(params: dict) -> None:
             temp_frames_dir, final_gif_path, fps=fps, scale_width=scale_width, pingpong=pingpong, reverse=reverse
         )
         if not compile_ok:
-            raise RuntimeError(f"GIF-Erstellung fehlgeschlagen ({compile_err}).")
+            raise RuntimeError(_srv_t(f"GIF-Erstellung fehlgeschlagen ({compile_err}).", f"GIF creation failed ({compile_err})."))
 
         base_no_ext = os.path.splitext(final_gif_path)[0]
         try:
@@ -1573,7 +1573,7 @@ def _run_ai_generation_thread(params: dict) -> None:
         with AI_STATE_LOCK:
             AI_STATE["busy"] = False
             AI_STATE["error"] = str(ex)
-            AI_STATE["status_text"] = f"Fehler: {ex}"
+            AI_STATE["status_text"] = _srv_t(f"Fehler: {ex}", f"Error: {ex}")
     finally:
         if temp_frames_dir and os.path.isdir(temp_frames_dir):
             shutil.rmtree(temp_frames_dir, ignore_errors=True)
@@ -1592,7 +1592,7 @@ def _run_model_download_thread(model_url: str, dest_dir: str, custom_filename: s
                 "error": None,
             })
         if not _is_http_url(model_url):
-            raise ValueError("Ungültige Download-URL (nur http/https erlaubt).")
+            raise ValueError(_srv_t("Ungültige Download-URL (nur http/https erlaubt).", "Invalid download URL (only http/https allowed)."))
         filename = custom_filename or os.path.basename(urllib.parse.urlparse(model_url).path)
         os.makedirs(dest_dir, exist_ok=True)
         dest_file = os.path.join(dest_dir, filename)
@@ -1634,7 +1634,7 @@ def _run_model_download_thread(model_url: str, dest_dir: str, custom_filename: s
             })
     except Exception as ex:
         with DOWNLOAD_STATE_LOCK:
-            DOWNLOAD_STATE.update({"downloading": False, "error": str(ex), "status_text": f"Fehler: {ex}"})
+            DOWNLOAD_STATE.update({"downloading": False, "error": str(ex), "status_text": _srv_t(f"Fehler: {ex}", f"Error: {ex}")})
 
 
 # ---------------------------------------------------------------------------
@@ -1737,11 +1737,11 @@ def handle_get(handler, path: str, parsed) -> bool:
         gid = urllib.parse.parse_qs(parsed.query).get("id", [""])[0]
         item = CUSTOM_GIF_INDEX.get(gid) or next((x for x in load_library() if x.get("id") == gid), None)
         if not item:
-            handler.send_json({"ok": False, "error": "GIF nicht gefunden"})
+            handler.send_json({"ok": False, "error": _srv_t("GIF nicht gefunden", "GIF not found")})
             return True
         abs_path = item.get("abs_path") or (os.path.join(GIFS_DIR, item["filename"]) if item.get("filename") else "")
         if not abs_path or not os.path.isfile(abs_path):
-            handler.send_json({"ok": False, "error": "GIF-Datei nicht gefunden"})
+            handler.send_json({"ok": False, "error": _srv_t("GIF-Datei nicht gefunden", "GIF file not found")})
             return True
         base_no_ext = os.path.splitext(abs_path)[0]
         source_path = base_no_ext + ".source.png"
@@ -1803,15 +1803,15 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
         folder_type = body.get("folder_type", "checkpoints").strip()
         custom_filename = body.get("filename", "").strip()
         if not model_url:
-            handler.send_json({"ok": False, "error": "Keine Download-URL angegeben"}, status=400)
+            handler.send_json({"ok": False, "error": _srv_t("Keine Download-URL angegeben", "No download URL specified")}, status=400)
             return True
         dest_dir = get_comfy_model_folder(folder_type)
         if not dest_dir:
-            handler.send_json({"ok": False, "error": "ComfyUI-Ordner konnte nicht gefunden werden."}, status=400)
+            handler.send_json({"ok": False, "error": _srv_t("ComfyUI-Ordner konnte nicht gefunden werden.", "Could not find the ComfyUI folder.")}, status=400)
             return True
         with DOWNLOAD_STATE_LOCK:
             if DOWNLOAD_STATE["downloading"]:
-                handler.send_json({"ok": False, "error": "Download läuft bereits."}, status=400)
+                handler.send_json({"ok": False, "error": _srv_t("Download läuft bereits.", "Download is already in progress.")}, status=400)
                 return True
         threading.Thread(target=_run_model_download_thread, args=(model_url, dest_dir, custom_filename), daemon=True).start()
         handler.send_json({"ok": True, "dest_dir": dest_dir})
@@ -1824,7 +1824,7 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
         return True
 
     if path == "/api/gif/add":
-        title = body.get("title", "").strip() or "Neues GIF"
+        title = body.get("title", "").strip() or _srv_t("Neues GIF", "New GIF")
         tags_raw = body.get("tags", "")
         tags = [t.strip().lower() for t in tags_raw.split(",") if t.strip()] if isinstance(tags_raw, str) else tags_raw
         url = body.get("url", "").strip()
@@ -1918,7 +1918,7 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
                 CUSTOM_GIF_INDEX.pop(gid, None)
                 handler.send_json({"ok": True})
             else:
-                handler.send_json({"ok": False, "error": "GIF not found"}, status=404)
+                handler.send_json({"ok": False, "error": _srv_t("GIF nicht gefunden", "GIF not found")}, status=404)
         return True
 
     if path == "/api/gif/tenor/download":
@@ -1926,10 +1926,10 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
         title = body.get("title", "").strip() or "Discord_GIF"
         subfolder = body.get("subfolder", "").strip()
         if not url:
-            handler.send_json({"ok": False, "error": "Keine URL angegeben"}, status=400)
+            handler.send_json({"ok": False, "error": _srv_t("Keine URL angegeben", "No URL provided")}, status=400)
             return True
         if not _is_http_url(url):
-            handler.send_json({"ok": False, "error": "Ungültige URL (nur http/https erlaubt)."}, status=400)
+            handler.send_json({"ok": False, "error": _srv_t("Ungültige URL (nur http/https erlaubt).", "Invalid URL (only http/https allowed).")}, status=400)
             return True
         cfg = load_config()
         target_base = cfg.get("gif_dir", "").strip()
@@ -1938,7 +1938,7 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
         clean_sub = subfolder.lstrip("/\\") or "Downloads"
         dest_dir = os.path.normpath(os.path.join(target_base, clean_sub))
         if not _is_path_within(target_base, dest_dir):
-            handler.send_json({"ok": False, "error": "Ungültiger Unterordner."}, status=400)
+            handler.send_json({"ok": False, "error": _srv_t("Ungültiger Unterordner.", "Invalid subfolder.")}, status=400)
             return True
         os.makedirs(dest_dir, exist_ok=True)
         safe_title = re.sub(r'[\\/*?:"<>|]+', "", title).strip().replace(" ", "_") or "GIF"
@@ -1950,7 +1950,7 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
                 shutil.copyfileobj(resp, out)
             handler.send_json({"ok": True, "path": dest_file, "filename": filename})
         except Exception as ex:
-            handler.send_json({"ok": False, "error": f"Download fehlgeschlagen: {ex}"}, status=500)
+            handler.send_json({"ok": False, "error": _srv_t(f"Download fehlgeschlagen: {ex}", f"Download failed: {ex}")}, status=500)
         return True
 
     if path == "/api/gif/send":
@@ -1962,7 +1962,7 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
         all_gifs = get_active_library()
         item = next((x for x in all_gifs if x["id"] == gid), None) or CUSTOM_GIF_INDEX.get(gid) or TENOR_CACHE.get(gid)
         if not item:
-            handler.send_json({"ok": False, "error": "GIF not found"}, status=404)
+            handler.send_json({"ok": False, "error": _srv_t("GIF nicht gefunden", "GIF not found")}, status=404)
             return True
 
         with LIBRARY_FILE_LOCK:
@@ -2008,7 +2008,7 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
             copied = copy_file_to_clipboard(local_path)
 
         if not copied:
-            handler.send_json({"ok": False, "error": "Konnte Daten nicht in die Zwischenablage kopieren."}, status=500)
+            handler.send_json({"ok": False, "error": _srv_t("Konnte Daten nicht in die Zwischenablage kopieren.", "Could not copy data to the clipboard.")}, status=500)
             return True
 
         target_hwnd = LAST_TARGET_HWND if (LAST_TARGET_HWND and user32 and user32.IsWindowVisible(LAST_TARGET_HWND)) else find_discord_window()

@@ -6,6 +6,208 @@
 
   const $ = (id) => document.getElementById(id);
 
+  const GAL_I18N = {
+    de: {
+      sidebar_title: "📚 Bibliothek",
+      btn_add_root: "+ Ordner",
+      btn_add_root_title: "Weiteren Ordner einbinden",
+      btn_remove_root_title: "Eingebundenen Ordner entfernen",
+      btn_rescan_title: "Ordner neu scannen",
+      sel_root_title: "Aktiver Root-Ordner",
+      folder_filter_ph: "🔍 Ordner filtern...",
+      scope_all: "🗂️ Alle Medien",
+      scope_fav: "⭐ Favoriten",
+      scope_root: "📄 (Stammordner)",
+      folders_header: "ORDNER",
+      btn_new_folder: "+ Neu",
+      btn_new_folder_title: "Neuen Unterordner anlegen",
+      search_ph: "🔍 Prompt, Modell, Seed oder Dateiname suchen...",
+      fmt_title: "Format",
+      fmt_all: "Alle Formate",
+      fmt_images: "🖼️ Nur Bilder",
+      fmt_videos: "🎬 Nur Videos",
+      sort_title: "Sortierung",
+      sort_newest: "Neueste zuerst",
+      sort_oldest: "Älteste zuerst",
+      sort_name: "Name (A–Z)",
+      mode_masonry: "Masonry",
+      mode_grid: "1:1 Raster",
+      mode_rows: "Explorer-Liste",
+      btn_select_mode: "☑ Auswahl",
+      btn_select_mode_title: "Mehrfachauswahl zum Verschieben / Kopieren / Löschen (oder Strg+Klick)",
+      btn_layout: "🎛️ Layout",
+      btn_layout_title: "Layout- & Design-Regler ein-/ausblenden",
+      batch_count: "{n} ausgewählt",
+      batch_target_title: "Zielordner",
+      batch_move: "📁 Verschieben",
+      batch_copy: "📋 Kopieren",
+      batch_delete: "🗑️ Löschen",
+      batch_clear: "✕ Aufheben",
+      empty_media: "Keine Medien gefunden.",
+      load_more: "Mehr laden…",
+      loading_text: "Bilder werden geladen...",
+      tuning_title: "🎛️ Layout & Geometrie",
+      btn_reset_layout_title: "Layout zurücksetzen",
+      tune_cols: "Spalten",
+      tune_width: "Canvas-Breite",
+      tune_gap: "Abstand",
+      tune_radius: "Eckenradius",
+      tune_hover_info: "Hover-Infos auf Kacheln",
+      lb_prev_title: "Vorheriges Bild (←)",
+      lb_next_title: "Nächstes Bild (→)",
+      lb_close_title: "Schließen (Esc)",
+      lb_apply: "⚡ Parameter ins Cockpit laden",
+      lb_fav: "☆ Favorit",
+      lb_fav_active: "★ Favorit",
+      lb_folder: "📁 Ordner",
+      lb_folder_title: "Im Explorer zeigen",
+      lb_delete_title: "Löschen",
+      lb_model_seed: "Modell / Seed",
+      lb_positive_prompt: "Positiver Prompt",
+      lb_additional_prompt: "Zusatz-Prompt",
+      lb_negative_prompt: "Negativer Prompt",
+      card_apply_title: "Parameter ins Cockpit laden",
+      card_fav_title: "Favorit umschalten",
+      card_select_title: "Auswählen",
+      primary_root_prefix: "ComfyUI-Ausgabe",
+      root_offline: "(offline)",
+      prompt_new_folder: "Name des neuen Unterordners:",
+      confirm_batch_delete: "{n} ausgewählte Datei(en) endgültig von der Festplatte löschen?",
+      confirm_single_delete: '"{name}" endgültig von der Festplatte löschen?',
+    },
+    en: {
+      sidebar_title: "📚 Library",
+      btn_add_root: "+ Folder",
+      btn_add_root_title: "Mount another folder",
+      btn_remove_root_title: "Remove mounted folder",
+      btn_rescan_title: "Rescan folder",
+      sel_root_title: "Active root folder",
+      folder_filter_ph: "🔍 Filter folders...",
+      scope_all: "🗂️ All Media",
+      scope_fav: "⭐ Favorites",
+      scope_root: "📄 (Root)",
+      folders_header: "FOLDERS",
+      btn_new_folder: "+ New",
+      btn_new_folder_title: "Create new subfolder",
+      search_ph: "🔍 Search prompt, model, seed or filename...",
+      fmt_title: "Format",
+      fmt_all: "All Formats",
+      fmt_images: "🖼️ Images only",
+      fmt_videos: "🎬 Videos only",
+      sort_title: "Sort order",
+      sort_newest: "Newest first",
+      sort_oldest: "Oldest first",
+      sort_name: "Name (A–Z)",
+      mode_masonry: "Masonry",
+      mode_grid: "1:1 Grid",
+      mode_rows: "Explorer Rows",
+      btn_select_mode: "☑ Select",
+      btn_select_mode_title: "Multi-select to move / copy / delete (or Ctrl+Click)",
+      btn_layout: "🎛️ Layout",
+      btn_layout_title: "Show/hide layout & design controls",
+      batch_count: "{n} selected",
+      batch_target_title: "Target folder",
+      batch_move: "📁 Move",
+      batch_copy: "📋 Copy",
+      batch_delete: "🗑️ Delete",
+      batch_clear: "✕ Clear",
+      empty_media: "No media found.",
+      load_more: "Load more…",
+      loading_text: "Loading images...",
+      tuning_title: "🎛️ Layout & Geometry",
+      btn_reset_layout_title: "Reset layout",
+      tune_cols: "Columns",
+      tune_width: "Canvas Width",
+      tune_gap: "Card Gap",
+      tune_radius: "Corner Radius",
+      tune_hover_info: "Hover info on cards",
+      lb_prev_title: "Previous image (←)",
+      lb_next_title: "Next image (→)",
+      lb_close_title: "Close (Esc)",
+      lb_apply: "⚡ Load parameters into Cockpit",
+      lb_fav: "☆ Favorite",
+      lb_fav_active: "★ Favorite",
+      lb_folder: "📁 Folder",
+      lb_folder_title: "Show in Explorer",
+      lb_delete_title: "Delete",
+      lb_model_seed: "Model / Seed",
+      lb_positive_prompt: "Positive Prompt",
+      lb_additional_prompt: "Additional Prompt",
+      lb_negative_prompt: "Negative Prompt",
+      card_apply_title: "Load parameters into Cockpit",
+      card_fav_title: "Toggle favorite",
+      card_select_title: "Select",
+      primary_root_prefix: "ComfyUI Output",
+      root_offline: "(offline)",
+      prompt_new_folder: "New subfolder name:",
+      confirm_batch_delete: "Permanently delete {n} selected file(s) from disk?",
+      confirm_single_delete: 'Permanently delete "{name}" from disk?',
+    },
+  };
+
+  function getLang() {
+    if (document.documentElement.lang === "en") return "en";
+    if (document.documentElement.lang === "de") return "de";
+    try {
+      return localStorage.getItem("tAStudio.language") === "en" ? "en" : "de";
+    } catch (_) {
+      return "de";
+    }
+  }
+
+  function gt(key, vars = null) {
+    const lang = getLang();
+    let s = (GAL_I18N[lang] && GAL_I18N[lang][key] !== undefined)
+      ? GAL_I18N[lang][key]
+      : (GAL_I18N.de[key] !== undefined ? GAL_I18N.de[key] : key);
+    if (vars && typeof vars === "object") {
+      for (const [k, v] of Object.entries(vars)) {
+        s = s.replaceAll(`{${k}}`, String(v));
+      }
+    }
+    return s;
+  }
+
+  function applyGalleryLanguage() {
+    document.querySelectorAll("[data-gal-i18n]").forEach((el) => {
+      const key = el.getAttribute("data-gal-i18n");
+      if (key) el.textContent = gt(key);
+    });
+    document.querySelectorAll("[data-gal-i18n-ph]").forEach((el) => {
+      const key = el.getAttribute("data-gal-i18n-ph");
+      if (key) el.placeholder = gt(key);
+    });
+    document.querySelectorAll("[data-gal-i18n-title]").forEach((el) => {
+      const key = el.getAttribute("data-gal-i18n-title");
+      if (key) el.title = gt(key);
+    });
+
+    if ($("galLoadingText")) $("galLoadingText").textContent = gt("loading_text");
+    updateBatchBar();
+    renderBatchTargetFolders();
+    renderRootsSelect();
+
+    document.querySelectorAll("#galGrid .gal-card-apply, #galGrid .gal-row-apply").forEach((btn) => {
+      btn.title = gt("card_apply_title");
+    });
+    document.querySelectorAll("#galGrid .gal-card-fav, #galGrid .gal-row-fav").forEach((btn) => {
+      btn.title = gt("card_fav_title");
+    });
+    document.querySelectorAll("#galGrid .gal-card-select-dot").forEach((btn) => {
+      btn.title = gt("card_select_title");
+    });
+
+    if (state.lbIndex >= 0 && state.items[state.lbIndex]) {
+      const item = state.items[state.lbIndex];
+      updateLightboxFavBtn(item);
+      const metaEl = $("galLbMetaRow");
+      if (metaEl) {
+        const dims = item.width ? `${item.width} × ${item.height} · ` : "";
+        metaEl.textContent = `${dims}${formatBytes(item.size)} · ${formatDate(item.mtime)}`;
+      }
+    }
+  }
+
   const DEFAULT_LAYOUT = {
     mode: "masonry",
     cols: 5,
@@ -45,7 +247,7 @@
     if (show) {
       const txt = $("galLoadingText");
       if (txt) {
-        txt.textContent = getLang() === "en" ? "Loading images..." : "Bilder werden geladen...";
+        txt.textContent = gt("loading_text");
       }
       overlay.classList.remove("is-hidden");
     } else {
@@ -75,10 +277,6 @@
         img.addEventListener("error", onSettle, { once: true });
       });
     });
-  }
-
-  function getLang() {
-    return document.documentElement.lang === "en" ? "en" : "de";
   }
 
   function formatBytes(bytes) {
@@ -175,8 +373,11 @@
     state.roots.forEach((r) => {
       const opt = document.createElement("option");
       opt.value = r.id;
-      opt.textContent = r.primary ? `🏠 ${r.name}` : `📂 ${r.name}`;
-      if (!r.exists) opt.textContent += " (offline)";
+      const displayName = r.primary
+        ? r.name.replace(/^(ComfyUI Output|ComfyUI-Ausgabe)\s*/, `${gt("primary_root_prefix")} `)
+        : r.name;
+      opt.textContent = r.primary ? `🏠 ${displayName}` : `📂 ${displayName}`;
+      if (!r.exists) opt.textContent += ` ${gt("root_offline")}`;
       sel.appendChild(opt);
     });
     if (state.roots.some((r) => r.id === state.root)) {
@@ -197,7 +398,7 @@
     sel.innerHTML = "";
     const rootOpt = document.createElement("option");
     rootOpt.value = "";
-    rootOpt.textContent = "📄 (Root)";
+    rootOpt.textContent = gt("scope_root");
     sel.appendChild(rootOpt);
     state.folders.forEach((f) => {
       const opt = document.createElement("option");
@@ -254,7 +455,7 @@
     const n = state.selectedPaths.size;
     if (bar) bar.hidden = n === 0;
     if (cnt) {
-      cnt.textContent = getLang() === "en" ? `${n} selected` : `${n} ausgewählt`;
+      cnt.textContent = gt("batch_count", { n });
     }
   }
 
@@ -307,7 +508,7 @@
       applyBtn.type = "button";
       applyBtn.className = "gal-card-apply";
       applyBtn.textContent = "⚡";
-      applyBtn.title = getLang() === "en" ? "Load parameters into Cockpit" : "Parameter ins Cockpit laden";
+      applyBtn.title = gt("card_apply_title");
       applyBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         if (item.root === "primary" && typeof window.loadGalleryImageIntoCockpit === "function") {
@@ -323,7 +524,7 @@
     favBtn.type = "button";
     favBtn.className = "gal-card-fav" + (item.favorite ? " is-fav" : "");
     favBtn.textContent = item.favorite ? "★" : "☆";
-    favBtn.title = getLang() === "en" ? "Toggle favorite" : "Favorit umschalten";
+    favBtn.title = gt("card_fav_title");
     favBtn.addEventListener("click", async (e) => {
       e.stopPropagation();
       await toggleFavorite(item, favBtn);
@@ -334,7 +535,7 @@
     selDot.type = "button";
     selDot.className = "gal-card-select-dot";
     selDot.textContent = "✓";
-    selDot.title = getLang() === "en" ? "Select" : "Auswählen";
+    selDot.title = gt("card_select_title");
     selDot.addEventListener("click", (e) => {
       e.stopPropagation();
       toggleCardSelection(item, card);
@@ -382,10 +583,10 @@
     if (!isVideo && item.root === "primary") {
       const rowApplyBtn = document.createElement("button");
       rowApplyBtn.type = "button";
-      rowApplyBtn.className = "btn-action";
+      rowApplyBtn.className = "btn-action gal-row-apply";
       rowApplyBtn.style.cssText = "padding:4px 8px; font-size:11px;";
       rowApplyBtn.textContent = "⚡";
-      rowApplyBtn.title = getLang() === "en" ? "Load parameters into Cockpit" : "Parameter ins Cockpit laden";
+      rowApplyBtn.title = gt("card_apply_title");
       rowApplyBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         if (typeof window.loadGalleryImageIntoCockpit === "function") {
@@ -396,9 +597,10 @@
     }
     const rowFavBtn = document.createElement("button");
     rowFavBtn.type = "button";
-    rowFavBtn.className = "btn-action";
+    rowFavBtn.className = "btn-action gal-row-fav";
     rowFavBtn.style.cssText = "padding:4px 8px; font-size:12px;";
     rowFavBtn.textContent = item.favorite ? "★" : "☆";
+    rowFavBtn.title = gt("card_fav_title");
     if (item.favorite) rowFavBtn.style.color = "#fbbf24";
     rowFavBtn.addEventListener("click", async (e) => {
       e.stopPropagation();
@@ -532,7 +734,7 @@
   function updateLightboxFavBtn(item) {
     const btn = $("btnGalLbFav");
     if (!btn) return;
-    btn.textContent = item.favorite ? "★ Favorit" : "☆ Favorit";
+    btn.textContent = item.favorite ? gt("lb_fav_active") : gt("lb_fav");
     btn.style.color = item.favorite ? "#fbbf24" : "";
   }
 
@@ -659,7 +861,7 @@
     });
 
     $("btnGalNewFolder")?.addEventListener("click", async () => {
-      const promptTxt = getLang() === "en" ? "New subfolder name:" : "Name des neuen Unterordners:";
+      const promptTxt = gt("prompt_new_folder");
       const name = window.prompt(promptTxt);
       if (!name || !name.trim()) return;
       const parent = state.folder && state.folder !== "__root__" ? state.folder : "";
@@ -772,9 +974,7 @@
     $("btnGalBatchDelete")?.addEventListener("click", async () => {
       const n = state.selectedPaths.size;
       if (n === 0) return;
-      const msg = getLang() === "en"
-        ? `Permanently delete ${n} selected file(s) from disk?`
-        : `${n} ausgewählte Datei(en) endgültig von der Festplatte löschen?`;
+      const msg = gt("confirm_batch_delete", { n });
       if (!window.confirm(msg)) return;
       const resp = await fetch("/api/gallery/delete_items", {
         method: "POST",
@@ -893,9 +1093,7 @@
     $("btnGalLbDelete")?.addEventListener("click", async () => {
       const item = state.items[state.lbIndex];
       if (!item) return;
-      const msg = getLang() === "en"
-        ? `Permanently delete "${item.name}" from disk?`
-        : `"${item.name}" endgültig von der Festplatte löschen?`;
+      const msg = gt("confirm_single_delete", { name: item.name });
       if (!window.confirm(msg)) return;
       try {
         const resp = await fetch("/api/gallery/delete_items", {
@@ -991,7 +1189,16 @@
       loadLayoutSettings();
       bindEvents();
     }
+    applyGalleryLanguage();
     fetchItems(false);
+  }
+
+  window.addEventListener("studio-language-changed", () => applyGalleryLanguage());
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => applyGalleryLanguage());
+  } else {
+    applyGalleryLanguage();
   }
 
   window.addEventListener("studio-module-changed", (e) => {

@@ -30,6 +30,7 @@ SUPPORTED_EXTS = SUPPORTED_IMAGE_EXTS + SUPPORTED_VIDEO_EXTS
 _DATA_ROOT = ""
 _GET_OUTPUT_DIR: Optional[Callable[[], str]] = None
 _EXTRACT_META: Optional[Callable[[str], dict]] = None
+_GET_CONFIG: Optional[Callable[[], dict]] = None
 _INDEXER_LOCK = threading.Lock()
 _INDEXERS: Dict[str, "GalleryIndexer"] = {}
 
@@ -38,11 +39,22 @@ def init_module(
     data_root: str,
     get_output_dir_fn: Callable[[], str],
     extract_meta_fn: Callable[[str], dict],
+    get_config_fn: Optional[Callable[[], dict]] = None,
 ) -> None:
-    global _DATA_ROOT, _GET_OUTPUT_DIR, _EXTRACT_META
+    global _DATA_ROOT, _GET_OUTPUT_DIR, _EXTRACT_META, _GET_CONFIG
     _DATA_ROOT = os.path.abspath(data_root)
     _GET_OUTPUT_DIR = get_output_dir_fn
     _EXTRACT_META = extract_meta_fn
+    _GET_CONFIG = get_config_fn
+
+
+def _tr(de: str, en: str) -> str:
+    try:
+        cfg = _GET_CONFIG() if _GET_CONFIG else {}
+        lang = str((cfg or {}).get("language") or "de").strip().lower()
+        return en if lang.startswith("en") else de
+    except Exception:
+        return de
 
 
 def _roots_file() -> str:
@@ -79,9 +91,10 @@ def get_all_roots() -> List[Dict[str, Any]]:
     roots: List[Dict[str, Any]] = []
     primary_dir = _GET_OUTPUT_DIR() if _GET_OUTPUT_DIR else ""
     if primary_dir:
+        base_name = os.path.basename(primary_dir.rstrip(os.sep)) or primary_dir
         roots.append({
             "id": "primary",
-            "name": f"ComfyUI Output ({os.path.basename(primary_dir.rstrip(os.sep)) or primary_dir})",
+            "name": _tr(f"ComfyUI-Ausgabe ({base_name})", f"ComfyUI Output ({base_name})"),
             "path": os.path.abspath(primary_dir),
             "primary": True,
             "exists": os.path.isdir(primary_dir),
@@ -469,10 +482,10 @@ class GalleryIndexer:
     def create_folder(self, parent_rel: str, folder_name: str) -> Tuple[bool, str]:
         clean_name = re.sub(r'[<>:"/\\|?*]', "_", (folder_name or "").strip()).strip(". ")
         if not clean_name:
-            return False, "Ungültiger Ordnername"
+            return False, _tr("Ungültiger Ordnername", "Invalid folder name")
         parent_dir = self.resolve_safe_folder(parent_rel)
         if not parent_dir or not os.path.isdir(parent_dir):
-            return False, "Zielordner nicht gefunden"
+            return False, _tr("Zielordner nicht gefunden", "Target folder not found")
         new_dir = os.path.join(parent_dir, clean_name)
         try:
             os.makedirs(new_dir, exist_ok=True)
@@ -611,7 +624,7 @@ def handle_get(handler: Any, path: str, parsed: urllib.parse.ParseResult) -> boo
         root_id = qs.get("root", ["primary"])[0]
         idx = _get_indexer(root_id)
         if idx is None:
-            handler.send_json({"error": "No output directory configured", "items": [], "folders": [], "total_all": 0, "total_filtered": 0, "roots": get_all_roots()})
+            handler.send_json({"error": _tr("Kein Ausgabeordner konfiguriert", "No output directory configured"), "items": [], "folders": [], "total_all": 0, "total_filtered": 0, "roots": get_all_roots()})
             return True
         folder = qs.get("folder", [""])[0]
         search = qs.get("q", [""])[0]
@@ -690,7 +703,7 @@ def handle_post(handler: Any, path: str, parsed: urllib.parse.ParseResult, post_
     if path == "/api/gallery/roots/add":
         folder_path = str(payload.get("path") or "").strip()
         if not folder_path or not os.path.isdir(folder_path):
-            handler.send_json({"ok": False, "error": "Ordner existiert nicht."}, status=400)
+            handler.send_json({"ok": False, "error": _tr("Ordner existiert nicht.", "Folder does not exist.")}, status=400)
             return True
         abs_p = os.path.abspath(folder_path)
         existing = get_all_roots()
@@ -711,7 +724,7 @@ def handle_post(handler: Any, path: str, parsed: urllib.parse.ParseResult, post_
     if path == "/api/gallery/roots/remove":
         root_id = str(payload.get("id") or "").strip()
         if not root_id or root_id == "primary":
-            handler.send_json({"ok": False, "error": "Primärer Ordner kann nicht entfernt werden."}, status=400)
+            handler.send_json({"ok": False, "error": _tr("Primärer Ordner kann nicht entfernt werden.", "Primary folder cannot be removed.")}, status=400)
             return True
         mounted = [r for r in _load_mounted_roots() if r.get("id") != root_id]
         _save_mounted_roots(mounted)
@@ -723,7 +736,7 @@ def handle_post(handler: Any, path: str, parsed: urllib.parse.ParseResult, post_
 
     if path == "/api/gallery/rescan":
         if idx is None:
-            handler.send_json({"ok": False, "error": "No output directory configured"}, status=400)
+            handler.send_json({"ok": False, "error": _tr("Kein Ausgabeordner konfiguriert", "No output directory configured")}, status=400)
             return True
         idx.scan_and_index(force=True)
         handler.send_json({"ok": True})
@@ -731,11 +744,11 @@ def handle_post(handler: Any, path: str, parsed: urllib.parse.ParseResult, post_
 
     if path == "/api/gallery/favorite":
         if idx is None:
-            handler.send_json({"ok": False, "error": "No output directory"}, status=400)
+            handler.send_json({"ok": False, "error": _tr("Kein Ausgabeordner konfiguriert", "No output directory configured")}, status=400)
             return True
         rel_path = str(payload.get("path") or "").strip()
         if not rel_path:
-            handler.send_json({"ok": False, "error": "Missing path"}, status=400)
+            handler.send_json({"ok": False, "error": _tr("Pfad fehlt", "Missing path")}, status=400)
             return True
         fav = idx.toggle_favorite(rel_path)
         handler.send_json({"ok": True, "path": rel_path, "favorite": fav})

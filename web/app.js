@@ -22,16 +22,32 @@
       cpu_load_label: "CPU",
       gpu_temp_label: "Temp",
       gpu_power_label: "Power",
-      btn_free_vram: "🧹 Free VRAM",
+      btn_free_vram: "🧹 VRAM freigeben",
       btn_free_vram_busy: "⏳ Gebe VRAM frei…",
       btn_free_vram_done: "✓ VRAM freigegeben",
+      btn_reset_peak: "↺ Peak",
       btn_reset_peak_title: "VRAM-Peak zurücksetzen",
+      gpu_free_suffix: "frei",
+      custom_slot_filled_title: "Custom Slot {slot} ({color}) – Linksklick: Anwenden · Rechtsklick: Leeren",
+      custom_slot_empty_title: "Custom Slot {slot} (leer) – Klick speichert aktuelle Akzentfarbe",
       col_resizer_title: "Ziehen zum Anpassen · Doppelklick für Standard",
+      aria_studio_nav: "Studio-Module",
+      aria_gpu_details: "GPU-Details",
+      aria_custom_accent: "Eigene Akzentfarbe",
+      aria_resize_setup: "Setup-Spaltenbreite anpassen",
+      aria_resize_prompt: "Prompt-Spaltenbreite anpassen",
+      nav_images: "🎨 Bilder",
+      brand_version_title: "Klicken, um auf GitHub nach Updates zu suchen",
+      update_badge_text: "⬆️ Update",
+      update_badge_title: "Neues Update verfügbar – zum Installieren klicken",
       comfy_connecting: "Verbinde ComfyUI...",
       comfy_connected: "ComfyUI verbunden",
       comfy_disconnected: "ComfyUI getrennt",
       btn_launch_comfy: "⚡ ComfyUI starten",
       btn_launch_comfy_running: "✓ ComfyUI läuft",
+      btn_launch_comfy_opening: "⏳ Öffne Terminal…",
+      btn_launch_comfy_tab: "⏳ Neuer Tab geöffnet…",
+      btn_launch_comfy_started: "⏳ Terminal gestartet…",
       btn_launch_comfy_title: "ComfyUI im Terminal-Fenster starten",
       btn_launch_comfy_running_title: "ComfyUI ist verbunden und läuft",
       btn_settings_title: "ComfyUI Verbindungseinstellungen",
@@ -40,13 +56,17 @@
 
       // Setup
       card_model: "Modell-Preset",
+      badge_custom_model: "Eigenes Modell",
+      badge_custom_sampler: "Eigener Sampler",
+      models_none_installed: "— Keine installierten Modelle gefunden —",
+      samplers_none_found: "— Keine passenden Sampler-Presets —",
       btn_edit_preset: "✏️ Editor / + Neu",
       btn_edit_preset_title: "Neues Preset anlegen oder bearbeiten",
       card_sampler: "Sampler-Preset",
       help_btn_title: "Hilfe zu diesem Bereich ein-/ausblenden",
       help_model_html: "<p><b>Wofür ist das?</b> Hier wählst du das Basis-KI-Modell für die Bildgenerierung.</p><ul><li><b>Auswählen:</b> Nutze das Dropdown oder die Schnellwahl-Buttons darunter.</li><li><b>Automatik:</b> Beim Wechsel passt das Cockpit passende Sampler-Vorschläge, LoRA-Filter und Flux-Guidance automatisch an.</li><li><b>Anpassen:</b> Über <b>✏️ Editor / + Neu</b> kannst du eigene Modell-Presets anlegen oder Schnellwahl-Favoriten verwalten.</li></ul>",
-      help_sampler_html: "<p><b>Wofür ist das?</b> Bestimmt, wie das Bild berechnet wird (<b>Steps</b>, <b>Sampler/Scheduler</b> und <b>CFG</b>).</p><ul><li><b>Auswählen:</b> Wähle das Preset passend zum Modell (Turbo-Modelle nutzen meist 4–9 Steps &amp; CFG 1, Standard/Dev-Modelle oft 20–25 Steps).</li><li><b>Status-Badge:</b> Oben links siehst du jederzeit die aktuell aktiven Werte.</li><li><b>Anpassen:</b> Über <b>✏️ Editor / + Neu</b> kannst du eigene Sampler-Presets anlegen oder bestehende Werte (Steps, Sampler, Scheduler, CFG) direkt bearbeiten.</li></ul>",
-      help_lora_html: "<p><b>Wofür ist das?</b> Mit LoRAs ergänzt du das gewählte Basis-Modell um bestimmte Stile, Personen, Details oder Effekte.</p><ul><li><b>Aktivieren &amp; Stärke:</b> Schalte gewünschte LoRAs in der Liste ein und passe bei Bedarf deren Stärke an. Das Badge oben zeigt aktive LoRAs und warnt bei Modell-Inkompatibilität.</li><li><b>Filtern &amp; Suchen:</b> Nutze <b>Alle</b>, <b>🎯 Passend zum Modell</b> oder <b>⚡ Nur Aktive</b> sowie Suche, Kategorie-Filter und <b>Toggle All</b>.</li><li><b>Manager &amp; Sync:</b> <b>L</b> öffnet den ComfyUI LoRA-Manager; <b>🔄 Sync</b> lädt LoRAs aus dem aktuellen Workflow neu.</li></ul>",
+      help_sampler_html: "<p><b>Wofür ist das?</b> Bestimmt, wie das Bild berechnet wird (<b>Steps</b>, <b>Sampler/Scheduler</b> und <b>CFG</b>).</p><ul><li><b>Auswählen:</b> Wähle das Preset passend zum Modell (Turbo-Modelle nutzen meist 4–9 Steps &amp; CFG 1, Standard/Dev-Modelle oft 20–25 Steps).</li><li><b>Status-Badge:</b> Das Status-Badge oben links zeigt jederzeit die aktuell aktiven Werte.</li><li><b>Anpassen:</b> Über <b>✏️ Editor / + Neu</b> kannst du eigene Sampler-Presets anlegen oder bestehende Werte (Steps, Sampler, Scheduler, CFG) direkt bearbeiten.</li></ul>",
+      help_lora_html: "<p><b>Wofür ist das?</b> Mit LoRAs ergänzt du das gewählte Basis-Modell um bestimmte Stile, Personen, Details oder Effekte.</p><ul><li><b>Aktivieren &amp; Stärke:</b> Schalte gewünschte LoRAs in der Liste ein und passe bei Bedarf deren Stärke an. Das Badge oben zeigt aktive LoRAs und warnt bei Modell-Inkompatibilität.</li><li><b>Filtern &amp; Suchen:</b> Nutze <b>Alle</b>, <b>🎯 Passend zum Modell</b> oder <b>⚡ Nur Aktive</b> sowie Suche, Kategorie-Filter und <b>Alle umschalten</b>.</li><li><b>Manager &amp; Sync:</b> <b>L</b> öffnet den ComfyUI LoRA-Manager; <b>🔄 Sync</b> lädt LoRAs aus dem aktuellen Workflow neu.</li></ul>",
       help_tuning_html: "<p><b>Wofür ist das?</b> Hier steuerst du Seed, Beschleunigung, Upscaling, Dateiausgabe und Signatur über 4 Tabs:</p><ul><li><b>⚙️ Sampling:</b> Seed-Modus (Zufall/Fest/Wiederholen), Flux-Guidance (bei FLUX), Attention Engine (Sage/Kitchen) und SeedVarianceEnhancer.</li><li><b>🔍 Upscale:</b> Bild nachträglich vergrößern und nachschärfen.</li><li><b>💾 Export:</b> Prompt als <code>.txt</code> speichern, Zusatzkopien anlegen sowie Ordner- und Dateinamen festlegen.</li><li><b>✒️ Signatur:</b> Wasserzeichen-, Signatur- und AI-Hinweis-Overlays einrichten.</li></ul>",
       help_prompthub_html: "<p><b>Wofür ist das?</b> Hier formulierst du die Bildbeschreibung und legst Format sowie Anzahl der Bilder fest:</p><ul><li><b>Haupt-Bildidee (Positive):</b> Beschreibe Motiv, Szene, Licht und Stil (am besten auf Englisch).</li><li><b>Zusatz-Prompt (Additional):</b> Optionale Stil- und Qualitätszusätze, die automatisch ergänzt werden.</li><li><b>Negativ-Prompt:</b> Dinge, die im Bild vermieden werden sollen (z. B. Rahmen, Text, Artefakte).</li><li><b>Resolution Pixaroma &amp; Batch:</b> Wähle das Seitenverhältnis und stelle über <b>batch</b> (1–64) ein, wie viele Bilder pro Lauf erzeugt werden.</li></ul>",
       card_lora: "LoRA-Stack",
@@ -71,13 +91,15 @@
       lora_cat_all: "Alle Kategorien",
       lora_cat_other: "Andere",
       lora_cat_title: "Nach Kategorie/Architektur filtern",
-      lora_toggle_all: "Toggle All",
+      lora_toggle_all: "Alle umschalten",
       lora_toggle_all_title: "Alle sichtbaren LoRAs aktivieren / deaktivieren",
       lora_none_found: "Keine LoRAs für den aktuellen Filter gefunden.",
       lora_none_found_sub: "Klicke auf <b>Alle</b> oder passe die Suche an.",
       lora_active_none: "0 aktiv",
       lora_active_some: "{count} aktiv",
       lora_active_incompatible: "{count} aktiv (⚠️ Inkompatibel)",
+      lora_trigger_title: "Trigger-Wort: {trigger}",
+      lora_cat_badge_title: "Architektur/Kategorie: {cat}",
 
       // Fine-Tuning
       card_tuning: "Feintuning & Finish",
@@ -104,6 +126,13 @@
       fn_upscaled_suffix_label: "Upscale-Suffix",
       fn_delimiter_label: "Trennzeichen",
       fn_date_format_label: "Datumsformat (strftime)",
+      overlay_status_title: "Status der Signatur/Wasserzeichen",
+      extra_qual_95: "95% (Empfohlen)",
+      extra_qual_90: "90% (Kompakt)",
+      extra_qual_100: "100% (Maximal)",
+      fn_output_ph: "(ComfyUI Standard)",
+      fn_subfolder_ph: "z. B. 2026",
+      fn_prefix_ph: "z. B. TA",
       fn_preview_prefix: "Vorschau:",
       seed_mode: "Seed-Modus",
       seed_random: "🎲 Zufall",
@@ -121,29 +150,27 @@
       attn_sage: "SageAttention",
       attn_kitchen: "Kitchen INT8",
       lbl_sage_mode: "Kernel-Variante",
-      lbl_torch_enable: "🚀 PyTorch FP16 Matmul (`torch_enable`)",
-      badge_kitchen_on: "Kitchen ON",
-      badge_sage_on: "Sage ON",
+      sage_mode_auto: "auto (Standard sageattn)",
+      lbl_torch_enable: "🚀 PyTorch FP16 Matmul (torch_enable)",
+      badge_kitchen_on: "Kitchen AN",
+      badge_sage_on: "Sage AN",
       badge_attn_standard: "Standard",
       sve_title: "🧬 SeedVarianceEnhancer",
-      sve_off: "Off",
-      sve_auto: "✨ Auto-preset per model (recommended)",
-      sve_adv_title: "⚙️ Advanced Settings",
-      sve_strength: "Strength",
-      sve_rand_pct: "Randomize (%)",
-      sve_switch_pct: "Switchover (%)",
-      sve_noise_insert: "Noise Phase",
-      sve_mask_start: "Mask Protect From",
-      sve_mask_pct: "Mask Protect (%)",
-      sve_title: "🧬 SeedVarianceEnhancer",
       sve_off: "Aus",
+      sve_badge_manual: "Manuell",
       sve_auto: "✨ Auto-Richtwert je Modell (empfohlen)",
       sve_adv_title: "⚙️ Erweiterte Einstellungen",
       sve_strength: "Stärke (strength)",
       sve_rand_pct: "Randomize (%)",
       sve_switch_pct: "Switchover (%)",
       sve_noise_insert: "Noise-Phase",
+      sve_noise_begin: "Anfangs-Steps",
+      sve_noise_end: "End-Steps",
+      sve_noise_all: "Alle Steps",
+      sve_noise_disabled: "Deaktiviert",
       sve_mask_start: "Mask-Schutz ab",
+      sve_mask_begin: "Anfang",
+      sve_mask_end: "Ende",
       sve_mask_pct: "Mask-Schutz (%)",
       sharpen_disabled: "Aus",
       use_seedvr2: "SeedVR2 Video/Image Upscaler nutzen",
@@ -152,31 +179,37 @@
       seedvr2_res: "Auflösung (kurze Kante)",
       seedvr2_max_res: "Max. Auflösung",
       seedvr2_color_corr: "Farbkorrektur (color_correction)",
+      seedvr2_cc_lab: "lab (Empfohlen)",
+      seedvr2_cc_none: "Keine (none)",
       seedvr2_adv_title: "⚙️ Erweiterte SeedVR2-Optionen (VRAM & Noise)",
-      seedvr2_blocks: "Blocks to Swap (0–36)",
-      seedvr2_attn: "Attention Mode",
-      seedvr2_in_noise: "Input Noise Scale",
-      seedvr2_lat_noise: "Latent Noise Scale",
-      seedvr2_tiled: "VAE Tiled (Encode/Decode)",
-      seedvr2_cache: "Cache Model",
-      laplacian_sharpen: "Laplacian Schärfe (`TAFastLaplacianSharpen`)",
-      film_grain: "🎞️ Film Grain (`ProPostFilmGrain`)",
+      seedvr2_blocks: "Blocks tauschen (0–36)",
+      seedvr2_attn: "Attention-Modus",
+      seedvr2_in_noise: "Input-Noise-Skala",
+      seedvr2_lat_noise: "Latent-Noise-Skala",
+      seedvr2_tiled: "VAE Tiling (Encode/Decode)",
+      seedvr2_cache: "Modell cachen",
+      laplacian_sharpen: "Laplacian-Schärfe (TAFastLaplacianSharpen)",
+      film_grain: "🎞️ Filmkorn (ProPostFilmGrain)",
       film_grain_off: "Aus",
       film_grain_type: "Körnungstyp",
+      fg_type_fine: "Fein (Fine)",
+      fg_type_fine_simple: "Fein einfach (Fine Simple)",
+      fg_type_coarse: "Grob (Coarse)",
+      fg_type_coarser: "Gröber (Coarser)",
       film_grain_gray: "Graustufen",
       film_grain_power: "Stärke",
       film_grain_sat: "Sättigung",
       film_grain_shadows: "Schatten",
       film_grain_highs: "Lichter",
       film_grain_scale: "Skalierung",
-      film_grain_gamma: "Src Gamma",
-      film_grain_sharpen: "Grain-Schärfe",
+      film_grain_gamma: "Quell-Gamma",
+      film_grain_sharpen: "Korn-Schärfe",
       llm_adv_title: "⚙️ LLM-Feineinstellungen (1878 / 1879)",
       llm_temperature: "Temperatur",
       llm_max_tokens: "Max Tokens",
-      llm_thinking_mode: "🧠 Thinking Mode (`thinking_mode`)",
-      llm_unload_img_first: "🧹 Bildmodelle vorher entladen (`unload_image_models_first`)",
-      llm_unload_after: "♻️ LLM danach entladen (`unload_llm_after`)",
+      llm_thinking_mode: "🧠 Thinking Mode (thinking_mode)",
+      llm_unload_img_first: "🧹 Bildmodelle vorher entladen (unload_image_models_first)",
+      llm_unload_after: "♻️ LLM danach entladen (unload_llm_after)",
       llm_system_prompt: "System-Prompt (T2I / I2I)",
       llm_system_prompt_ph: "Wird aus Workflow geladen...",
       llm_timeout: "Timeout (s)",
@@ -194,10 +227,18 @@
       pos_top_left: "Oben links",
       pos_top_center: "Oben zentriert",
       pos_center: "Mitte",
+      pos_center_center: "Mitte",
       pos_center_left: "Mitte links",
       pos_center_right: "Mitte rechts",
       sig_placeholder: "Signaturtext...",
       font_label: "Schriftart (Font)",
+      font_caveat: "Caveat (Handschrift / Signatur)",
+      font_roboto: "Roboto (Klar & Modern)",
+      font_quicksand: "Quicksand (Bold & Rund)",
+      font_young_serif: "Young Serif (Klassisch)",
+      font_oswald: "Oswald (Kompakt / Bold)",
+      font_impact: "Impact (Kräftig)",
+      font_pixelify: "Pixelify (Retro Pixel)",
       size_label: "Größe (px)",
       color_label: "Farbe",
       color_white: "Weiß (white)",
@@ -244,8 +285,10 @@
       pix_batch_title: "Batch-Größe: Wie viele Bilder pro Durchlauf generiert werden (1 bis 64)",
       pix_batch_dec_title: "Batch verringern",
       pix_batch_inc_title: "Batch erhöhen",
-      pix_custom_ratio: "Custom Ratio",
-      pix_custom_res: "Custom Resolution",
+      pix_custom_ratio: "Eigenes Verhältnis",
+      pix_custom_res: "Eigene Auflösung",
+      pix_ratio_w: "Verhältnis B",
+      pix_ratio_h: "Verhältnis H",
       pix_lbl_resolution: "Auflösung:",
       pix_swap_ratio_title: "Verhältnis umkehren",
       pix_lbl_width: "Breite (Width)",
@@ -260,11 +303,16 @@
       // Prompt Controller
       card_prompt_controller: "Prompt-Controller",
       lbl_controller_mode: "Controller-Modus (mode)",
-      opt_mode_manual: "Manual Only (Reine Prompt-Hub Eingabe)",
+      opt_mode_manual: "Manual Only (Reine Prompt-Hub-Eingabe)",
       opt_mode_gen: "Generated Only (Nur KI-Prompt)",
       opt_mode_combo_mg: "Combine: Manual + Generated (Manuell + KI)",
       opt_mode_combo_gm: "Combine: Generated + Manual (KI + Manuell)",
       opt_mode_clear: "Clear / Empty (Prompt leeren)",
+      ctrl_badge_manual: "Nur Manuell",
+      ctrl_badge_gen: "Nur KI",
+      ctrl_badge_combo_mg: "Manuell + KI",
+      ctrl_badge_combo_gm: "KI + Manuell",
+      ctrl_badge_clear: "Leer",
       lbl_delimiter: "Trennzeichen (delimiter)",
 
       // LLM
@@ -283,6 +331,7 @@
       badge_llm_source_local: "🖥️ Lokal",
       badge_llm_source_cloud: "☁️ Cloud",
       llm_model_search_placeholder: "🔍 Modell suchen...",
+      btn_clear_search_title: "Suche leeren",
       llm_model_none_found: "Keine passenden Modelle gefunden.",
       badge_llm_checking: "Prüfe...",
       badge_llm_online: "Online",
@@ -290,6 +339,12 @@
       badge_llm_title_click: "Klicken, um Status von LM Studio / Ollama / Cloud-LLMs neu zu prüfen",
       llm_unavailable_title: "Weder lokaler LLM-Server (LM Studio / Ollama) noch Cloud-API-Key aktiv",
       lbl_i2i_ref: "I2I Referenzbild",
+      i2i_ref_title: "Node 1880 – Bild laden",
+      i2i_thumb_title: "In Haupt-Vorschau anzeigen",
+      alt_reference: "Referenz",
+      alt_preview: "Vorschau",
+      alt_compare_after: "Nachher (SeedVR2)",
+      alt_compare_before: "Vorher (Original)",
       badge_no_image: "Kein Bild gewählt",
       badge_uploading: "Wird hochgeladen...",
       badge_error: "Fehler",
@@ -305,7 +360,7 @@
       btn_adopt_llm_title: "In Prompt-Hub als Haupt-Bildidee übernehmen",
       placeholder_llm_result: "Der vom LLM generierte Prompt wird hier nach der Generierung angezeigt...",
       llm_generating_prompt: "LLM generiert Prompt...",
-      llm_no_prompt_warning: "⚠️ Kein Prompt vom LLM erhalten{reason}.\n\nBitte prüfen, ob der lokale Server ('lms server') auf Port 1234 aktiv ist.",
+      llm_no_prompt_warning: "⚠️ Kein Prompt vom LLM erhalten{reason}.\n\nBitte prüfen, ob dein LLM-Server (LM Studio / Ollama) oder ein Cloud-API-Key aktiv ist.",
 
       // Generate & Cancel
       btn_generate: "BILD GENERIEREN",
@@ -319,7 +374,7 @@
 
       // Viewer & Gallery Actions
       empty_state_title: "Bereit zum Generieren",
-      empty_state_hint: "Wähle dein Model-Preset, passe die Prompts an und drücke auf \"Bild generieren\".",
+      empty_state_hint: "Wähle dein Modell-Preset, passe die Prompts an und drücke auf \"Bild generieren\".",
       btn_download: "📥 Download",
       btn_download_title: "Bild herunterladen",
       btn_copy_prompt: "📋 Prompt kopieren",
@@ -327,7 +382,7 @@
       btn_reuse_seed: "🔄 Seed übernehmen",
       btn_reuse_seed_title: "Seed in Eingabe übernehmen",
       btn_apply_all: "⚡ Parameter laden",
-      btn_apply_all_title: "Alle Parameter dieses Bildes (Prompts, Model, Sampler, Seed, Pixaroma-Auflösung, LoRAs) ins Cockpit laden",
+      btn_apply_all_title: "Alle Parameter dieses Bildes (Prompts, Modell, Sampler, Seed, Pixaroma-Auflösung, LoRAs) ins Cockpit laden",
       btn_send_to_videomaker: "🎬 An VideoMaker",
       btn_send_to_videomaker_title: "Aktuelles Bild an VideoMaker übergeben",
       btn_remove_bg: "✂️ Hintergrund entf.",
@@ -397,13 +452,15 @@
       theme_accent_custom_title: "Eigene Akzentfarbe frei wählen",
       theme_reset_btn: "↺ Standard-Theme wiederherstellen",
       settings_comfy_url: "ComfyUI URL",
-      settings_output_dir: "Bilder-Ausgabeordner (Windows Pfad)",
+      settings_output_dir: "Bilder-Ausgabeordner (Windows-Pfad)",
       settings_lms_url: "LM Studio URL",
       settings_ollama_url: "Ollama URL",
       settings_cloud_keys_title: "☁️ Externe Cloud-LLM API-Keys (optional)",
       settings_cloud_keys_hint: "🔒 Keys werden lokal per Windows-DPAPI verschlüsselt gespeichert, nicht in Releases geteilt und beim ComfyUI-Start automatisch übergeben. Nach Änderung ComfyUI ggf. neu starten.",
       settings_cloud_key_set_studio: "Gespeichert ({masked})",
       settings_cloud_key_set_env: "Windows-Env ({masked})",
+      settings_cloud_key_change_hint: "{status} – neuen Key eingeben zum Ändern",
+      btn_clear_key_title: "Key entfernen",
       settings_launch_cmd: "ComfyUI Start-Befehl / Skript (WSL oder Windows .bat)",
       settings_launch_placeholder: "z. B. C:\\ComfyUI\\run_nvidia_gpu.bat",
       settings_launch_hint: "Hinweis: Trage hier den Pfad zu deiner eigenen Windows-.bat (z. B. run_nvidia_gpu.bat) oder deinem Start-Skript ein – wird beim Klick auf '⚡ ComfyUI starten' geöffnet.",
@@ -433,6 +490,7 @@
       btn_cancel: "Abbrechen",
       btn_delete: "🗑️ Löschen",
 
+      preset_modal_default_title: "Preset-Editor",
       preset_modal_title_model: "🧠 TA Model Preset Editor (Neues Preset anlegen & verwalten)",
       preset_modal_title_sampler: "⚡ TA Sampler Preset Editor (Neues Preset anlegen & verwalten)",
       btn_open_external: "↗ Im Tab öffnen",
@@ -457,8 +515,12 @@
       toast_meta_success_file: 'Bild geladen & alle Parameter aus "{filename}" übernommen!',
       toast_meta_fail: "Metadaten konnten nicht gelesen werden.",
       toast_meta_no_workflow: 'Bild "{filename}" in Vorschau geladen (keine ComfyUI-Metadaten).',
+      toast_i2i_empty: "Die gewählte Bilddatei ist leer (0 Bytes) und kann nicht verwendet werden.",
       toast_i2i_uploaded: 'I2I-Referenzbild "{filename}" geladen & in ComfyUI bereitgestellt!',
       toast_i2i_upload_fail: "Fehler beim Hochladen nach ComfyUI.",
+      toast_i2i_adopt_error: "Fehler beim Übernehmen aus der Vorschau: ",
+      toast_logo_uploaded: 'Logo "{filename}" geladen & unten rechts eingepasst!',
+      toast_logo_upload_first: "Bitte zuerst ein Logo hochladen.",
       toast_no_preview_image: "Kein Bild in der Vorschau vorhanden.",
       toast_no_params: "Keine Parameter gefunden.",
       toast_no_gallery_selection: "Kein Bild in der Galerie ausgewählt.",
@@ -473,6 +535,10 @@
       toast_lora_sync_error: "Fehler beim LoRA-Sync: ",
       toast_lora_auto_deactivated: "{count} inkompatible(s) LoRA(s) für {model} automatisch deaktiviert",
       toast_net_error: "Netzwerkfehler: Ist der Cockpit-Server (server.py) gestartet?",
+      err_invalid_lora_format: "Ungültiges LoRA-Format",
+      err_image_load_failed: "Konnte Bild nicht laden",
+      err_unknown: "Unbekannter Fehler",
+      err_timeout: "Zeitüberschreitung (Timeout)",
       loading_status: "Lade...",
       missing_nodes_title: "Fehlende ComfyUI Custom Nodes",
       missing_nodes_desc: "Für den Workflow fehlen in deiner ComfyUI-Installation benötigte Custom-Node-Packs. Sollen die ausgewählten Packs jetzt automatisch installiert werden?",
@@ -481,6 +547,47 @@
       missing_nodes_btn_recheck: "🔄 Neu prüfen",
       missing_nodes_btn_install: "⬇️ Jetzt installieren",
       missing_nodes_btn_browse: "📁 Ordner wählen",
+      install_nodes_installing: "Installiere…",
+      missing_nodes_install_failed: "Installation fehlgeschlagen.",
+      missing_nodes_remote_title: "Remote-ComfyUI kann nicht lokal installiert werden",
+      missing_nodes_badge_restart: "Neustart nötig",
+      missing_nodes_badge_required: "Erforderlich",
+      missing_nodes_badge_optional: "Optional",
+      missing_nodes_missing_prefix: "Fehlt: ",
+      missing_nodes_all_installed: "Alle benötigten Custom Nodes sind installiert!",
+      missing_nodes_select_one: "Bitte wähle mindestens ein Pack aus.",
+      missing_nodes_starting: "Starte Installation...",
+      missing_nodes_installing_pack: "Installiere: {pack}",
+      missing_nodes_done_restart: "Fertig – bitte ComfyUI neu starten!",
+      missing_nodes_done_warnings: "Mit Hinweisen beendet",
+      missing_nodes_row_ok: "✓ Installiert (ComfyUI neu starten)",
+      missing_nodes_row_err: "✖ Fehler",
+      missing_nodes_desc_done: "Installation abgeschlossen! Bitte starte ComfyUI jetzt neu, damit die neuen Custom Nodes geladen werden.",
+      missing_nodes_btn_close: "Schließen",
+      missing_nodes_btn_recheck_restart: "🔄 Nach Neustart prüfen",
+      missing_nodes_toast_done: "Custom Nodes installiert! Bitte starte ComfyUI neu.",
+      missing_nodes_toast_some_errors: "Einige Packs hatten Fehler.",
+      update_modal_title: "Update verfügbar",
+      update_current_ver: "Aktuell: v{ver}",
+      update_new_ver: "Neu: v{ver}",
+      update_question: "Eine neue Version ist auf GitHub verfügbar. Möchtest du das Update jetzt herunterladen und installieren?",
+      update_release_notes: "Versionshinweise",
+      update_source_hint_html: "Hinweis: Die automatische 1-Klick-Installation ist nur in der kompilierten <code>StudioCockpit.exe</code> verfügbar. Du kannst das Release direkt auf GitHub öffnen.",
+      update_downloading: "Update wird heruntergeladen…",
+      update_installing: "Installiere…",
+      update_starting_download: "Starte Download…",
+      update_btn_later: "Später",
+      update_btn_github: "Auf GitHub öffnen",
+      update_btn_install: "⬇️ Jetzt installieren",
+      toast_update_uptodate: "StudioCockpit ist auf dem neuesten Stand (v{ver}).",
+      toast_update_check_failed: "Update-Prüfung fehlgeschlagen.",
+      toast_update_offline: "Konnte nicht nach Updates suchen (offline?).",
+      toast_update_failed: "Update fehlgeschlagen.",
+      update_start_failed: "Installation konnte nicht gestartet werden.",
+      ctx_copy: "📋 Kopieren",
+      ctx_cut: "✂️ Ausschneiden",
+      ctx_paste: "📥 Einfügen",
+      ctx_select_all: "🔘 Alles auswählen",
     },
     en: {
       brand_wf_title: "Active ComfyUI Workflow",
@@ -501,13 +608,29 @@
       btn_free_vram: "🧹 Free VRAM",
       btn_free_vram_busy: "⏳ Freeing VRAM…",
       btn_free_vram_done: "✓ VRAM freed",
+      btn_reset_peak: "↺ Peak",
       btn_reset_peak_title: "Reset VRAM peak",
+      gpu_free_suffix: "free",
+      custom_slot_filled_title: "Custom Slot {slot} ({color}) – Left-click: Apply · Right-click: Clear",
+      custom_slot_empty_title: "Custom Slot {slot} (empty) – Click to save current accent color",
       col_resizer_title: "Drag to resize · Double-click to reset",
-      comfy_connecting: "Connecting ComfyUI...",
+      aria_studio_nav: "Studio Modules",
+      aria_gpu_details: "GPU Details",
+      aria_custom_accent: "Custom Accent Color",
+      aria_resize_setup: "Resize setup column",
+      aria_resize_prompt: "Resize prompt column",
+      nav_images: "🎨 Images",
+      brand_version_title: "Click to check for updates on GitHub",
+      update_badge_text: "⬆️ Update",
+      update_badge_title: "New update available – click to install",
+      comfy_connecting: "Connecting to ComfyUI...",
       comfy_connected: "ComfyUI connected",
       comfy_disconnected: "ComfyUI disconnected",
       btn_launch_comfy: "⚡ Launch ComfyUI",
       btn_launch_comfy_running: "✓ ComfyUI running",
+      btn_launch_comfy_opening: "⏳ Opening terminal…",
+      btn_launch_comfy_tab: "⏳ New tab opened…",
+      btn_launch_comfy_started: "⏳ Terminal started…",
       btn_launch_comfy_title: "Launch ComfyUI in a terminal window",
       btn_launch_comfy_running_title: "ComfyUI is connected and running",
       btn_settings_title: "ComfyUI Connection Settings",
@@ -516,14 +639,18 @@
 
       // Setup
       card_model: "Model Preset",
+      badge_custom_model: "Custom Model",
+      badge_custom_sampler: "Custom Sampler",
+      models_none_installed: "— No installed models found —",
+      samplers_none_found: "— No matching sampler presets —",
       btn_edit_preset: "✏️ Editor / + New",
       btn_edit_preset_title: "Create or edit presets",
       card_sampler: "Sampler Preset",
       help_btn_title: "Show/hide help for this section",
       help_model_html: "<p><b>What is this for?</b> Choose the base AI model used for image generation.</p><ul><li><b>Select:</b> Use the dropdown or the quick-favorite pills below it.</li><li><b>Auto-sync:</b> Switching models automatically updates matching sampler suggestions, LoRA filters, and Flux Guidance.</li><li><b>Customize:</b> Click <b>✏️ Editor / + New</b> to create your own model presets or manage quick-favorite pills.</li></ul>",
-      help_sampler_html: "<p><b>What is this for?</b> Controls how the image is sampled (<b>Steps</b>, <b>Sampler/Scheduler</b>, and <b>CFG</b>).</p><ul><li><b>Select:</b> Pick a preset matching your model (Turbo models usually use 4–9 steps &amp; CFG 1; standard/dev models often use 20–25 steps).</li><li><b>Status badge:</b> The green badge always shows the currently active parameters.</li><li><b>Customize:</b> Use <b>✏️ Editor / + New</b> to create custom presets or directly edit Steps, Sampler, Scheduler, and CFG.</li></ul>",
+      help_sampler_html: "<p><b>What is this for?</b> Controls how the image is sampled (<b>Steps</b>, <b>Sampler/Scheduler</b>, and <b>CFG</b>).</p><ul><li><b>Select:</b> Pick a preset matching your model (Turbo models usually use 4–9 steps &amp; CFG 1; standard/dev models often use 20–25 steps).</li><li><b>Status badge:</b> The status badge at top left always shows the currently active parameters.</li><li><b>Customize:</b> Use <b>✏️ Editor / + New</b> to create custom presets or directly edit Steps, Sampler, Scheduler, and CFG.</li></ul>",
       help_lora_html: "<p><b>What is this for?</b> LoRAs add specific styles, characters, details, or effects on top of your selected base model.</p><ul><li><b>Enable &amp; strength:</b> Toggle LoRAs in the list and adjust their weight as needed. The header badge shows active LoRAs and warns if any are incompatible with the current model.</li><li><b>Filter &amp; search:</b> Use <b>All</b>, <b>🎯 Match Model</b>, or <b>⚡ Active Only</b>, plus search, category filter, and <b>Toggle All</b>.</li><li><b>Manager &amp; sync:</b> Click <b>L</b> to open the ComfyUI LoRA Manager, or <b>🔄 Sync</b> to reload LoRAs from the active workflow.</li></ul>",
-      help_tuning_html: "<p><b>What is this for?</b> Configure seed behavior, acceleration, upscaling, file export, and overlays across 4 tabs:</p><ul><li><b>⚙️ Sampling:</b> Seed mode (Random/Fixed/Last), Flux Guidance (for FLUX models), Attention Engine (Sage/Kitchen), and SeedVarianceEnhancer.</li><li><b>🔍 Upscale:</b> Upscale and sharpen generated images.</li><li><b>💾 Export:</b> Save prompt <code>.txt</code> files, extra image copies, and output folder/filename patterns.</li><li><b>✒️ Signatur:</b> Configure signature, watermark, and AI-label overlays.</li></ul>",
+      help_tuning_html: "<p><b>What is this for?</b> Configure seed behavior, acceleration, upscaling, file export, and overlays across 4 tabs:</p><ul><li><b>⚙️ Sampling:</b> Seed mode (Random/Fixed/Last), Flux Guidance (for FLUX models), Attention Engine (Sage/Kitchen), and SeedVarianceEnhancer.</li><li><b>🔍 Upscale:</b> Upscale and sharpen generated images.</li><li><b>💾 Export:</b> Save prompt <code>.txt</code> files, extra image copies, and output folder/filename patterns.</li><li><b>✒️ Signature:</b> Configure signature, watermark, and AI-label overlays.</li></ul>",
       help_prompthub_html: "<p><b>What is this for?</b> Write your image description and set the output aspect ratio and batch count:</p><ul><li><b>Main Prompt (Positive):</b> Describe the subject, scene, lighting, and style.</li><li><b>Additional Prompt:</b> Optional quality and style boosters appended automatically.</li><li><b>Negative Prompt:</b> Elements to avoid in the generated image (e.g., borders, text, artifacts).</li><li><b>Resolution Pixaroma &amp; Batch:</b> Pick the aspect ratio and use <b>batch</b> (1–64) to set how many images are generated per run.</li></ul>",
       card_lora: "LoRA Stack",
       card_lora_title: "Click to collapse/expand",
@@ -554,6 +681,8 @@
       lora_active_none: "0 active",
       lora_active_some: "{count} active",
       lora_active_incompatible: "{count} active (⚠️ Incompatible)",
+      lora_trigger_title: "Trigger word: {trigger}",
+      lora_cat_badge_title: "Architecture/Category: {cat}",
 
       // Fine-Tuning
       card_tuning: "Fine-Tuning & Finish",
@@ -580,6 +709,13 @@
       fn_upscaled_suffix_label: "Upscale Suffix",
       fn_delimiter_label: "Delimiter",
       fn_date_format_label: "Date Format (strftime)",
+      overlay_status_title: "Signature / watermark status",
+      extra_qual_95: "95% (Recommended)",
+      extra_qual_90: "90% (Compact)",
+      extra_qual_100: "100% (Maximum)",
+      fn_output_ph: "(ComfyUI Default)",
+      fn_subfolder_ph: "e.g. 2026",
+      fn_prefix_ph: "e.g. TA",
       fn_preview_prefix: "Preview:",
       seed_mode: "Seed Mode",
       seed_random: "🎲 Random",
@@ -597,30 +733,28 @@
       attn_sage: "SageAttention",
       attn_kitchen: "Kitchen INT8",
       lbl_sage_mode: "Kernel Variant",
-      lbl_torch_enable: "🚀 PyTorch FP16 Matmul (`torch_enable`)",
+      sage_mode_auto: "auto (default sageattn)",
+      lbl_torch_enable: "🚀 PyTorch FP16 Matmul (torch_enable)",
       badge_kitchen_on: "Kitchen ON",
       badge_sage_on: "Sage ON",
       badge_attn_standard: "Standard",
       sve_title: "🧬 SeedVarianceEnhancer",
       sve_off: "Off",
+      sve_badge_manual: "Manual",
       sve_auto: "✨ Auto-preset per model (recommended)",
       sve_adv_title: "⚙️ Advanced Settings",
       sve_strength: "Strength",
       sve_rand_pct: "Randomize (%)",
       sve_switch_pct: "Switchover (%)",
       sve_noise_insert: "Noise Phase",
+      sve_noise_begin: "Beginning Steps",
+      sve_noise_end: "Ending Steps",
+      sve_noise_all: "All Steps",
+      sve_noise_disabled: "Disabled",
       sve_mask_start: "Mask Protect From",
+      sve_mask_begin: "Beginning",
+      sve_mask_end: "End",
       sve_mask_pct: "Mask Protect (%)",
-      sve_title: "🧬 SeedVarianceEnhancer",
-      sve_off: "Aus",
-      sve_auto: "✨ Auto-Richtwert je Modell (empfohlen)",
-      sve_adv_title: "⚙️ Erweiterte Einstellungen",
-      sve_strength: "Stärke (strength)",
-      sve_rand_pct: "Randomize (%)",
-      sve_switch_pct: "Switchover (%)",
-      sve_noise_insert: "Noise-Phase",
-      sve_mask_start: "Mask-Schutz ab",
-      sve_mask_pct: "Mask-Schutz (%)",
       sharpen_disabled: "Off",
       use_seedvr2: "Use SeedVR2 Video/Image Upscaler",
       seedvr2_off: "Off",
@@ -628,6 +762,8 @@
       seedvr2_res: "Resolution (short edge)",
       seedvr2_max_res: "Max Resolution",
       seedvr2_color_corr: "Color Correction",
+      seedvr2_cc_lab: "lab (Recommended)",
+      seedvr2_cc_none: "None",
       seedvr2_adv_title: "⚙️ Advanced SeedVR2 Options (VRAM & Noise)",
       seedvr2_blocks: "Blocks to Swap (0–36)",
       seedvr2_attn: "Attention Mode",
@@ -635,24 +771,28 @@
       seedvr2_lat_noise: "Latent Noise Scale",
       seedvr2_tiled: "VAE Tiled (Encode/Decode)",
       seedvr2_cache: "Cache Model",
-      laplacian_sharpen: "Laplacian Sharpness (`TAFastLaplacianSharpen`)",
-      film_grain: "🎞️ Film Grain (`ProPostFilmGrain`)",
+      laplacian_sharpen: "Laplacian Sharpness (TAFastLaplacianSharpen)",
+      film_grain: "🎞️ Film Grain (ProPostFilmGrain)",
       film_grain_off: "Off",
       film_grain_type: "Grain Type",
+      fg_type_fine: "Fine",
+      fg_type_fine_simple: "Fine Simple",
+      fg_type_coarse: "Coarse",
+      fg_type_coarser: "Coarser",
       film_grain_gray: "Grayscale",
       film_grain_power: "Power",
       film_grain_sat: "Saturation",
       film_grain_shadows: "Shadows",
-      film_grain_highs: "Highs",
+      film_grain_highs: "Highlights",
       film_grain_scale: "Scale",
-      film_grain_gamma: "Src Gamma",
+      film_grain_gamma: "Source Gamma",
       film_grain_sharpen: "Grain Sharpen",
       llm_adv_title: "⚙️ LLM Fine-Tuning (1878 / 1879)",
       llm_temperature: "Temperature",
       llm_max_tokens: "Max Tokens",
-      llm_thinking_mode: "🧠 Thinking Mode (`thinking_mode`)",
-      llm_unload_img_first: "🧹 Unload image models first (`unload_image_models_first`)",
-      llm_unload_after: "♻️ Unload LLM after (`unload_llm_after`)",
+      llm_thinking_mode: "🧠 Thinking Mode (thinking_mode)",
+      llm_unload_img_first: "🧹 Unload image models first (unload_image_models_first)",
+      llm_unload_after: "♻️ Unload LLM after (unload_llm_after)",
       llm_system_prompt: "System Prompt (T2I / I2I)",
       llm_system_prompt_ph: "Loaded from workflow...",
       llm_timeout: "Timeout (s)",
@@ -670,28 +810,36 @@
       pos_top_left: "Top left",
       pos_top_center: "Top center",
       pos_center: "Center",
+      pos_center_center: "Center",
       pos_center_left: "Center left",
       pos_center_right: "Center right",
       sig_placeholder: "Signature text...",
       font_label: "Font (Typeface)",
+      font_caveat: "Caveat (Handwriting / Signature)",
+      font_roboto: "Roboto (Clean & Modern)",
+      font_quicksand: "Quicksand (Bold & Rounded)",
+      font_young_serif: "Young Serif (Classic)",
+      font_oswald: "Oswald (Compact / Bold)",
+      font_impact: "Impact (Heavy)",
+      font_pixelify: "Pixelify (Retro Pixel)",
       size_label: "Size (px)",
       color_label: "Color",
-      color_white: "White (weiß)",
-      color_black: "Black (schwarz)",
-      color_red: "Red (rot)",
-      color_yellow: "Yellow (gelb)",
+      color_white: "White",
+      color_black: "Black",
+      color_red: "Red",
+      color_yellow: "Yellow",
       align_label: "Vertical (Align)",
       justify_label: "Horizontal (Justify)",
       offset_x_label: "Offset X (px)",
       offset_y_label: "Offset Y (px)",
       rotation_label: "Rotation (°)",
       margins_label: "Margins (px)",
-      align_bottom: "Bottom (unten)",
-      align_top: "Top (oben)",
-      align_center: "Center (mitte)",
-      justify_left: "Left (links)",
-      justify_center: "Center (zentriert)",
-      justify_right: "Right (rechts)",
+      align_bottom: "Bottom",
+      align_top: "Top",
+      align_center: "Center",
+      justify_left: "Left",
+      justify_center: "Center",
+      justify_right: "Right",
       overlay_ai: "🤖 AI Disclaimer",
       ai_disclaimer_placeholder: "AI disclaimer text...",
       badge_overlay_both: "✒️ Sig + AI",
@@ -722,6 +870,8 @@
       pix_batch_inc_title: "Increase batch size",
       pix_custom_ratio: "Custom Ratio",
       pix_custom_res: "Custom Resolution",
+      pix_ratio_w: "Ratio W",
+      pix_ratio_h: "Ratio H",
       pix_lbl_resolution: "Resolution:",
       pix_swap_ratio_title: "Swap aspect ratio",
       pix_lbl_width: "Width",
@@ -736,11 +886,16 @@
       // Prompt Controller
       card_prompt_controller: "Prompt Controller",
       lbl_controller_mode: "Controller Mode",
-      opt_mode_manual: "Manual Only (Prompt-Hub input only)",
+      opt_mode_manual: "Manual Only (Prompt Hub input only)",
       opt_mode_gen: "Generated Only (AI Prompt only)",
       opt_mode_combo_mg: "Combine: Manual + Generated",
       opt_mode_combo_gm: "Combine: Generated + Manual",
       opt_mode_clear: "Clear / Empty (Blank prompt)",
+      ctrl_badge_manual: "Manual Only",
+      ctrl_badge_gen: "Generated Only",
+      ctrl_badge_combo_mg: "Manual + AI",
+      ctrl_badge_combo_gm: "AI + Manual",
+      ctrl_badge_clear: "Empty",
       lbl_delimiter: "Delimiter",
 
       // LLM
@@ -759,6 +914,7 @@
       badge_llm_source_local: "🖥️ Local",
       badge_llm_source_cloud: "☁️ Cloud",
       llm_model_search_placeholder: "🔍 Search model...",
+      btn_clear_search_title: "Clear search",
       llm_model_none_found: "No matching models found.",
       badge_llm_checking: "Checking...",
       badge_llm_online: "Online",
@@ -766,6 +922,12 @@
       badge_llm_title_click: "Click to re-check LM Studio / Ollama / Cloud LLM status",
       llm_unavailable_title: "Neither local LLM server (LM Studio / Ollama) nor cloud API key active",
       lbl_i2i_ref: "I2I Reference Image",
+      i2i_ref_title: "Node 1880 – Load Image",
+      i2i_thumb_title: "Show in main preview",
+      alt_reference: "Reference",
+      alt_preview: "Preview",
+      alt_compare_after: "After (SeedVR2)",
+      alt_compare_before: "Before (Original)",
       badge_no_image: "No image chosen",
       badge_uploading: "Uploading...",
       badge_error: "Error",
@@ -781,7 +943,7 @@
       btn_adopt_llm_title: "Transfer to Prompt Hub as main image idea",
       placeholder_llm_result: "The LLM-generated prompt will appear here once ready...",
       llm_generating_prompt: "LLM generating prompt...",
-      llm_no_prompt_warning: "⚠️ No prompt received from LLM{reason}.\n\nPlease ensure local server ('lms server') is running on port 1234.",
+      llm_no_prompt_warning: "⚠️ No prompt received from LLM{reason}.\n\nPlease ensure your LLM server (LM Studio / Ollama) or a cloud API key is active.",
 
       // Generate & Cancel
       btn_generate: "GENERATE IMAGE",
@@ -880,6 +1042,8 @@
       settings_cloud_keys_hint: "🔒 Keys are stored locally encrypted with Windows DPAPI, never shared in releases, and passed automatically when launching ComfyUI. Restart ComfyUI after changes if needed.",
       settings_cloud_key_set_studio: "Saved ({masked})",
       settings_cloud_key_set_env: "Windows env ({masked})",
+      settings_cloud_key_change_hint: "{status} – enter a new key to change",
+      btn_clear_key_title: "Remove key",
       settings_launch_cmd: "ComfyUI Launch Command / Script (WSL or Windows .bat)",
       settings_launch_placeholder: "e.g. C:\\ComfyUI\\run_nvidia_gpu.bat",
       settings_launch_hint: "Note: Enter the path to your own Windows .bat (e.g. run_nvidia_gpu.bat) or launch script here – opened when clicking '⚡ Launch ComfyUI'.",
@@ -909,6 +1073,7 @@
       btn_cancel: "Cancel",
       btn_delete: "🗑️ Delete",
 
+      preset_modal_default_title: "Preset Editor",
       preset_modal_title_model: "🧠 TA Model Preset Editor (Create & Manage Presets)",
       preset_modal_title_sampler: "⚡ TA Sampler Preset Editor (Create & Manage Presets)",
       btn_open_external: "↗ Open in Tab",
@@ -933,8 +1098,12 @@
       toast_meta_success_file: 'Image loaded & all parameters from "{filename}" applied!',
       toast_meta_fail: "Could not read image metadata.",
       toast_meta_no_workflow: 'Image "{filename}" loaded into preview (no ComfyUI metadata).',
+      toast_i2i_empty: "The selected image file is empty (0 bytes) and cannot be used.",
       toast_i2i_uploaded: 'I2I reference image "{filename}" loaded & sent to ComfyUI!',
       toast_i2i_upload_fail: "Error uploading to ComfyUI.",
+      toast_i2i_adopt_error: "Error adopting image from preview: ",
+      toast_logo_uploaded: 'Logo "{filename}" loaded & placed bottom-right!',
+      toast_logo_upload_first: "Please upload a logo first.",
       toast_no_preview_image: "No image in preview.",
       toast_no_params: "No parameters found.",
       toast_no_gallery_selection: "No image selected in gallery.",
@@ -949,6 +1118,10 @@
       toast_lora_sync_error: "Error syncing LoRAs: ",
       toast_lora_auto_deactivated: "{count} incompatible LoRA(s) automatically deactivated for {model}",
       toast_net_error: "Network error: Is the Cockpit server (server.py) running?",
+      err_invalid_lora_format: "Invalid LoRA format",
+      err_image_load_failed: "Could not load image",
+      err_unknown: "Unknown error",
+      err_timeout: "Timeout",
       loading_status: "Loading...",
       missing_nodes_title: "Missing ComfyUI Custom Nodes",
       missing_nodes_desc: "Your ComfyUI installation is missing custom node packs required for this workflow. Would you like to install the selected packs automatically now?",
@@ -956,7 +1129,48 @@
       missing_nodes_btn_later: "Later",
       missing_nodes_btn_recheck: "🔄 Re-check",
       missing_nodes_btn_install: "⬇️ Install Now",
-      missing_nodes_btn_browse: "📁 Browse...",
+      missing_nodes_btn_browse: "📁 Choose Folder",
+      install_nodes_installing: "Installing…",
+      missing_nodes_install_failed: "Installation failed.",
+      missing_nodes_remote_title: "Remote ComfyUI cannot be installed locally",
+      missing_nodes_badge_restart: "Restart required",
+      missing_nodes_badge_required: "Required",
+      missing_nodes_badge_optional: "Optional",
+      missing_nodes_missing_prefix: "Missing: ",
+      missing_nodes_all_installed: "All required custom nodes are installed!",
+      missing_nodes_select_one: "Please select at least one pack.",
+      missing_nodes_starting: "Starting installation...",
+      missing_nodes_installing_pack: "Installing: {pack}",
+      missing_nodes_done_restart: "Completed – please restart ComfyUI!",
+      missing_nodes_done_warnings: "Finished with warnings",
+      missing_nodes_row_ok: "✓ Installed (Restart ComfyUI)",
+      missing_nodes_row_err: "✖ Error",
+      missing_nodes_desc_done: "Installation complete! Please restart ComfyUI now so the new custom nodes are loaded.",
+      missing_nodes_btn_close: "Close",
+      missing_nodes_btn_recheck_restart: "🔄 Check after restart",
+      missing_nodes_toast_done: "Custom nodes installed! Please restart ComfyUI.",
+      missing_nodes_toast_some_errors: "Some packs had errors.",
+      update_modal_title: "Update available",
+      update_current_ver: "Current: v{ver}",
+      update_new_ver: "New: v{ver}",
+      update_question: "A new version is available on GitHub. Would you like to download and install the update now?",
+      update_release_notes: "Release Notes",
+      update_source_hint_html: "Note: Automatic 1-click installation is only available in the compiled <code>StudioCockpit.exe</code>. You can open the release directly on GitHub.",
+      update_downloading: "Downloading update…",
+      update_installing: "Installing…",
+      update_starting_download: "Starting download…",
+      update_btn_later: "Later",
+      update_btn_github: "Open on GitHub",
+      update_btn_install: "⬇️ Install now",
+      toast_update_uptodate: "StudioCockpit is up to date (v{ver}).",
+      toast_update_check_failed: "Update check failed.",
+      toast_update_offline: "Unable to check for updates (offline?).",
+      toast_update_failed: "Update failed.",
+      update_start_failed: "Could not start installation.",
+      ctx_copy: "📋 Copy",
+      ctx_cut: "✂️ Cut",
+      ctx_paste: "📥 Paste",
+      ctx_select_all: "🔘 Select All",
     }
   };
 
@@ -977,6 +1191,18 @@
     if (lang !== "de" && lang !== "en") lang = "de";
     currentLang = lang;
     document.documentElement.lang = currentLang;
+
+    if (persist) {
+      try {
+        localStorage.setItem("tAStudio.language", currentLang);
+        fetch("/api/config", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ language: currentLang })
+        }).catch(() => {});
+      } catch (e) {}
+    }
+
     if (window.syncMusicMakerFrame) window.syncMusicMakerFrame();
 
     if (selLanguage && selLanguage.value !== currentLang) {
@@ -1019,38 +1245,103 @@
       if (trans && trans !== key) el.placeholder = trans;
     });
 
+    // 3b. Aria-labels & alt texts
+    document.querySelectorAll("[data-i18n-aria-label]").forEach(el => {
+      const key = el.getAttribute("data-i18n-aria-label");
+      const trans = t(key);
+      if (trans && trans !== key) el.setAttribute("aria-label", trans);
+    });
+    document.querySelectorAll("[data-i18n-alt]").forEach(el => {
+      const key = el.getAttribute("data-i18n-alt");
+      const trans = t(key);
+      if (trans && trans !== key) el.alt = trans;
+    });
+
     // 4. Update dynamic states
+    if (typeof renderCustomAccentSlots === "function") renderCustomAccentSlots();
+    if (typeof updateGpuDisplay === "function" && typeof lastGpuState !== "undefined") {
+      updateGpuDisplay(lastGpuState);
+    }
+    if (typeof updateOverlayImgUI === "function") {
+      updateOverlayImgUI(typeof currentOverlayImgFilename !== "undefined" ? currentOverlayImgFilename : "");
+    }
     updateOverlayStatusBadge();
     updateOverlayPositionBadges();
+    if (typeof updateFilenamePreview === "function") updateFilenamePreview();
+    if (typeof updateSharpenUI === "function") updateSharpenUI();
+    if (typeof updateFilmGrainUI === "function") updateFilmGrainUI();
+    if (typeof updateSVEUI === "function") updateSVEUI();
+    if (typeof updateSeedVR2UI === "function") updateSeedVR2UI();
+    if (typeof updateAttnEngineBadge === "function") updateAttnEngineBadge();
     updatePromptControllerBadge();
     updateFluxGuidanceState();
     updateActiveLorasCount();
     if (typeof filterAndRenderLoras === "function") {
       filterAndRenderLoras();
     }
-    if (filmstripGallery) {
-      updateGalleryToggleUI(filmstripGallery.classList.contains("collapsed"));
-      if (filmstripGallery.children.length === 1 && filmstripGallery.firstElementChild.querySelector("span")) {
-        const sp = filmstripGallery.firstElementChild.querySelector("span");
-        if (sp.textContent.includes("Ausgabeordner") || sp.textContent.includes("output")) {
-          sp.textContent = t("gallery_empty", "Keine Bilder im Ausgabeordner vorhanden.");
-        }
+    if (typeof renderCustomResChips === "function") {
+      renderCustomResChips();
+    }
+    if (typeof applyCloudKeyStatusToInputs === "function" && typeof lastCloudKeyStatus !== "undefined" && lastCloudKeyStatus) {
+      applyCloudKeyStatusToInputs(lastCloudKeyStatus, true);
+    }
+    if (typeof currentI2IImageFilename !== "undefined" && !currentI2IImageFilename && typeof i2iFileNameBadge !== "undefined" && i2iFileNameBadge) {
+      i2iFileNameBadge.textContent = t("badge_no_image", "Kein Bild gewählt");
+    }
+    if (typeof updateBgRemoveUI === "function" && typeof bgRemoveState !== "undefined") {
+      updateBgRemoveUI(bgRemoveState);
+    }
+    if (typeof selModelPreset !== "undefined" && selModelPreset) {
+      const emptyModelOpt = selModelPreset.querySelector('option[data-empty="1"]');
+      if (emptyModelOpt) emptyModelOpt.textContent = t("models_none_installed", "— Keine installierten Modelle gefunden —");
+      if (typeof modelArchBadge !== "undefined" && modelArchBadge && modelArchBadge.dataset.custom === "1") {
+        modelArchBadge.textContent = t("badge_custom_model", "Eigenes Modell");
       }
     }
-    setLLMMode(currentLLMMode);
+    if (typeof selSamplerPreset !== "undefined" && selSamplerPreset) {
+      const emptySamplerOpt = selSamplerPreset.querySelector('option[data-empty="1"]');
+      if (emptySamplerOpt) emptySamplerOpt.textContent = t("samplers_none_found", "— Keine passenden Sampler-Presets —");
+      if (typeof samplerDetailsBadge !== "undefined" && samplerDetailsBadge && samplerDetailsBadge.dataset.custom === "1") {
+        samplerDetailsBadge.textContent = t("badge_custom_sampler", "Eigener Sampler");
+      }
+    }
+    if (typeof llmModelBadge !== "undefined" && llmModelBadge) {
+      llmModelBadge.title = t("badge_llm_title_click", "Klicken, um Status von LM Studio / Ollama / Cloud-LLMs neu zu prüfen");
+    }
+    if (typeof missingNodesModal !== "undefined" && missingNodesModal && missingNodesModal.style.display === "flex" && typeof lastMissingPacks !== "undefined" && lastMissingPacks) {
+      if (typeof renderMissingPacks === "function") {
+        renderMissingPacks(lastMissingPacks, lastMissingNodesPaths || {});
+      }
+    }
+    if (filmstripGallery) {
+      updateGalleryToggleUI(filmstripGallery.classList.contains("collapsed"));
+      const emptyStateBox = filmstripGallery.querySelector("[data-empty-state]");
+      if (emptyStateBox) {
+        const stType = emptyStateBox.getAttribute("data-empty-state");
+        const sp = emptyStateBox.querySelector("span");
+        if (stType === "cleared") {
+          if (sp) sp.textContent = `🧹 ${t("gallery_cleared", "Galerieansicht geleert. (Alle Dateien bleiben sicher auf deiner Festplatte erhalten.)")}`;
+          const restoreBtn = emptyStateBox.querySelector("#btnRestoreGalleryHint");
+          if (restoreBtn) restoreBtn.textContent = `🔄 ${t("gallery_restore_hint", "Bilder neu laden")}`;
+        } else if (stType === "no_output_dir") {
+          if (sp) sp.textContent = t("gallery_no_output_dir", "Kein Ausgabeordner konfiguriert (siehe Einstellungen).");
+        } else if (stType === "empty") {
+          if (sp) sp.textContent = t("gallery_empty", "Keine Bilder im Ausgabeordner vorhanden.");
+        }
+      }
+      filmstripGallery.querySelectorAll(".filmstrip-item .filmstrip-del-btn").forEach(delBtn => {
+        const fn = delBtn.dataset.filename || "";
+        if (fn) {
+          delBtn.title = t("delete_btn_title", '"{filename}" von Festplatte & Galerie löschen').replace("{filename}", fn);
+        }
+      });
+    }
+    if (typeof updateLLMModeUI === "function") {
+      updateLLMModeUI(currentLLMMode);
+    }
     checkComfyStatus();
     checkLLMStatus();
 
-    if (persist) {
-      try {
-        localStorage.setItem("tAStudio.language", currentLang);
-        fetch("/api/config", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ language: currentLang })
-        }).catch(() => {});
-      } catch (e) {}
-    }
     window.dispatchEvent(new CustomEvent("studio-language-changed", { detail: { lang: currentLang } }));
   }
 
@@ -1091,7 +1382,6 @@
   ];
 
   function renderCustomAccentSlots() {
-    const isDe = currentLang !== "en";
     customSlotBtns.forEach((btn, idx) => {
       if (!btn) return;
       const col = customAccentSlots[idx];
@@ -1100,16 +1390,15 @@
         btn.style.background = col;
         btn.textContent = String(idx + 1);
         btn.classList.toggle("active", currentThemeAccent === "custom" && currentCustomAccent.toLowerCase() === col.toLowerCase());
-        btn.title = isDe
-          ? `Custom Slot ${idx + 1} (${col}) – Linksklick: Anwenden · Rechtsklick: Leeren`
-          : `Custom Slot ${idx + 1} (${col}) – Left-click: Apply · Right-click: Clear`;
+        btn.title = t("custom_slot_filled_title", `Custom Slot ${idx + 1} (${col}) – Linksklick: Anwenden · Rechtsklick: Leeren`)
+          .replace("{slot}", String(idx + 1))
+          .replace("{color}", col);
       } else {
         btn.classList.remove("has-color", "active");
         btn.style.background = "";
         btn.textContent = String(idx + 1);
-        btn.title = isDe
-          ? `Custom Slot ${idx + 1} (leer) – Klick speichert aktuelle Akzentfarbe`
-          : `Custom Slot ${idx + 1} (empty) – Click to save current accent color`;
+        btn.title = t("custom_slot_empty_title", `Custom Slot ${idx + 1} (leer) – Klick speichert aktuelle Akzentfarbe`)
+          .replace("{slot}", String(idx + 1));
       }
     });
   }
@@ -1467,7 +1756,7 @@
     lastGpuState = state;
     if (!gpuText) return;
 
-    const freeSuffix = (currentLang === "en") ? "free" : "frei";
+    const freeSuffix = t("gpu_free_suffix", "frei");
     const mon = lastHwMonitor;
 
     if (mon && mon.vram_pct != null && mon.vram_used_gb != null) {
@@ -1552,7 +1841,7 @@
           resetBtn.type = "button";
           resetBtn.className = "hw-peak-reset";
           resetBtn.title = t("btn_reset_peak_title", "VRAM-Peak zurücksetzen");
-          resetBtn.textContent = "↺ Peak";
+          resetBtn.textContent = t("btn_reset_peak", "↺ Peak");
           resetBtn.addEventListener("click", () => {
             peakVramPct = mon && mon.vram_pct != null ? mon.vram_pct : 0;
             peakVramGb = mon && mon.vram_used_gb != null ? mon.vram_used_gb : 0;
@@ -2155,7 +2444,7 @@
           }
           fitOverlayImgBottomRight(true);
           saveState();
-          showToast(`Logo "${uploadedName}" geladen & unten rechts eingepasst!`, "success", 3000);
+          showToast(t("toast_logo_uploaded", 'Logo "{filename}" geladen & unten rechts eingepasst!').replace("{filename}", uploadedName), "success", 3000);
         } else {
           showToast(t("toast_i2i_upload_fail", "Fehler beim Hochladen nach ComfyUI (ist ComfyUI online?)"), "error", 4500);
         }
@@ -2184,7 +2473,7 @@
   if (btnOverlayImgPreview) {
     btnOverlayImgPreview.addEventListener("click", () => {
       if (!currentOverlayImgFilename) {
-        showToast("Bitte zuerst ein Logo hochladen.", "info", 2500);
+        showToast(t("toast_logo_upload_first", "Bitte zuerst ein Logo hochladen."), "info", 2500);
         return;
       }
       overlayImgPreviewActive = !overlayImgPreviewActive;
@@ -2433,7 +2722,7 @@
     if (sveBadge) {
       if (isEn) {
         const sVal = inpSVEStrength ? parseFloat(inpSVEStrength.value).toFixed(2) : "0.35";
-        sveBadge.textContent = isAuto ? `Auto: ${sVal}` : `Manuell: ${sVal}`;
+        sveBadge.textContent = isAuto ? `Auto: ${sVal}` : `${t("sve_badge_manual", "Manuell")}: ${sVal}`;
         sveBadge.style.color = "var(--accent)";
       } else {
         sveBadge.textContent = t("sve_off", "Aus");
@@ -2471,6 +2760,20 @@
   updateSeedVR2UI();
 
   // Attention Engine (Node 1912: TASageAttentionToggler) handlers
+  function updateAttnEngineBadge() {
+    if (!badgeSageAttention) return;
+    if (currentAttnEngine === "kitchen") {
+      badgeSageAttention.textContent = t("badge_kitchen_on", "Kitchen AN");
+      badgeSageAttention.style.color = "var(--accent)";
+    } else if (currentAttnEngine === "sage") {
+      badgeSageAttention.textContent = t("badge_sage_on", "Sage AN");
+      badgeSageAttention.style.color = "var(--accent)";
+    } else {
+      badgeSageAttention.textContent = t("badge_attn_standard", "Standard");
+      badgeSageAttention.style.color = "var(--mute)";
+    }
+  }
+
   function setAttnEngine(engine) {
     currentAttnEngine = engine || "kitchen";
     if (attnEnginePills) {
@@ -2481,18 +2784,7 @@
     if (sageModeContainer) {
       sageModeContainer.style.display = (currentAttnEngine === "sage") ? "block" : "none";
     }
-    if (badgeSageAttention) {
-      if (currentAttnEngine === "kitchen") {
-        badgeSageAttention.textContent = t("badge_kitchen_on", "Kitchen ON");
-        badgeSageAttention.style.color = "var(--accent)";
-      } else if (currentAttnEngine === "sage") {
-        badgeSageAttention.textContent = t("badge_sage_on", "Sage ON");
-        badgeSageAttention.style.color = "var(--accent)";
-      } else {
-        badgeSageAttention.textContent = t("badge_attn_standard", "Standard");
-        badgeSageAttention.style.color = "var(--mute)";
-      }
-    }
+    updateAttnEngineBadge();
   }
 
   if (attnEnginePills) {
@@ -2524,7 +2816,15 @@
   function updatePromptControllerBadge() {
     if (!promptControllerBadge || !selPromptControllerMode) return;
     const mode = selPromptControllerMode.value;
-    promptControllerBadge.textContent = mode;
+    const badgeMap = {
+      "Manual Only": ["ctrl_badge_manual", "Nur Manuell"],
+      "Generated Only": ["ctrl_badge_gen", "Nur KI"],
+      "Combine: Manual + Generated": ["ctrl_badge_combo_mg", "Manuell + KI"],
+      "Combine: Generated + Manual": ["ctrl_badge_combo_gm", "KI + Manuell"],
+      "Clear / Empty": ["ctrl_badge_clear", "Leer"],
+    };
+    const mapped = badgeMap[mode];
+    promptControllerBadge.textContent = mapped ? t(mapped[0], mapped[1]) : mode;
     if (mode === "Manual Only") {
       promptControllerBadge.style.color = "";
     } else if (mode.startsWith("Combine")) {
@@ -2945,17 +3245,22 @@
     { field: "groq_api_key", input: document.getElementById("inpGroqApiKey"), clearBtn: document.getElementById("btnClearGroqKey"), defaultPh: "Optional: gsk_..." },
   ];
 
-  function applyCloudKeyStatusToInputs(statusMap) {
+  let lastCloudKeyStatus = null;
+
+  function applyCloudKeyStatusToInputs(statusMap, preserveDirty = false) {
     const map = statusMap || {};
+    lastCloudKeyStatus = map;
     CLOUD_KEY_INPUTS.forEach(({ field, input, clearBtn, defaultPh }) => {
       if (!input) return;
+      if (preserveDirty && input.dataset.dirty === "1") return;
       input.value = "";
       input.dataset.dirty = "0";
       input.dataset.cleared = "0";
       const st = map[field] || {};
       if (st.configured && st.source === "studio") {
-        input.placeholder = t("settings_cloud_key_set_studio", "Gespeichert ({masked})").replace("{masked}", st.masked || "••••");
-        input.title = `${input.placeholder} – neuen Key eingeben zum Ändern`;
+        const statusPh = t("settings_cloud_key_set_studio", "Gespeichert ({masked})").replace("{masked}", st.masked || "••••");
+        input.placeholder = statusPh;
+        input.title = t("settings_cloud_key_change_hint", "{status} – neuen Key eingeben zum Ändern").replace("{status}", statusPh);
         if (clearBtn) clearBtn.style.display = "inline-flex";
       } else if (st.configured && st.source === "env") {
         input.placeholder = t("settings_cloud_key_set_env", "Windows-Env ({masked})").replace("{masked}", st.masked || "••••");
@@ -3053,7 +3358,8 @@
         }
       }
     }
-    modelArchBadge.textContent = arch || "Custom Model";
+    modelArchBadge.dataset.custom = arch ? "0" : "1";
+    modelArchBadge.textContent = arch || t("badge_custom_model", "Eigenes Modell");
     
     // Normalize string for robust comparison (e.g. ZImage (BF16) matches ZImage (BF16) or Z-Image)
     const normVal = val.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -3134,7 +3440,12 @@
         }
       });
       if (deactivated > 0) {
-        showToast(`${deactivated} inkompatible(s) LoRA(s) für ${val} automatisch deaktiviert`, "info");
+        showToast(
+          t("toast_lora_auto_deactivated", "{count} inkompatible(s) LoRA(s) für {model} automatisch deaktiviert")
+            .replace("{count}", String(deactivated))
+            .replace("{model}", val),
+          "info"
+        );
       }
     }
 
@@ -3188,7 +3499,8 @@
         }
       }
     }
-    samplerDetailsBadge.textContent = meta || "Custom Sampler";
+    samplerDetailsBadge.dataset.custom = meta ? "0" : "1";
+    samplerDetailsBadge.textContent = meta || t("badge_custom_sampler", "Eigener Sampler");
     updateFluxGuidanceState();
     applyLLMDefaultsForMode(currentLLMMode, false);
   }
@@ -3304,12 +3616,14 @@
 
       let badgeHtml = "";
       if (l.trigger && l.trigger.trim()) {
-        badgeHtml = `<span class="lora-badge" title="Trigger-Wort: ${escapeHtml(l.trigger)}">Trigger: ${escapeHtml(l.trigger)}</span>`;
+        const trigTitle = t("lora_trigger_title", "Trigger-Wort: {trigger}").replace("{trigger}", l.trigger);
+        badgeHtml = `<span class="lora-badge" title="${escapeHtml(trigTitle)}">Trigger: ${escapeHtml(l.trigger)}</span>`;
       }
 
       let catBadge = "";
       if (l.category && l.category !== "other") {
-        catBadge = `<span class="lora-category-tag" title="Architektur/Kategorie: ${escapeHtml(l.category)}">${escapeHtml(l.category)}</span>`;
+        const catTitle = t("lora_cat_badge_title", "Architektur/Kategorie: {cat}").replace("{cat}", l.category);
+        catBadge = `<span class="lora-category-tag" title="${escapeHtml(catTitle)}">${escapeHtml(l.category)}</span>`;
       }
 
       item.innerHTML = `
@@ -3374,7 +3688,7 @@
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const data = await resp.json();
       if (!data.success || !Array.isArray(data.loras)) {
-        throw new Error(data.error || "Ungültiges LoRA-Format");
+        throw new Error(data.error || t("err_invalid_lora_format", "Ungültiges LoRA-Format"));
       }
 
       // Check current master list, stateToMerge, or DOM state
@@ -4104,11 +4418,7 @@
   let currentI2IImageFilename = "";
   let llmModelsByMode = { t2i: "", i2i: "" };
 
-  function setLLMMode(mode) {
-    if ((currentLLMMode === "t2i" || currentLLMMode === "i2i") && selLLMModel && selLLMModel.value) {
-      llmModelsByMode[currentLLMMode] = selLLMModel.value;
-    }
-    currentLLMMode = mode;
+  function updateLLMModeUI(mode = currentLLMMode) {
     if (llmModePills) {
       llmModePills.querySelectorAll(".pill-btn").forEach(b => {
         b.classList.toggle("active", b.getAttribute("data-llmmode") === mode);
@@ -4144,6 +4454,15 @@
     if (i2iUploadPanel) {
       i2iUploadPanel.style.display = (mode === "i2i") ? "block" : "none";
     }
+    updateLLMSourceBadge();
+  }
+
+  function setLLMMode(mode) {
+    if ((currentLLMMode === "t2i" || currentLLMMode === "i2i") && selLLMModel && selLLMModel.value) {
+      llmModelsByMode[currentLLMMode] = selLLMModel.value;
+    }
+    currentLLMMode = mode;
+    updateLLMModeUI(mode);
     applyLLMDefaultsForMode(mode, false);
     if (llmPromptResultGroup) {
       if (mode === "off") {
@@ -4299,7 +4618,7 @@
       }
       try {
         const resp = await fetch(mainPreview.src);
-        if (!resp.ok) throw new Error("Konnte Bild nicht laden");
+        if (!resp.ok) throw new Error(t("err_image_load_failed", "Konnte Bild nicht laden"));
         const blob = await resp.blob();
         const ext = blob.type.split("/")[1] || "png";
         const fname = (activeImageMeta && activeImageMeta.filename)
@@ -4308,7 +4627,7 @@
         const file = new File([blob], fname, { type: blob.type });
         uploadI2IImage(file);
       } catch (err) {
-        showToast("Fehler beim Übernehmen aus der Vorschau: " + err.message, "error", 4000);
+        showToast(t("toast_i2i_adopt_error", "Fehler beim Übernehmen aus der Vorschau: ") + err.message, "error", 4000);
       }
     });
   }
@@ -5051,7 +5370,7 @@
   if (btnCancelGenerate) {
     btnCancelGenerate.addEventListener("click", async () => {
       btnCancelGenerate.disabled = true;
-      btnCancelGenerate.innerHTML = `<span class="icon">⏳</span><span>${t("btn_cancel_cancelling", "Breche ab...")}</span>`;
+      btnCancelGenerate.innerHTML = `<span class="icon">⏳</span><span data-i18n="btn_cancel_cancelling">${t("btn_cancel_cancelling", "Breche ab...")}</span>`;
       try {
         await fetch("/api/cancel_generation", { method: "POST" });
         showToast(t("toast_cancel_request", "Generierung wird abgebrochen..."), "info", 2000);
@@ -5079,7 +5398,7 @@
     if (btnCancelGenerate) {
       btnCancelGenerate.style.display = "flex";
       btnCancelGenerate.disabled = false;
-      btnCancelGenerate.innerHTML = `<span class="icon">🛑</span><span>${t("btn_cancel_generate", "Aktion abbrechen")}</span>`;
+      btnCancelGenerate.innerHTML = `<span class="icon">🛑</span><span data-i18n="btn_cancel_generate">${t("btn_cancel_generate", "Aktion abbrechen")}</span>`;
     }
 
     updateLLMExecStatusBadge("");
@@ -5290,9 +5609,9 @@
       const p = (activeImageMeta && activeImageMeta.prompt) ? activeImageMeta.prompt : (txtPrompt ? txtPrompt.value : "");
       if (p) {
         navigator.clipboard.writeText(p).then(() => {
-          const orig = btnCopyPrompt.textContent;
-          btnCopyPrompt.textContent = t("toast_copied", "✓ Kopiert!");
-          setTimeout(() => { btnCopyPrompt.textContent = orig; }, 1500);
+          const lbl = btnCopyPrompt.querySelector(".btn-label") || btnCopyPrompt;
+          lbl.textContent = t("toast_copied", "✓ Kopiert!");
+          setTimeout(() => { lbl.textContent = t("btn_copy_prompt", "📋 Prompt kopieren"); }, 1500);
         });
       }
     });
@@ -5309,9 +5628,9 @@
         updateSeedBadge("fixed");
         txtSeed.disabled = false;
         saveState();
-        const orig = btnReuseSeed.textContent;
-        btnReuseSeed.textContent = t("toast_seed_active", "✓ Seed aktiv!");
-        setTimeout(() => { btnReuseSeed.textContent = orig; }, 1500);
+        const lbl = btnReuseSeed.querySelector(".btn-label") || btnReuseSeed;
+        lbl.textContent = t("toast_seed_active", "✓ Seed aktiv!");
+        setTimeout(() => { lbl.textContent = t("btn_reuse_seed", "🔄 Seed übernehmen"); }, 1500);
       }
     });
   }
@@ -5409,12 +5728,12 @@
       if (btnCancelGenerate) {
         btnCancelGenerate.style.display = "flex";
         btnCancelGenerate.disabled = false;
-        btnCancelGenerate.innerHTML = `<span class="icon">🛑</span><span>${t("btn_cancel_generate", "Aktion abbrechen")}</span>`;
+        btnCancelGenerate.innerHTML = `<span class="icon">🛑</span><span data-i18n="btn_cancel_generate">${t("btn_cancel_generate", "Aktion abbrechen")}</span>`;
       }
 
       const resetBgRemoveUi = () => {
         bgRemoveState.busy = false;
-        if (labelEl) labelEl.textContent = origLabel;
+        if (labelEl) labelEl.textContent = t("btn_remove_bg", "✂️ Hintergrund entf.");
         updateBgRemoveUI(bgRemoveState);
         finishGeneration();
       };
@@ -5468,7 +5787,7 @@
             if (job.status === "error") {
               clearInterval(pollInterval);
               resetBgRemoveUi();
-              showToast(t("bg_remove_error", "Fehler beim Freistellen: ") + (job.error || "Unbekannter Fehler"), "error", 5000);
+              showToast(t("bg_remove_error", "Fehler beim Freistellen: ") + (job.error || t("err_unknown", "Unbekannter Fehler")), "error", 5000);
               return;
             }
 
@@ -5505,7 +5824,7 @@
           if (pollCount > 360) { // timeout ~180s
             clearInterval(pollInterval);
             resetBgRemoveUi();
-            showToast(t("bg_remove_error", "Fehler beim Freistellen: ") + "Timeout", "error", 5000);
+            showToast(t("bg_remove_error", "Fehler beim Freistellen: ") + t("err_timeout", "Zeitüberschreitung (Timeout)"), "error", 5000);
           }
         }, 500);
       } catch (e) {
@@ -5915,7 +6234,7 @@
       }
 
       if (!resp.ok) {
-        const err = await resp.json().catch(() => ({ error: "Fehler beim Auslesen" }));
+        const err = await resp.json().catch(() => ({}));
 
         // Gracefully handle images without ComfyUI metadata:
         if (source instanceof File) {
@@ -6295,7 +6614,7 @@
   function updateGalleryToggleUI(isCollapsed) {
     if (!btnToggleGallery) return;
     const labelEl = btnToggleGallery.querySelector(".btn-label") || btnToggleGallery;
-    const shortWord = (currentLang === "en") ? "Gallery" : "Galerie";
+    const shortWord = t("nav_gallery", "🖼️ Galerie").replace(/^[^\s]+\s+/, "");
     if (isCollapsed) {
       labelEl.textContent = t("btn_expand_gallery", "▲ Galerie anzeigen");
       btnToggleGallery.dataset.compactLabel = `▲ ${shortWord}`;
@@ -6320,7 +6639,7 @@
   if (btnClearGallery && filmstripGallery) {
     btnClearGallery.addEventListener("click", () => {
       filmstripGallery.innerHTML = `
-        <div style="color:var(--text-muted); font-size:12px; padding: 0 16px; white-space:nowrap; display:flex; align-items:center; gap:10px;">
+        <div data-empty-state="cleared" style="color:var(--text-muted); font-size:12px; padding: 0 16px; white-space:nowrap; display:flex; align-items:center; gap:10px;">
           <span>🧹 ${t("gallery_cleared", "Galerieansicht geleert. (Alle Dateien bleiben sicher auf deiner Festplatte erhalten.)")}</span>
           <button type="button" class="btn-action" id="btnRestoreGalleryHint" style="padding: 3px 8px; font-size: 11px;">🔄 ${t("gallery_restore_hint", "Bilder neu laden")}</button>
         </div>
@@ -6329,19 +6648,19 @@
       if (restoreBtn) {
         restoreBtn.addEventListener("click", () => loadHistoryGallery());
       }
-      const orig = btnClearGallery.textContent;
-      btnClearGallery.textContent = t("toast_cleared", "✓ Geleert!");
-      setTimeout(() => { btnClearGallery.textContent = orig; }, 1500);
+      const lbl = btnClearGallery.querySelector(".btn-label") || btnClearGallery;
+      lbl.textContent = t("toast_cleared", "✓ Geleert!");
+      setTimeout(() => { lbl.textContent = t("btn_clear_gallery", "🧹 Galerie leeren"); }, 1500);
     });
   }
 
   if (btnRefreshGallery) {
     btnRefreshGallery.addEventListener("click", async () => {
-      const orig = btnRefreshGallery.textContent;
-      btnRefreshGallery.textContent = t("loading_status", "Lade...");
+      const lbl = btnRefreshGallery.querySelector(".btn-label") || btnRefreshGallery;
+      lbl.textContent = t("loading_status", "Lade...");
       await loadHistoryGallery();
-      btnRefreshGallery.textContent = t("toast_loaded", "✓ Geladen!");
-      setTimeout(() => { btnRefreshGallery.textContent = orig; }, 1200);
+      lbl.textContent = t("toast_loaded", "✓ Geladen!");
+      setTimeout(() => { lbl.textContent = t("btn_refresh_gallery", "🔄 Neu laden"); }, 1200);
     });
   }
 
@@ -6450,9 +6769,13 @@
   const installNodesLog = document.getElementById("installNodesLog");
 
   let nodeInstallPollTimer = null;
+  let lastMissingPacks = null;
+  let lastMissingNodesPaths = null;
 
   function renderMissingPacks(packs, paths) {
     if (!missingNodesList) return;
+    lastMissingPacks = packs;
+    lastMissingNodesPaths = paths || {};
     missingNodesList.innerHTML = "";
 
     if (missingNodesDesc) {
@@ -6483,7 +6806,7 @@
       btnInstallMissingNodes.style.display = "";
       btnInstallMissingNodes.disabled = Boolean(paths?.is_remote);
       btnInstallMissingNodes.title = paths?.is_remote
-        ? (currentLang === "en" ? "Remote ComfyUI cannot be installed locally" : "Remote-ComfyUI kann nicht lokal installiert werden")
+        ? t("missing_nodes_remote_title", "Remote-ComfyUI kann nicht lokal installiert werden")
         : "";
     }
 
@@ -6511,12 +6834,12 @@
       badge.className = "missing-pack-badge";
       if (pack.folder_exists) {
         badge.classList.add("restart");
-        badge.textContent = currentLang === "en" ? "Restart required" : "Neustart nötig";
+        badge.textContent = t("missing_nodes_badge_restart", "Neustart nötig");
       } else if (pack.required) {
-        badge.textContent = currentLang === "en" ? "Required" : "Erforderlich";
+        badge.textContent = t("missing_nodes_badge_required", "Erforderlich");
       } else {
         badge.classList.add("optional");
-        badge.textContent = "Optional";
+        badge.textContent = t("missing_nodes_badge_optional", "Optional");
       }
 
       hdr.appendChild(nameEl);
@@ -6528,7 +6851,7 @@
 
       const nodesEl = document.createElement("div");
       nodesEl.className = "missing-pack-nodes";
-      nodesEl.textContent = (currentLang === "en" ? "Missing: " : "Fehlt: ") + (pack.missing_nodes || []).join(", ");
+      nodesEl.textContent = t("missing_nodes_missing_prefix", "Fehlt: ") + (pack.missing_nodes || []).join(", ");
 
       info.appendChild(hdr);
       info.appendChild(desc);
@@ -6553,7 +6876,7 @@
         if (forceShow && missingNodesModal.style.display === "flex") {
           missingNodesModal.style.display = "none";
           showToast(
-            currentLang === "en" ? "All required custom nodes are installed!" : "Alle benötigten Custom Nodes sind installiert!",
+            t("missing_nodes_all_installed", "Alle benötigten Custom Nodes sind installiert!"),
             "success",
             3500
           );
@@ -6613,7 +6936,7 @@
         const selectedIds = Array.from(missingNodesList.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
         if (selectedIds.length === 0) {
           showToast(
-            currentLang === "en" ? "Please select at least one pack." : "Bitte wähle mindestens ein Pack aus.",
+            t("missing_nodes_select_one", "Bitte wähle mindestens ein Pack aus."),
             "info",
             3000
           );
@@ -6625,7 +6948,7 @@
         if (btnRecheckMissingNodes) btnRecheckMissingNodes.disabled = true;
         if (installNodesProgressWrap) installNodesProgressWrap.style.display = "block";
         if (installNodesProgressBar) installNodesProgressBar.style.width = "5%";
-        if (installNodesLog) installNodesLog.textContent = currentLang === "en" ? "Starting installation..." : "Starte Installation...";
+        if (installNodesLog) installNodesLog.textContent = t("missing_nodes_starting", "Starte Installation...");
 
         try {
           const res = await fetch("/api/install_nodes", {
@@ -6640,7 +6963,7 @@
               missingNodesDirGroup.style.display = "block";
               if (inpMissingNodesComfyDir) inpMissingNodesComfyDir.focus();
             }
-            showToast(data.error || "Installation fehlgeschlagen.", "error", 5500);
+            showToast(data.error || t("missing_nodes_install_failed", "Installation fehlgeschlagen."), "error", 5500);
             btnInstallMissingNodes.disabled = false;
             if (btnRecheckMissingNodes) btnRecheckMissingNodes.disabled = false;
             return;
@@ -6660,10 +6983,10 @@
               if (installNodesProgressCount) installNodesProgressCount.textContent = `${done} / ${total}`;
               if (installNodesProgressText) {
                 installNodesProgressText.textContent = job.current_pack
-                  ? `${currentLang === "en" ? "Installing" : "Installiere"}: ${job.current_pack}`
+                  ? t("missing_nodes_installing_pack", "Installiere: {pack}").replace("{pack}", job.current_pack)
                   : (job.status === "done"
-                    ? (currentLang === "en" ? "Completed – please restart ComfyUI!" : "Fertig – bitte ComfyUI neu starten!")
-                    : (currentLang === "en" ? "Finished with warnings" : "Mit Hinweisen beendet"));
+                    ? t("missing_nodes_done_restart", "Fertig – bitte ComfyUI neu starten!")
+                    : t("missing_nodes_done_warnings", "Mit Hinweisen beendet"));
               }
               if (installNodesLog && Array.isArray(job.logs)) {
                 installNodesLog.textContent = job.logs.join("\n");
@@ -6680,8 +7003,8 @@
                   if (badge) {
                     badge.className = `missing-pack-badge ${r.ok ? "ok" : ""}`;
                     badge.textContent = r.ok
-                      ? (currentLang === "en" ? "✓ Installed (Restart ComfyUI)" : "✓ Installiert (ComfyUI neu starten)")
-                      : (currentLang === "en" ? "✖ Error" : "✖ Fehler");
+                      ? t("missing_nodes_row_ok", "✓ Installiert (ComfyUI neu starten)")
+                      : t("missing_nodes_row_err", "✖ Fehler");
                   }
                 });
               }
@@ -6694,21 +7017,22 @@
                 if (job.status === "done") {
                   btnInstallMissingNodes.style.display = "none";
                   if (missingNodesDesc) {
-                    missingNodesDesc.textContent = currentLang === "en"
-                      ? "Installation complete! Please restart ComfyUI now so the new custom nodes are loaded."
-                      : "Installation abgeschlossen! Bitte starte ComfyUI jetzt neu, damit die neuen Custom Nodes geladen werden.";
+                    missingNodesDesc.textContent = t(
+                      "missing_nodes_desc_done",
+                      "Installation abgeschlossen! Bitte starte ComfyUI jetzt neu, damit die neuen Custom Nodes geladen werden."
+                    );
                   }
                   if (btnDismissMissingNodes) {
-                    btnDismissMissingNodes.textContent = currentLang === "en" ? "Close" : "Schließen";
+                    btnDismissMissingNodes.textContent = t("missing_nodes_btn_close", "Schließen");
                   }
                   if (btnRecheckMissingNodes) {
-                    btnRecheckMissingNodes.textContent = currentLang === "en" ? "🔄 Check after restart" : "🔄 Nach Neustart prüfen";
+                    btnRecheckMissingNodes.textContent = t("missing_nodes_btn_recheck_restart", "🔄 Nach Neustart prüfen");
                   }
                 }
                 showToast(
                   job.status === "done"
-                    ? (currentLang === "en" ? "Custom nodes installed! Please restart ComfyUI." : "Custom Nodes installiert! Bitte starte ComfyUI neu.")
-                    : (job.error || (currentLang === "en" ? "Some packs had errors." : "Einige Packs hatten Fehler.")),
+                    ? t("missing_nodes_toast_done", "Custom Nodes installiert! Bitte starte ComfyUI neu.")
+                    : (job.error || t("missing_nodes_toast_some_errors", "Einige Packs hatten Fehler.")),
                   job.status === "done" ? "success" : "error",
                   7000
                 );
@@ -6811,7 +7135,7 @@
         return;
       }
 
-      btnLaunchComfy.textContent = "⏳ Öffne Terminal...";
+      btnLaunchComfy.textContent = t("btn_launch_comfy_opening", "⏳ Öffne Terminal…");
       btnLaunchComfy.disabled = true;
       try {
         const launchCmdVal = inpComfyLaunchCmd ? inpComfyLaunchCmd.value.trim() : "";
@@ -6822,7 +7146,9 @@
         });
         const data = await res.json();
         if (data.status === "launched") {
-          btnLaunchComfy.textContent = data.terminal === "wt" ? "⏳ Neuer Tab geöffnet..." : "⏳ Terminal gestartet...";
+          btnLaunchComfy.textContent = data.terminal === "wt"
+            ? t("btn_launch_comfy_tab", "⏳ Neuer Tab geöffnet…")
+            : t("btn_launch_comfy_started", "⏳ Terminal gestartet…");
           // Poll faster for connection
           let tries = 0;
           const pollComfy = setInterval(async () => {
@@ -6856,7 +7182,7 @@
             );
           } else {
             showToast(
-              t("toast_launch_error", "Fehler beim Starten von ComfyUI: ") + (data.error || "Unbekannter Fehler"),
+              t("toast_launch_error", "Fehler beim Starten von ComfyUI: ") + (data.error || t("err_unknown", "Unbekannter Fehler")),
               "error",
               6000
             );
@@ -7115,6 +7441,7 @@
   if (btnEditModelPresets) {
     btnEditModelPresets.addEventListener("click", () => {
       currentPresetEditorUrl = `/proxy/comfy/ta_model_presets/ui`;
+      presetEditorModalTitle.setAttribute("data-i18n", "preset_modal_title_model");
       presetEditorModalTitle.textContent = t("preset_modal_title_model", "🧠 TA Model Preset Editor (Neues Preset anlegen & verwalten)");
       presetEditorIframe.src = currentPresetEditorUrl;
       presetEditorModal.style.display = "flex";
@@ -7124,6 +7451,7 @@
   if (btnEditSamplerPresets) {
     btnEditSamplerPresets.addEventListener("click", () => {
       currentPresetEditorUrl = `/proxy/comfy/ta_sampler_presets/ui`;
+      presetEditorModalTitle.setAttribute("data-i18n", "preset_modal_title_sampler");
       presetEditorModalTitle.textContent = t("preset_modal_title_sampler", "⚡ TA Sampler Preset Editor (Neues Preset anlegen & verwalten)");
       presetEditorIframe.src = currentPresetEditorUrl;
       presetEditorModal.style.display = "flex";
@@ -7268,11 +7596,12 @@
         );
 
         if (files.length === 0 && !keepCurrentPreview) {
+          const emptyStateKey = data.output_dir ? "empty" : "no_output_dir";
           const emptyMsg = data.output_dir
             ? t("gallery_empty", "Keine Bilder im Ausgabeordner vorhanden.")
             : t("gallery_no_output_dir", "Kein Ausgabeordner konfiguriert (siehe Einstellungen).");
           filmstripGallery.innerHTML = `
-            <div style="color:var(--text-muted); font-size:12px; padding: 0 16px; white-space:nowrap; display:flex; align-items:center;">
+            <div data-empty-state="${emptyStateKey}" style="color:var(--text-muted); font-size:12px; padding: 0 16px; white-space:nowrap; display:flex; align-items:center;">
               <span>${emptyMsg}</span>
             </div>
           `;
@@ -7313,6 +7642,7 @@
           const delBtn = document.createElement("button");
           delBtn.type = "button";
           delBtn.className = "filmstrip-del-btn";
+          delBtn.dataset.filename = fileObj.filename;
           delBtn.title = t("delete_btn_title", `"${fileObj.filename}" von Festplatte & Galerie löschen`).replace("{filename}", fileObj.filename);
           delBtn.innerHTML = "🗑️";
           delBtn.addEventListener("click", (e) => {
@@ -7453,7 +7783,8 @@
       } else {
         const opt = document.createElement("option");
         opt.value = "";
-        opt.textContent = "— Keine installierten Modelle gefunden —";
+        opt.dataset.empty = "1";
+        opt.textContent = t("models_none_installed", "— Keine installierten Modelle gefunden —");
         opt.disabled = true;
         opt.selected = true;
         selModelPreset.appendChild(opt);
@@ -7482,7 +7813,8 @@
       } else {
         const opt = document.createElement("option");
         opt.value = "";
-        opt.textContent = "— Keine passenden Sampler-Presets —";
+        opt.dataset.empty = "1";
+        opt.textContent = t("samplers_none_found", "— Keine passenden Sampler-Presets —");
         opt.disabled = true;
         opt.selected = true;
         selSamplerPreset.appendChild(opt);
@@ -7504,6 +7836,7 @@
 
   async function initApp() {
     let state = null;
+    let serverLang = null;
 
     try {
       try {
@@ -7518,8 +7851,8 @@
         if (inpComfyLaunchCmd) inpComfyLaunchCmd.value = cfg.comfy_launch_cmd || "";
         if (cfg.app_version && brandVersion) brandVersion.textContent = `v${cfg.app_version}`;
         if (cfg.workflow_version && brandWf) brandWf.textContent = `WF ${cfg.workflow_version}`;
-        if (cfg.language) {
-          applyLanguage(cfg.language, false);
+        if (cfg.language === "de" || cfg.language === "en") {
+          serverLang = cfg.language;
         }
         if (Array.isArray(cfg.theme_custom_slots)) {
           customAccentSlots = [
@@ -7555,13 +7888,19 @@
       }
     } catch (e) {}
 
-    // Check localStorage language preference
+    // Resolve and apply initial language once (server config takes precedence, then localStorage, then 'de')
+    let initialLang = serverLang;
     try {
       const savedLang = localStorage.getItem("tAStudio.language");
-      if (savedLang) {
-        applyLanguage(savedLang, false);
+      if (!initialLang && (savedLang === "de" || savedLang === "en")) {
+        initialLang = savedLang;
       }
-    } catch (e) {}
+      if (!initialLang) initialLang = "de";
+      localStorage.setItem("tAStudio.language", initialLang);
+    } catch (e) {
+      if (!initialLang) initialLang = "de";
+    }
+    applyLanguage(initialLang, false);
 
     // Fallback: restore custom_res_presets from localStorage if not already loaded from config.json
     if (savedCustomResolutions.length === 0) {
@@ -7666,11 +8005,22 @@
     let latestUpdateInfo = null;
     let pollTimer = null;
 
+    function updateUpdateVersionLabels() {
+      if (!latestUpdateInfo) return;
+      if (elCurVer) {
+        elCurVer.textContent = t("update_current_ver", "Aktuell: v{ver}")
+          .replace("{ver}", latestUpdateInfo.current_version || "?");
+      }
+      if (elNewVer) {
+        elNewVer.textContent = t("update_new_ver", "Neu: v{ver}")
+          .replace("{ver}", latestUpdateInfo.latest_version || "?");
+      }
+    }
+
     function openUpdateModal(info) {
       if (!modal || !info) return;
       latestUpdateInfo = info;
-      if (elCurVer) elCurVer.textContent = `Current: v${info.current_version || "?"}`;
-      if (elNewVer) elNewVer.textContent = `New: v${info.latest_version || "?"}`;
+      updateUpdateVersionLabels();
       if (btnOpenRelease) btnOpenRelease.href = info.release_url || info.releases_url || "https://github.com/tmode-1960/TA-StudioCockpit/releases";
 
       if (elNotesWrap && elNotesText) {
@@ -7693,6 +8043,10 @@
 
       modal.style.display = "flex";
     }
+
+    window.addEventListener("studio-language-changed", () => {
+      updateUpdateVersionLabels();
+    });
 
     function closeUpdateModal(rememberDismiss = false) {
       if (pollTimer) {
@@ -7725,13 +8079,18 @@
           }
         } else if (manual) {
           if (info.ok) {
-            showToast(`StudioCockpit is up to date (v${info.current_version}).`, "success", 3500);
+            showToast(
+              t("toast_update_uptodate", "StudioCockpit ist auf dem neuesten Stand (v{ver}).")
+                .replace("{ver}", info.current_version || "?"),
+              "success",
+              3500
+            );
           } else {
-            showToast(info.error || "Update check failed.", "info", 4000);
+            showToast(info.error || t("toast_update_check_failed", "Update-Prüfung fehlgeschlagen."), "info", 4000);
           }
         }
       } catch (e) {
-        if (manual) showToast("Unable to check for updates (offline?).", "error", 3500);
+        if (manual) showToast(t("toast_update_offline", "Konnte nicht nach Updates suchen (offline?)."), "error", 3500);
       }
     }
 
@@ -7743,7 +8102,7 @@
         const pct = Math.max(0, Math.min(100, Number(st.progress || 0)));
         if (elProgressFill) elProgressFill.style.width = `${pct}%`;
         if (elProgressPct) elProgressPct.textContent = `${pct}%`;
-        if (elProgressText) elProgressText.textContent = st.message || "Installing…";
+        if (elProgressText) elProgressText.textContent = st.message || t("update_installing", "Installiere…");
 
         if (st.status === "restarting") {
           if (pollTimer) {
@@ -7757,7 +8116,7 @@
           }
           if (btnInstall) btnInstall.disabled = false;
           if (btnDismiss) btnDismiss.disabled = false;
-          showToast(st.error || "Update failed.", "error", 5000);
+          showToast(st.error || t("toast_update_failed", "Update fehlgeschlagen."), "error", 5000);
         }
       } catch (e) {}
     }
@@ -7785,7 +8144,7 @@
         btnInstall.disabled = true;
         if (btnDismiss) btnDismiss.disabled = true;
         if (elProgressWrap) elProgressWrap.style.display = "";
-        if (elProgressText) elProgressText.textContent = "Starting download…";
+        if (elProgressText) elProgressText.textContent = t("update_starting_download", "Starte Download…");
         if (elProgressPct) elProgressPct.textContent = "0%";
         if (elProgressFill) elProgressFill.style.width = "0%";
 
@@ -7793,7 +8152,7 @@
           const res = await fetch("/api/update/install", { method: "POST" });
           const data = await res.json();
           if (!res.ok || !data.ok) {
-            throw new Error(data.error || "Could not start installation.");
+            throw new Error(data.error || t("update_start_failed", "Installation konnte nicht gestartet werden."));
           }
           pollTimer = setInterval(pollInstallStatus, 400);
           pollInstallStatus();
@@ -7801,7 +8160,7 @@
           btnInstall.disabled = false;
           if (btnDismiss) btnDismiss.disabled = false;
           if (elProgressWrap) elProgressWrap.style.display = "none";
-          showToast(err.message || "Update failed.", "error", 5000);
+          showToast(err.message || t("toast_update_failed", "Update fehlgeschlagen."), "error", 5000);
         }
       });
     }
