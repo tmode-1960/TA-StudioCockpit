@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.15"
+APP_VERSION = "1.16"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -3977,6 +3977,7 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
 
         self.send_response(200)
         self.send_header("Content-Type", content_type)
+        self.send_header("Cache-Control", "no-cache")
         self._send_cors_origin_header()
         self.send_header("Content-Length", str(os.path.getsize(filepath)))
         self.end_headers()
@@ -3992,7 +3993,7 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             meta = extract_image_metadata(fullpath)
             top_files.append({
                 "filename": rel_path,
-                "url": f"/output/{urllib.parse.quote(rel_path, safe='/')}",
+                "url": f"/output/{urllib.parse.quote(rel_path, safe='/')}?t={int(mtime * 1000)}",
                 "mtime": mtime,
                 "prompt": meta.get("positive_prompt", ""),
                 "additional_prompt": meta.get("additional_prompt", ""),
