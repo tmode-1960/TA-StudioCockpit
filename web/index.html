@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v1.10 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.11 (FLEXMOD Edition)</title>
   <link rel="icon" href="/favicon.ico">
   <script>
     (function () {
@@ -2310,7 +2310,7 @@
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
           <div class="field-group">
-            <label class="field-label">Frames</label>
+            <label class="field-label" data-gif-i18n="ai_frames">Frames</label>
             <select id="gifAiFramesSelect">
               <option value="17">17 (~1.4s)</option>
               <option value="25">25 (~2.1s)</option>
@@ -2419,7 +2419,7 @@
 
         <div id="gifAiProgressBox" style="display:none; margin-top:14px; padding:12px; background:var(--panel2); border:1px solid var(--line); border-radius:8px;">
           <div style="display:flex; justify-content:space-between; gap:10px; font-size:12px; margin-bottom:6px;">
-            <span id="gifAiProgressText" style="white-space:pre-wrap; word-break:break-word;">Generiere...</span>
+            <span id="gifAiProgressText" data-gif-i18n="ai_generating" style="white-space:pre-wrap; word-break:break-word;">Generiere...</span>
             <span id="gifAiProgressPct" style="color:var(--accent); font-weight:600; flex-shrink:0;">0%</span>
           </div>
           <div style="height:6px; background:var(--bg); border-radius:3px; overflow:hidden;">
@@ -2996,7 +2996,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=1.10"></script>
+  <script src="/app.js?v=1.11"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=4"></script>
   <script src="/video_module.js?v=1.00"></script>

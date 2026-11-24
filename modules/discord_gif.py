@@ -1541,7 +1541,7 @@ def _run_ai_generation_thread(params: dict) -> None:
         gif_item = {
             "id": gid,
             "title": clean_title.replace("_", " ").title(),
-            "category": "AI-Generated",
+            "category": _srv_t("KI-Generiert", "AI-Generated"),
             "filename": rel_path if target_base == GIFS_DIR else None,
             "abs_path": final_gif_path,
             "rel_path": rel_path,

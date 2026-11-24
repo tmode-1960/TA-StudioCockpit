@@ -19,9 +19,11 @@
 
   const $ = (id) => document.getElementById(id);
 
+  const escHtml = (s) =>
+    String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
   const GIF_I18N = {
     de: {
-      nav_images: "🎨 Bilder",
       nav_gif: "👾 DiscordGIF",
       btn_send_to_gif: "👾 Als Discord-GIF",
       btn_send_to_gif_title: "Aktuelles Bild im DiscordGIF AI-Studio animieren",
@@ -56,6 +58,7 @@
       opt_res_standard: "Standard (512×512 • 8–12 GB)",
       opt_res_fast: "Schnell / Eco (480×272 • 6–8 GB)",
       ai_motion: "Motion-Intensität",
+      ai_frames: "Frames",
       ai_pingpong: "Nahtloser Ping-Pong Loop",
       ai_reverse: "Rückwärts abspielen",
       gallery_title: "GIF-Sammlung",
@@ -91,10 +94,6 @@
       settings_gif_dir: "Lokaler GIF-Ordner (eigene GIFs)",
       settings_gif_dir_ph: "z. B. D:\\Bilder\\MyGIFs",
       btn_browse: "📁 Durchsuchen",
-      ctx_copy: "📋 Kopieren",
-      ctx_cut: "✂️ Ausschneiden",
-      ctx_paste: "📥 Einfügen",
-      ctx_select_all: "🔘 Alles auswählen",
       discord_checking: "Discord: Prüfe...",
       discord_connected: "Discord: Verbunden",
       discord_offline: "Discord: Nicht offen",
@@ -133,7 +132,6 @@
       err_adopt_img: "Bild konnte nicht übernommen werden.",
     },
     en: {
-      nav_images: "🎨 Images",
       nav_gif: "👾 DiscordGIF",
       btn_send_to_gif: "👾 To Discord GIF",
       btn_send_to_gif_title: "Animate current image in DiscordGIF AI Studio",
@@ -168,6 +166,7 @@
       opt_res_standard: "Standard (512×512 • 8–12 GB)",
       opt_res_fast: "Fast / Eco (480×272 • 6–8 GB)",
       ai_motion: "Motion Intensity",
+      ai_frames: "Frames",
       ai_pingpong: "Seamless Ping-Pong Loop",
       ai_reverse: "Play in Reverse",
       gallery_title: "GIF Collection",
@@ -203,10 +202,6 @@
       settings_gif_dir: "Local GIF Folder (custom GIFs)",
       settings_gif_dir_ph: "e.g. D:\\Images\\MyGIFs",
       btn_browse: "📁 Browse",
-      ctx_copy: "📋 Copy",
-      ctx_cut: "✂️ Cut",
-      ctx_paste: "📥 Paste",
-      ctx_select_all: "🔘 Select All",
       discord_checking: "Discord: Checking...",
       discord_connected: "Discord: Connected",
       discord_offline: "Discord: Not open",
@@ -262,6 +257,7 @@
   function applyGifLanguage() {
     document.querySelectorAll("[data-gif-i18n]").forEach((el) => {
       if (el.id === "gifDropPrompt" && state.pendingFileBase64) return;
+      if (el.id === "gifAiProgressText" && $("gifAiProgressBox")?.style.display === "block") return;
       const k = el.getAttribute("data-gif-i18n");
       if (k) el.textContent = gt(k);
     });
@@ -436,9 +432,6 @@
       });
       if (!found) missing.push(req);
     }
-
-    const escHtml = (s) =>
-      String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
     hint.style.display = "block";
     if (!missing.length) {
