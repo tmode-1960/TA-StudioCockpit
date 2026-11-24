@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v1.12 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.13 (FLEXMOD Edition)</title>
   <link rel="icon" href="/favicon.ico">
   <script>
     (function () {
@@ -65,7 +65,7 @@
     <button class="btn-action" id="btnReloadApp" title="Oberfläche neu laden (F5)" data-i18n-title="btn_reload_title" style="padding: 5px 10px; font-size: 12px;" data-i18n="btn_reload_app">🔄 App neu laden</button>
     <div class="theme-picker-wrap" id="themePickerWrap">
       <button type="button" class="btn-action" id="btnThemePicker" aria-expanded="false" aria-controls="themePopover" title="Design &amp; Akzentfarbe wechseln" data-i18n-title="btn_theme_title" style="padding: 5px 10px;">🎨</button>
-      <div class="theme-popover" id="themePopover" hidden role="region" aria-label="Theme">
+      <div class="theme-popover" id="themePopover" hidden role="region" aria-label="Theme" data-i18n-aria-label="theme_popover_aria">
         <div class="theme-popover-section">
           <div class="theme-popover-label" data-i18n="theme_base_label">Hintergrund / Design</div>
           <div class="theme-base-grid" id="themeBaseGrid">
@@ -82,17 +82,17 @@
         <div class="theme-popover-section">
           <div class="theme-popover-label" data-i18n="theme_accent_label">Akzentfarbe</div>
           <div class="theme-accent-row" id="themeAccentRow">
-            <button type="button" class="theme-accent-dot" data-theme-accent="violet" title="Studio Violet" style="background:#8b5cf6;"></button>
-            <button type="button" class="theme-accent-dot" data-theme-accent="lavender" title="Soft Lavender" style="background:#c084fc;"></button>
-            <button type="button" class="theme-accent-dot" data-theme-accent="cyan" title="Midnight Cyan" style="background:#0ea5e9;"></button>
-            <button type="button" class="theme-accent-dot" data-theme-accent="emerald" title="Darkroom Emerald" style="background:#10b981;"></button>
-            <button type="button" class="theme-accent-dot" data-theme-accent="neon_green" title="Neon Green" style="background:#00e676;"></button>
-            <button type="button" class="theme-accent-dot" data-theme-accent="amber" title="Solar Amber" style="background:#f59e0b;"></button>
-            <button type="button" class="theme-accent-dot" data-theme-accent="rose" title="Crimson Rose" style="background:#f43f5e;"></button>
-            <button type="button" class="theme-accent-dot" data-theme-accent="blush_pink" title="Blush Pink" style="background:#e879a8;"></button>
-            <button type="button" class="theme-accent-dot" data-theme-accent="titanium" title="Stealth Titanium" style="background:#64748b;"></button>
-            <button type="button" class="theme-accent-slot" id="btnCustomSlot0" data-custom-slot="0" title="Custom Slot 1">1</button>
-            <button type="button" class="theme-accent-slot" id="btnCustomSlot1" data-custom-slot="1" title="Custom Slot 2">2</button>
+            <button type="button" class="theme-accent-dot" data-theme-accent="violet" title="Studio Violet" data-i18n-title="theme_accent_violet" style="background:#8b5cf6;"></button>
+            <button type="button" class="theme-accent-dot" data-theme-accent="lavender" title="Soft Lavender" data-i18n-title="theme_accent_lavender" style="background:#c084fc;"></button>
+            <button type="button" class="theme-accent-dot" data-theme-accent="cyan" title="Midnight Cyan" data-i18n-title="theme_accent_cyan" style="background:#0ea5e9;"></button>
+            <button type="button" class="theme-accent-dot" data-theme-accent="emerald" title="Darkroom Emerald" data-i18n-title="theme_accent_emerald" style="background:#10b981;"></button>
+            <button type="button" class="theme-accent-dot" data-theme-accent="neon_green" title="Neon Green" data-i18n-title="theme_accent_neon_green" style="background:#00e676;"></button>
+            <button type="button" class="theme-accent-dot" data-theme-accent="amber" title="Solar Amber" data-i18n-title="theme_accent_amber" style="background:#f59e0b;"></button>
+            <button type="button" class="theme-accent-dot" data-theme-accent="rose" title="Crimson Rose" data-i18n-title="theme_accent_rose" style="background:#f43f5e;"></button>
+            <button type="button" class="theme-accent-dot" data-theme-accent="blush_pink" title="Blush Pink" data-i18n-title="theme_accent_blush_pink" style="background:#e879a8;"></button>
+            <button type="button" class="theme-accent-dot" data-theme-accent="titanium" title="Stealth Titanium" data-i18n-title="theme_accent_titanium" style="background:#64748b;"></button>
+            <button type="button" class="theme-accent-slot" id="btnCustomSlot0" data-custom-slot="0" title="Custom Slot 1" data-i18n-title="theme_custom_slot_1">1</button>
+            <button type="button" class="theme-accent-slot" id="btnCustomSlot1" data-custom-slot="1" title="Custom Slot 2" data-i18n-title="theme_custom_slot_2">2</button>
             <label class="theme-accent-custom" id="themeAccentCustomWrap" title="Eigene Akzentfarbe wählen" data-i18n-title="theme_accent_custom_title">
               <input type="color" id="inpThemeCustomAccent" value="#8b5cf6" aria-label="Eigene Akzentfarbe" data-i18n-aria-label="aria_custom_accent">
               <span class="theme-accent-custom-icon">+</span>
@@ -253,10 +253,10 @@
           <div class="field-group" id="fluxGuidanceGroup">
             <div class="field-label">
               <span data-i18n="flux_guidance_gate">Flux-Guidance Gate</span>
-              <span class="value-badge" id="fluxGuidanceVal">Inaktiv (Bypassed)</span>
+              <span class="value-badge" id="fluxGuidanceVal" data-i18n="flux_guidance_bypassed">Inaktiv (Bypassed)</span>
             </div>
             <input type="range" id="rngFluxGuidance" min="1.0" max="7.0" step="0.5" value="3.5">
-            <span class="field-hint" id="fluxGuidanceHint" style="font-size: 11px; color: var(--mute);">Im Workflow automatisch inaktiv (nur bei FLUX-Modellen aktiv)</span>
+            <span class="field-hint" id="fluxGuidanceHint" data-i18n="flux_guidance_hint_inactive" style="font-size: 11px; color: var(--mute);">Im Workflow automatisch inaktiv (nur bei FLUX-Modellen aktiv)</span>
           </div>
 
           <!-- Attention Engine / Acceleration (Node 1912: TASageAttentionToggler) -->
@@ -1108,7 +1108,7 @@
       <section class="card" id="cardLLM">
         <div class="card-header">
           <span class="card-title"><span class="icon">🧠</span> <span data-i18n="card_llm">LLM (LM Studio / Ollama) – T2I & I2I</span></span>
-          <span class="value-badge" id="llmStatusBadge">Aus (Manuell)</span>
+          <span class="value-badge" id="llmStatusBadge" data-i18n="badge_llm_off">Aus (Manuell)</span>
         </div>
 
         <!-- Mode Selector Pills -->
@@ -1125,8 +1125,8 @@
             <div class="field-label">
               <span data-i18n="lbl_llm_model">LLM-Modell (LM Studio / Ollama)</span>
               <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-                <span class="value-badge" id="llmSourceBadge">🖥️ Lokal</span>
-                <span class="value-badge" id="llmModelBadge">Bereit</span>
+                <span class="value-badge" id="llmSourceBadge" data-i18n="badge_llm_source_local">🖥️ Lokal</span>
+                <span class="value-badge" id="llmModelBadge" data-i18n="badge_llm_ready">Bereit</span>
               </div>
             </div>
             <div class="llm-combo" id="llmModelCombo">
@@ -1316,7 +1316,7 @@
             <span class="bg-remove-wrap" id="bgRemoveWrap">
               <button class="btn-action btn-compact-short" id="btnRemoveBg" data-compact-label="✂️ BG" title="Hintergrund entfernen (freistellen)" data-i18n-title="btn_remove_bg_title" disabled><span class="btn-label" data-i18n="btn_remove_bg">✂️ Hintergrund entf.</span></button>
               <span class="help-badge-wrap" id="bgRemoveHelpWrap">
-                <button type="button" class="help-circle-btn" id="btnBgRemoveHelp" aria-label="Info" title="Warum inaktiv?" data-i18n-title="bg_remove_help_title">?</button>
+                <button type="button" class="help-circle-btn" id="btnBgRemoveHelp" aria-label="Info" data-i18n-aria-label="bg_remove_help_aria" title="Warum inaktiv?" data-i18n-title="bg_remove_help_title">?</button>
                 <div class="help-popover" id="bgRemoveHelpPopover" role="tooltip"></div>
               </span>
             </span>
@@ -2996,7 +2996,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=1.12"></script>
+  <script src="/app.js?v=1.13"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=4"></script>
   <script src="/video_module.js?v=1.00"></script>

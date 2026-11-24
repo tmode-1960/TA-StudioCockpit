@@ -450,6 +450,20 @@
       theme_base_light_full: "Studio Light (Hell)",
       theme_accent_custom: "Eigene Farbe (Custom)",
       theme_accent_custom_title: "Eigene Akzentfarbe frei wählen",
+      theme_popover_aria: "Design & Farben",
+      theme_accent_violet: "Studio-Violett",
+      theme_accent_lavender: "Sanftes Lavendel",
+      theme_accent_cyan: "Mitternachts-Cyan",
+      theme_accent_emerald: "Dunkelkammer-Smaragd",
+      theme_accent_neon_green: "Neon-Grün",
+      theme_accent_amber: "Solar-Bernstein",
+      theme_accent_rose: "Karmesin-Rosa",
+      theme_accent_blush_pink: "Zartes Rosa",
+      theme_accent_titanium: "Stealth-Titan",
+      theme_custom_slot_1: "Eigener Slot 1",
+      theme_custom_slot_2: "Eigener Slot 2",
+      bg_remove_help_aria: "Info",
+      custom_res_snap_title: "Einrasten {snap}",
       theme_reset_btn: "↺ Standard-Theme wiederherstellen",
       settings_comfy_url: "ComfyUI URL",
       settings_output_dir: "Bilder-Ausgabeordner (Windows-Pfad)",
@@ -1033,6 +1047,20 @@
       theme_base_light_full: "Studio Light",
       theme_accent_custom: "Custom Color",
       theme_accent_custom_title: "Pick custom accent color",
+      theme_popover_aria: "Theme",
+      theme_accent_violet: "Studio Violet",
+      theme_accent_lavender: "Soft Lavender",
+      theme_accent_cyan: "Midnight Cyan",
+      theme_accent_emerald: "Darkroom Emerald",
+      theme_accent_neon_green: "Neon Green",
+      theme_accent_amber: "Solar Amber",
+      theme_accent_rose: "Crimson Rose",
+      theme_accent_blush_pink: "Blush Pink",
+      theme_accent_titanium: "Stealth Titanium",
+      theme_custom_slot_1: "Custom Slot 1",
+      theme_custom_slot_2: "Custom Slot 2",
+      bg_remove_help_aria: "Info",
+      custom_res_snap_title: "Snap {snap}",
       theme_reset_btn: "↺ Reset to Default Theme",
       settings_comfy_url: "ComfyUI URL",
       settings_output_dir: "Image Output Folder (Windows Path)",
@@ -4291,7 +4319,7 @@
       const mp = ((item.w * item.h) / 1e6).toFixed(1);
       const ratio = calcRatioLabel(item.w, item.h);
       applyBtn.textContent = `${item.w}×${item.h} · ${ratio} (${mp}MP)`;
-      applyBtn.title = `Snap ${item.snap || 16}`;
+      applyBtn.title = t("custom_res_snap_title", "Snap {snap}").replace("{snap}", item.snap || 16);
       applyBtn.addEventListener("click", () => {
         currentPixW = clampDim(parseInt(item.w, 10) || currentPixW);
         currentPixH = clampDim(parseInt(item.h, 10) || currentPixH);
