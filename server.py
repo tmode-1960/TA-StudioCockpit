@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.29"
+APP_VERSION = "1.30"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -802,6 +802,53 @@ def _extract_inline_loras(text: str) -> list[dict]:
     return out
 
 
+def _resolve_text_input(pdata: dict, val, depth: int = 0, visited: set | None = None) -> str:
+    """Recursively resolve a ComfyUI API prompt text input or wire [node_id, slot]."""
+    if depth > 10:
+        return ""
+    if isinstance(val, str):
+        return val.strip()
+    if not (isinstance(val, list) and len(val) >= 1):
+        return ""
+    nid = str(val[0])
+    if visited is None:
+        visited = set()
+    if nid in visited:
+        return ""
+    visited.add(nid)
+    node = pdata.get(nid)
+    if not isinstance(node, dict):
+        return ""
+    ct = node.get("class_type", "")
+    inp = node.get("inputs", {})
+    if ct in ("PrimitiveStringMultiline", "PrimitiveString", "String"):
+        v = inp.get("value", inp.get("text", inp.get("string", "")))
+        return v.strip() if isinstance(v, str) else ""
+    if ct == "Text Concatenate":
+        delim = inp.get("delimiter", ", ")
+        if not isinstance(delim, str):
+            delim = ", "
+        parts = []
+        for key in sorted(k for k in inp if k.startswith("text_")):
+            part = _resolve_text_input(pdata, inp[key], depth + 1, set(visited))
+            if part:
+                parts.append(part)
+        return delim.join(parts).strip()
+    if ct == "ShowText|pysssss":
+        for key in ("text_0", "text"):
+            if key in inp:
+                res = _resolve_text_input(pdata, inp[key], depth + 1, set(visited))
+                if res:
+                    return res
+        return ""
+    for key in ("text", "string", "value", "positive_prompt"):
+        if key in inp:
+            res = _resolve_text_input(pdata, inp[key], depth + 1, set(visited))
+            if res:
+                return res
+    return ""
+
+
 def extract_image_metadata(img_path: str) -> dict:
     meta = {
         "positive_prompt": "",
@@ -865,11 +912,32 @@ def extract_image_metadata(img_path: str) -> dict:
                     meta["positive_prompt"] = hub_pos
 
                 if not prefer_sidecar_pos and not meta["positive_prompt"]:
+                    # Prefer KSampler positive/negative conditioning links when available
+                    for n in pdata.values():
+                        if not isinstance(n, dict):
+                            continue
+                        ct = n.get("class_type", "")
+                        if "KSampler" in ct or ct in ("SamplerCustom", "SamplerCustomAdvanced"):
+                            inp = n.get("inputs", {})
+                            for cond_key, meta_key in (("positive", "positive_prompt"), ("negative", "negative_prompt")):
+                                if meta[meta_key]:
+                                    continue
+                                ref = inp.get(cond_key)
+                                if isinstance(ref, list) and len(ref) >= 1:
+                                    cn = pdata.get(str(ref[0]))
+                                    if isinstance(cn, dict) and "text" in cn.get("inputs", {}):
+                                        resolved = _resolve_text_input(pdata, cn["inputs"]["text"])
+                                        if resolved:
+                                            meta[meta_key] = resolved
+                            if meta["positive_prompt"]:
+                                break
+
+                if not prefer_sidecar_pos and not meta["positive_prompt"]:
                     for n in pdata.values():
                         if isinstance(n, dict) and n.get("class_type") == "CLIPTextEncode":
-                            txt = n.get("inputs", {}).get("text")
-                            if isinstance(txt, str) and txt.strip():
-                                meta["positive_prompt"] = txt.strip()
+                            txt = _resolve_text_input(pdata, n.get("inputs", {}).get("text"))
+                            if txt:
+                                meta["positive_prompt"] = txt
                                 break
 
                 # Extract seed (prefer easy seed node or any integer seed)
@@ -896,7 +964,7 @@ def extract_image_metadata(img_path: str) -> dict:
                     for nid, n in pdata.items():
                         ct = n.get("class_type", "")
                         inp = n.get("inputs", {})
-                        if ct in ("CheckpointLoaderSimple", "CheckpointLoader", "UNETLoader", "CheckpointLoaderNF4"):
+                        if ct in ("CheckpointLoaderSimple", "CheckpointLoader", "UNETLoader", "UnetLoaderGGUF", "CheckpointLoaderNF4", "DiffusionModelLoader"):
                             cand = inp.get("ckpt_name") or inp.get("unet_name") or ""
                             if isinstance(cand, str) and cand.strip():
                                 meta["model"] = _clean_asset_basename(cand)
