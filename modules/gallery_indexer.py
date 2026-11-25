@@ -149,6 +149,7 @@ class GalleryIndexer:
         self.favorites_file = os.path.join(self.storage_dir, "favorites.json")
         self.purgatory_file = os.path.join(self.storage_dir, "purgatory.json")
         self.notes_file = os.path.join(self.storage_dir, "notes.json")
+        self.custom_folders_file = os.path.join(self.storage_dir, "custom_folders.json")
         os.makedirs(self.thumb_dir, exist_ok=True)
 
         self._lock = threading.Lock()
@@ -158,6 +159,8 @@ class GalleryIndexer:
         self._purgatory: Set[str] = set(self._load_json(self.purgatory_file, []))
         raw_notes = self._load_json(self.notes_file, {})
         self._notes: Dict[str, str] = raw_notes if isinstance(raw_notes, dict) else {}
+        raw_cf = self._load_json(self.custom_folders_file, [])
+        self._custom_folders: Set[str] = set(raw_cf) if isinstance(raw_cf, list) else set()
 
     @staticmethod
     def _load_json(path: str, default: Any) -> Any:
@@ -326,6 +329,7 @@ class GalleryIndexer:
             favs = set(self._favorites)
             purg = set(self._purgatory)
             notes = dict(self._notes)
+            custom_folders = set(self._custom_folders)
 
         folder_counts: Dict[str, int] = {d: 0 for d in dirs_seen}
         root_count = 0
@@ -352,6 +356,7 @@ class GalleryIndexer:
         folders_list = [
             {"path": k, "name": k.split("/")[-1], "depth": k.count("/"), "count": folder_counts[k]}
             for k in sorted(folder_counts.keys(), key=lambda s: s.lower())
+            if k in custom_folders
         ]
 
         q = (search or "").strip().lower()
@@ -606,6 +611,9 @@ class GalleryIndexer:
         try:
             os.makedirs(new_dir, exist_ok=True)
             rel = os.path.relpath(new_dir, self.output_dir).replace("\\", "/")
+            with self._lock:
+                self._custom_folders.add(rel)
+                self._save_json(self.custom_folders_file, sorted(self._custom_folders))
             return True, rel
         except Exception as e:
             return False, str(e)
