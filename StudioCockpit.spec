@@ -27,6 +27,7 @@ a = Analysis(
         ('web/video_module.js', 'web'),
         ('web/style.css', 'web'),
         ('web/favicon.ico', 'web'),
+        ('web/logo.png', 'web'),
         ('web/music', 'web/music'),
         ('workflows/TA-FLEXMOD-LLM_v2.92.json', 'workflows'),
         ('workflows/discord_gif/*.json', 'workflows/discord_gif'),
