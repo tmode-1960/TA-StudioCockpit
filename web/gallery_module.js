@@ -451,9 +451,23 @@
     tuningOpen: true,
   };
 
+  function saveGalleryRootPref(rootId) {
+    try {
+      localStorage.setItem("tAStudio.galleryRoot", rootId || "primary");
+    } catch (_) {}
+  }
+
+  function loadGalleryRootPref() {
+    try {
+      return localStorage.getItem("tAStudio.galleryRoot") || "primary";
+    } catch (_) {
+      return "primary";
+    }
+  }
+
   const state = {
     initialized: false,
-    root: "primary",
+    root: loadGalleryRootPref(),
     roots: [],
     folder: "",
     favOnly: false,
@@ -633,6 +647,7 @@
     } else if (state.roots.length > 0) {
       state.root = state.roots[0].id;
       sel.value = state.root;
+      saveGalleryRootPref(state.root);
     }
     if (rmBtn) {
       rmBtn.hidden = state.root === "primary";
@@ -1262,6 +1277,7 @@
   function bindEvents() {
     $("selGalRoot")?.addEventListener("change", (e) => {
       state.root = e.target.value;
+      saveGalleryRootPref(state.root);
       state.folder = "";
       state.favOnly = false;
       state.purgatoryOnly = false;
@@ -1284,6 +1300,7 @@
         const aData = await aResp.json();
         if (aData.ok && aData.id) {
           state.root = aData.id;
+          saveGalleryRootPref(state.root);
           state.folder = "";
           state.favOnly = false;
         }
@@ -1300,6 +1317,7 @@
       });
       if (resp.ok) {
         state.root = "primary";
+        saveGalleryRootPref(state.root);
         state.folder = "";
         await fetchItems(false);
       }
