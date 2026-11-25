@@ -17,7 +17,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 <details>
 <summary>Technical details & tabs (Image Studio)</summary>
 
-* **ComfyUI / FLEXMOD Nodes:** Powered by `TAModelPreset`, `TASamplerPreset`, `TASmartLLM`, `TAPromptHub`, `TAPromptController`, `TASeedVR2Gate`, and `TAFastLaplacianSharpen`.
+* **ComfyUI / FLEXMOD Nodes ([TA-ComfyUI-Nodes-Pack](https://github.com/tmode-1960/TA-ComfyUI-Nodes-Pack)):** Powered by `TAModelPreset`, `TASamplerPreset`, `TASmartLLM`, `TAPromptHub`, `TAPromptController`, `TASeedVR2Gate`, and `TAFastLaplacianSharpen`.
 * **Right-Panel Tabs:** Organized into **Sampling** (seed mode, sampler presets, dimensions), **Upscale** (SeedVR2 & sharpening), **Export** (lossless PNG & output options), and **Signature** (signature & text overlays).
 * **Security:** Cloud LLM API keys are stored encrypted via Windows DPAPI (`CryptProtectData`).
 
@@ -115,7 +115,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 * **FFmpeg (`ffmpeg` / `ffprobe` in `PATH`):** Required for video stitching, LUT grading, GIF compilation, and gallery video thumbnails.
 * **LM Studio / Ollama:** Optional local LLM backends for prompt boosting and I2I image analysis.
 * **Applio (RVC):** Optional local installation for voice conversion in MusicMaker.
-* **ComfyUI Custom Nodes:** Depending on the modules you use, your ComfyUI installation needs the corresponding `TA-FLEXMOD-LLM`, MiniMax H3 / Wan 2.2, `SeedVR2`, background-removal, or `YuE2` custom nodes.
+* **ComfyUI Custom Nodes:** For **Image Studio**, install **[TA-ComfyUI-Nodes-Pack](https://github.com/tmode-1960/TA-ComfyUI-Nodes-Pack)** (`TA-FLEXMOD-LLM` & `TA-*` nodes) in your ComfyUI `custom_nodes` directory. Depending on the other modules you use, your ComfyUI installation also needs MiniMax H3 / Wan 2.2, `SeedVR2`, background-removal, or `YuE2` custom nodes.
 
 ---
 
