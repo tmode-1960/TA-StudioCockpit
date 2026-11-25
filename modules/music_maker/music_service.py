@@ -1526,6 +1526,21 @@ def fetch_audio_to_file(url: str, dest_path: str):
         fh.write(data)
 
 
+def _get_custom_music_output_dir() -> str | None:
+    """Return the user-configured MusicMaker output directory if set in StudioCockpit config."""
+    if not _GET_STUDIO_CONFIG:
+        return None
+    try:
+        studio_cfg = _GET_STUDIO_CONFIG() or {}
+        custom = str(studio_cfg.get("music_output_dir") or "").strip()
+        if custom:
+            os.makedirs(custom, exist_ok=True)
+            return custom
+    except Exception:
+        pass
+    return None
+
+
 def _resolve_comfy_output_dir(subfolder: str = "") -> str | None:
     """Find the local Windows filesystem path to ComfyUI's output directory if accessible."""
     try:
@@ -1566,7 +1581,7 @@ def build_subtitles_for_audio(audio_url: str, local_audio_path: str | None = Non
     parsed = urllib.parse.urlparse(audio_url or "")
     qs = urllib.parse.parse_qs(parsed.query)
     sub = qs.get("subfolder", [""])[0] or "plenio"
-    extra_out_dir = _resolve_comfy_output_dir(sub)
+    extra_out_dir = _get_custom_music_output_dir() or _resolve_comfy_output_dir(sub)
 
     fn = qs.get("filename", [""])[0]
     raw_name = fn or (os.path.basename(local_audio_path) if local_audio_path else "song.flac")
@@ -2000,6 +2015,29 @@ def start_render(req: dict) -> dict:
                     traceback.print_exc()
 
             kept_media = (audio[:2] if vswap else audio[:1]) + sub_items
+            custom_music_dir = _get_custom_music_output_dir()
+            if custom_music_dir:
+                for m_item in kept_media:
+                    m_url = m_item.get("url") or ""
+                    m_qs = urllib.parse.parse_qs(urllib.parse.urlparse(m_url).query)
+                    m_fn = os.path.basename((m_qs.get("filename") or [""])[0] or m_item.get("name") or "")
+                    if not m_fn:
+                        continue
+                    src_file = os.path.join(RENDERS_DIR, m_fn)
+                    if os.path.isfile(src_file):
+                        dst_file = os.path.join(custom_music_dir, m_fn)
+                        if os.path.abspath(src_file) != os.path.abspath(dst_file):
+                            try:
+                                shutil.copy2(src_file, dst_file)
+                            except Exception:
+                                pass
+                if tmp_song and os.path.isfile(tmp_song):
+                    dst_song = os.path.join(custom_music_dir, os.path.basename(tmp_song))
+                    if os.path.abspath(tmp_song) != os.path.abspath(dst_song):
+                        try:
+                            shutil.copy2(tmp_song, dst_song)
+                        except Exception:
+                            pass
             rec = None
             if tmp_song and os.path.isfile(tmp_song):
                 try:
@@ -2761,6 +2799,7 @@ class _MusicHandlerProxy:
                         DATA_DIR,
                         os.path.join(APP_DIR, "data"),
                         str(studio_cfg.get("output_dir") or "").strip(),
+                        str(studio_cfg.get("music_output_dir") or "").strip(),
                         os.path.expandvars(r"%LOCALAPPDATA%\Programs\tA-MusicMaker\data\renders"),
                     )
                     if d

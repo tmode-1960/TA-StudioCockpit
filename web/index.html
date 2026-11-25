@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v1.42 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.43 (FLEXMOD Edition)</title>
   <link rel="icon" href="/favicon.ico">
   <script>
     (function () {
@@ -2585,7 +2585,37 @@
           </div>
         </div>
 
-        <!-- 4. DiscordGIF -->
+        <!-- 4. VideoMaker -->
+        <div class="settings-section settings-section--video">
+          <div class="settings-section-header">
+            <span class="settings-section-title" data-i18n="settings_sec_video">🎬 VideoMaker</span>
+            <span class="settings-badge" data-i18n="settings_badge_video">Video Tab</span>
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="settings_video_dir">Video Output Folder (optional)</label>
+            <div class="settings-conn-row">
+              <input type="text" id="inpVideoOutputDir" value="" placeholder="Default: ComfyUI / Image Output Folder" data-i18n-placeholder="settings_video_dir_ph">
+              <button type="button" class="btn-action" id="btnBrowseVideoOutputDir" style="padding:7px 12px; font-size:12px; white-space:nowrap;" data-i18n="btn_browse">📁 Browse</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. MusicMaker -->
+        <div class="settings-section settings-section--music">
+          <div class="settings-section-header">
+            <span class="settings-section-title" data-i18n="settings_sec_music">🎵 MusicMaker</span>
+            <span class="settings-badge" data-i18n="settings_badge_music">Music Tab</span>
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="settings_music_dir">Music Output Folder (optional)</label>
+            <div class="settings-conn-row">
+              <input type="text" id="inpMusicOutputDir" value="" placeholder="Default: ComfyUI Output / App Renders" data-i18n-placeholder="settings_music_dir_ph">
+              <button type="button" class="btn-action" id="btnBrowseMusicOutputDir" style="padding:7px 12px; font-size:12px; white-space:nowrap;" data-i18n="btn_browse">📁 Browse</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. DiscordGIF -->
         <div class="settings-section settings-section--gif">
           <div class="settings-section-header">
             <span class="settings-section-title" data-i18n="settings_sec_gif">👾 DiscordGIF</span>
@@ -3091,7 +3121,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=1.42"></script>
+  <script src="/app.js?v=1.43"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=5"></script>
   <script src="/video_module.js?v=1.00"></script>

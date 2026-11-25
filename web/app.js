@@ -429,6 +429,14 @@
       settings_badge_comfy: "Bild-Backend & Pfade",
       settings_sec_llm: "🧠 TASmartLLM",
       settings_badge_llm: "Prompt-KI / LLM",
+      settings_sec_video: "🎬 VideoMaker",
+      settings_badge_video: "Video-Tab",
+      settings_video_dir: "Video-Ausgabeordner (optional)",
+      settings_video_dir_ph: "Standard: ComfyUI / Bilder-Ausgabeordner",
+      settings_sec_music: "🎵 MusicMaker",
+      settings_badge_music: "Musik-Tab",
+      settings_music_dir: "Musik-Ausgabeordner (optional)",
+      settings_music_dir_ph: "Standard: ComfyUI Output / App-Renders",
       settings_sec_gif: "👾 DiscordGIF",
       settings_badge_gif: "GIF-Tab",
       settings_desc: "Die GUI erkennt ein laufendes ComfyUI automatisch (z. B. auf Port 8188). Auch wenn ComfyUI in WSL oder auf einem anderen Rechner läuft, kannst du die Adresse hier anpassen.",
@@ -1034,6 +1042,14 @@
       settings_badge_comfy: "Image Backend & Paths",
       settings_sec_llm: "🧠 TASmartLLM",
       settings_badge_llm: "Prompt AI / LLM",
+      settings_sec_video: "🎬 VideoMaker",
+      settings_badge_video: "Video Tab",
+      settings_video_dir: "Video Output Folder (optional)",
+      settings_video_dir_ph: "Default: ComfyUI / Image Output Folder",
+      settings_sec_music: "🎵 MusicMaker",
+      settings_badge_music: "Music Tab",
+      settings_music_dir: "Music Output Folder (optional)",
+      settings_music_dir_ph: "Default: ComfyUI Output / App Renders",
       settings_sec_gif: "👾 DiscordGIF",
       settings_badge_gif: "GIF Tab",
       settings_desc: "The GUI automatically detects running ComfyUI instances (e.g. on port 8188). If ComfyUI is running in WSL or another machine, customize the address here.",
@@ -3281,6 +3297,10 @@
 
   const inpOutputDir = document.getElementById("inpOutputDir");
   const btnBrowseOutputDir = document.getElementById("btnBrowseOutputDir");
+  const inpVideoOutputDir = document.getElementById("inpVideoOutputDir");
+  const btnBrowseVideoOutputDir = document.getElementById("btnBrowseVideoOutputDir");
+  const inpMusicOutputDir = document.getElementById("inpMusicOutputDir");
+  const btnBrowseMusicOutputDir = document.getElementById("btnBrowseMusicOutputDir");
   const inpLmsUrl = document.getElementById("inpLmsUrl");
   const inpOllamaUrl = document.getElementById("inpOllamaUrl");
   const CLOUD_KEY_INPUTS = [
@@ -7059,6 +7079,8 @@
     }
 
     attachBrowseButton(btnBrowseOutputDir, inpOutputDir, "/api/browse_folder");
+    attachBrowseButton(btnBrowseVideoOutputDir, inpVideoOutputDir, "/api/browse_folder");
+    attachBrowseButton(btnBrowseMusicOutputDir, inpMusicOutputDir, "/api/browse_folder");
     attachBrowseButton(btnBrowseLaunchCmd, inpComfyLaunchCmd, "/api/browse_file");
     attachBrowseButton(btnBrowseMissingNodesDir, inpMissingNodesComfyDir, "/api/browse_folder");
     if (btnInstallMissingNodes) {
@@ -7444,6 +7466,8 @@
       const cfg = {
         comfy_url: inpComfyUrl.value.trim().replace(/\/+$/, ""),
         output_dir: inpOutputDir ? inpOutputDir.value.trim() : "",
+        video_output_dir: inpVideoOutputDir ? inpVideoOutputDir.value.trim() : "",
+        music_output_dir: inpMusicOutputDir ? inpMusicOutputDir.value.trim() : "",
         lms_url: inpLmsUrl ? inpLmsUrl.value.trim().replace(/\/+$/, "") : "",
         ollama_url: inpOllamaUrl ? inpOllamaUrl.value.trim().replace(/\/+$/, "") : "",
         comfy_launch_cmd: inpComfyLaunchCmd ? inpComfyLaunchCmd.value.trim() : "",
@@ -8045,6 +8069,8 @@
         const cfg = await res.json();
         if (inpComfyUrl) inpComfyUrl.value = cfg.comfy_url || "http://127.0.0.1:8188";
         if (inpOutputDir) inpOutputDir.value = cfg.output_dir || "";
+        if (inpVideoOutputDir) inpVideoOutputDir.value = cfg.video_output_dir || "";
+        if (inpMusicOutputDir) inpMusicOutputDir.value = cfg.music_output_dir || "";
         if (inpLmsUrl) inpLmsUrl.value = cfg.lms_url || "http://127.0.0.1:1234";
         if (inpOllamaUrl) inpOllamaUrl.value = cfg.ollama_url || "http://127.0.0.1:11434";
         if (cfg.cloud_api_keys_status) applyCloudKeyStatusToInputs(cfg.cloud_api_keys_status);

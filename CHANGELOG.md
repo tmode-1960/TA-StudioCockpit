@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.43] – 2026-11-25
+### Settings & Storage
+- **Module Output Folders:** Added optional custom output folder settings for **VideoMaker** (`video_output_dir`) and **MusicMaker** (`music_output_dir`) in **Settings & Connections** (ordered **VideoMaker → MusicMaker → DiscordGIF**), falling back to the default ComfyUI / App output directories when left empty (`server.py`, `modules/music_maker/music_service.py`, `web/index.html`, `web/app.js`).
+
 ## [v1.42] – 2026-11-25
 ### UI / UX
 - **Tab Naming:** Renamed the Image Studio **Upscale** tab to **Upscale & FX** (`web/index.html`, `web/app.js`) to better surface Laplacian Sharpness and Film Grain controls.

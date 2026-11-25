@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.42"
+APP_VERSION = "1.43"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -336,7 +336,8 @@ def sanitize_config_for_client(cfg: dict) -> dict:
 
 
 ALLOWED_CONFIG_KEYS = {
-    "comfy_url", "comfy_launch_cmd", "output_dir", "lms_url", "ollama_url",
+    "comfy_url", "comfy_launch_cmd", "output_dir", "video_output_dir", "music_output_dir",
+    "lms_url", "ollama_url",
     "language", "theme_base", "theme_accent", "theme_custom_accent",
     "custom_res_presets", "ui_state", "comfy_dir", "last_i2i_dir", "window",
     "llm_provider", "ollama_model", "gemini_model",
@@ -556,6 +557,19 @@ def get_output_dir() -> str:
     if configured:
         return configured
     return _detect_comfy_output_dir(cfg)
+
+
+def get_video_output_dir() -> str:
+    """Return the configured VideoMaker output directory, falling back to the main output dir."""
+    cfg = load_config()
+    configured = (cfg.get("video_output_dir") or "").strip()
+    if configured:
+        try:
+            os.makedirs(configured, exist_ok=True)
+        except Exception:
+            pass
+        return configured
+    return get_output_dir()
 
 
 def _resolve_overlay_font(font_name: str, font_size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
@@ -4987,7 +5001,7 @@ def main():
         DATA_ROOT,
         BUNDLE_DIR,
         load_config,
-        get_output_dir,
+        get_video_output_dir,
         lambda field: get_decrypted_api_keys().get("GEMINI_API_KEY", "") if field == "gemini_api_key" else "",
     )
     gallery_indexer.init_module(DATA_ROOT, get_output_dir, extract_image_metadata, load_config)
