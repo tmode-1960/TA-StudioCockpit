@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.40"
+APP_VERSION = "1.41"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -196,7 +196,7 @@ def load_config() -> dict:
         "output_dir": OUTPUT_DIR,
         "lms_url": LMS_URL,
         "ollama_url": OLLAMA_URL,
-        "language": "de",
+        "language": "en",
     }
     if os.path.isfile(CONFIG_PATH):
         try:

@@ -1218,7 +1218,7 @@
     }
   };
 
-  let currentLang = "de";
+  let currentLang = "en";
   const selLanguage = document.getElementById("selLanguage");
 
   function t(key, fallback = "") {
@@ -1232,7 +1232,7 @@
   }
 
   function applyLanguage(lang, persist = false) {
-    if (lang !== "de" && lang !== "en") lang = "de";
+    if (lang !== "de" && lang !== "en") lang = "en";
     currentLang = lang;
     document.documentElement.lang = currentLang;
 
@@ -8088,17 +8088,17 @@
       }
     } catch (e) {}
 
-    // Resolve and apply initial language once (server config takes precedence, then localStorage, then 'de')
+    // Resolve and apply initial language once (server config takes precedence, then localStorage, then 'en')
     let initialLang = serverLang;
     try {
       const savedLang = localStorage.getItem("tAStudio.language");
       if (!initialLang && (savedLang === "de" || savedLang === "en")) {
         initialLang = savedLang;
       }
-      if (!initialLang) initialLang = "de";
+      if (!initialLang) initialLang = "en";
       localStorage.setItem("tAStudio.language", initialLang);
     } catch (e) {
-      if (!initialLang) initialLang = "de";
+      if (!initialLang) initialLang = "en";
     }
     applyLanguage(initialLang, false);
 

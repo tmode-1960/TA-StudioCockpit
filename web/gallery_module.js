@@ -273,9 +273,9 @@
     if (document.documentElement.lang === "en") return "en";
     if (document.documentElement.lang === "de") return "de";
     try {
-      return localStorage.getItem("tAStudio.language") === "en" ? "en" : "de";
+      return localStorage.getItem("tAStudio.language") === "de" ? "de" : "en";
     } catch (_) {
-      return "de";
+      return "en";
     }
   }
 

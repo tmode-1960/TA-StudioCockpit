@@ -764,7 +764,7 @@ const I18N = {
 };
 
 // Default language synced from StudioCockpit
-const _initStudioLang = (localStorage.getItem("studio_lang") || document.documentElement.lang || localStorage.getItem("tavideomaker.lang") || "de").toLowerCase();
+const _initStudioLang = (localStorage.getItem("studio_lang") || document.documentElement.lang || localStorage.getItem("tavideomaker.lang") || "en").toLowerCase();
 let currentLang = _initStudioLang.startsWith("en") ? "en" : "de";
 
 function t(key, vars = {}) {

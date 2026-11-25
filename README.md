@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.40 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.41 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -128,6 +128,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.41:** Changed default application language to **English (`en`)** across all modules (German remains selectable in Settings).
 * **v1.40:** Hid `#emptyState` and showed `#mainPreview` when loading an image from the session filmstrip/gallery (`web/app.js`).
 * **v1.39:** Disabled artist signature overlay by default and removed the prefilled `thomo.ART` signature text (`web/index.html`, `web/app.js`).
 * **v1.38:** Fixed broken initial preview image icon in the standalone `.exe` by showing the empty-state prompt canvas on startup (`web/index.html`).

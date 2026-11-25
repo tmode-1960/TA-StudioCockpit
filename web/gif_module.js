@@ -244,7 +244,7 @@
   function getLang() {
     let l = (document.documentElement.lang || "").toLowerCase();
     if (l !== "en" && l !== "de") {
-      try { l = (localStorage.getItem("tAStudio.language") || "de").toLowerCase(); } catch (_) { l = "de"; }
+      try { l = (localStorage.getItem("tAStudio.language") || "en").toLowerCase(); } catch (_) { l = "en"; }
     }
     return l.startsWith("en") ? "en" : "de";
   }

@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.41] – 2026-11-25
+### Localization
+- **Default Language (`en`):** Changed the default UI language from German (`de`) to English (`en`) in `server.py`, `web/app.js`, `web/gallery_module.js`, `web/gif_module.js`, and `web/video_module.js` (German can still be selected in Settings).
+
 ## [v1.40] – 2026-11-25
 ### UI Fix
 - **Filmstrip Preview State:** Ensured `#emptyState` is hidden and `#mainPreview` is shown when loading an image from the session filmstrip/gallery (`web/app.js`).
