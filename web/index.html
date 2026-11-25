@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v1.38 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.39 (FLEXMOD Edition)</title>
   <link rel="icon" href="/favicon.ico">
   <script>
     (function () {
@@ -222,7 +222,7 @@
         <div class="card-header" title="Klicken zum Ein-/Ausklappen" data-i18n-title="card_lora_title">
           <span class="card-title"><span class="icon">⚙️</span> <span data-i18n="card_tuning">Feintuning & Finish</span></span>
           <div style="display:flex; gap:6px; align-items:center;" onclick="event.stopPropagation();">
-            <span class="value-badge" id="overlayStatusBadge" title="Status der Signatur/Wasserzeichen" data-i18n-title="overlay_status_title" style="font-size: 11px;">thomo.ART</span>
+            <span class="value-badge" id="overlayStatusBadge" title="Status der Signatur/Wasserzeichen" data-i18n-title="overlay_status_title" style="font-size: 11px;">Aus</span>
             <button type="button" class="card-help-btn" data-help-target="helpTuning" title="Hilfe zu diesem Bereich ein-/ausblenden" data-i18n-title="help_btn_title" aria-expanded="false" aria-controls="helpTuning">?</button>
           </div>
         </div>
@@ -645,13 +645,13 @@
           <div class="overlay-section">
             <div class="overlay-section-header">
               <label class="switch-label">
-                <input type="checkbox" id="chkOverlaySig" checked>
+                <input type="checkbox" id="chkOverlaySig">
                 <span data-i18n="overlay_sig">✒️ Künstler-Signatur</span>
               </label>
               <span class="value-badge" style="font-size: 10px;" id="badgeOverlaySigPos" data-i18n="pos_bottom_right">Unten rechts</span>
             </div>
             <div class="field-group" style="margin-top: 6px;">
-              <input type="text" id="txtOverlaySig" value="thomo.ART" placeholder="Signaturtext..." data-i18n-placeholder="sig_placeholder">
+              <input type="text" id="txtOverlaySig" value="" placeholder="Signaturtext..." data-i18n-placeholder="sig_placeholder">
             </div>
             <div class="field-group" style="margin-top: 4px;">
               <div class="field-label" style="font-size: 10px; text-transform: uppercase;"><span data-i18n="font_label">Schriftart (Font)</span></div>
@@ -3091,7 +3091,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=1.38"></script>
+  <script src="/app.js?v=1.39"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=5"></script>
   <script src="/video_module.js?v=1.00"></script>

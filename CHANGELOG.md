@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.39] – 2026-11-25
+### Release Defaults
+- **Neutral Signature Defaults:** Unchecked `#chkOverlaySig` by default, cleared the prefilled `thomo.ART` signature text in `#txtOverlaySig`, and replaced the `"thomo.ART"` fallback label in `web/app.js` with localized `"Signatur"` (`web/index.html`, `web/app.js`).
+
 ## [v1.38] – 2026-11-25
 ### UI Fix
 - **Initial Preview State:** Fixed a broken `Vorschau` image icon in the standalone `.exe` by displaying `#emptyState` on startup and hiding `#mainPreview` until an image is loaded or generated (`web/index.html`).

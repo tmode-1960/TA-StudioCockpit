@@ -2333,7 +2333,7 @@
       overlayStatusBadge.textContent = t("badge_overlay_both", "✒️ Sig + KI") + imgSuffix;
       overlayStatusBadge.style.color = "var(--accent)";
     } else if (sigOn) {
-      const txt = (txtOverlaySig && txtOverlaySig.value.trim()) ? txtOverlaySig.value.trim() : "thomo.ART";
+      const txt = (txtOverlaySig && txtOverlaySig.value.trim()) ? txtOverlaySig.value.trim() : t("overlay_sig", "Signatur");
       overlayStatusBadge.textContent = `✒️ ${txt}${imgSuffix}`;
       overlayStatusBadge.style.color = "var(--accent)";
     } else if (aiOn) {
