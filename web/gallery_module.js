@@ -99,6 +99,8 @@
       lb_apply: "⚡ Parameter ins Cockpit laden",
       lb_fav: "☆ Favorit",
       lb_fav_active: "★ Favorit",
+      lb_to_t2i: "📝 Prompt → T2I",
+      lb_to_t2i_title: "Nur den Prompt für T2I ins Image-Modul übernehmen",
       lb_to_i2i: "🖼️ Als I2I-Bild",
       lb_to_i2i_title: "Bild als I2I-Referenz ins Image-Modul übernehmen",
       lb_folder: "📁 Ordner",
@@ -227,6 +229,8 @@
       lb_apply: "⚡ Load parameters into Cockpit",
       lb_fav: "☆ Favorite",
       lb_fav_active: "★ Favorite",
+      lb_to_t2i: "📝 Prompt → T2I",
+      lb_to_t2i_title: "Send prompt only to Images module for T2I",
       lb_to_i2i: "🖼️ Use as I2I",
       lb_to_i2i_title: "Send image as I2I reference to Images module",
       lb_folder: "📁 Folder",
@@ -1193,6 +1197,9 @@
     if ($("btnGalLbApply")) {
       $("btnGalLbApply").hidden = isVideo;
     }
+    if ($("btnGalLbToT2I")) {
+      $("btnGalLbToT2I").hidden = !item.prompt;
+    }
     if ($("btnGalLbToI2I")) {
       $("btnGalLbToI2I").hidden = isVideo;
     }
@@ -1558,6 +1565,15 @@
       closeLightbox();
       if (typeof window.loadGalleryImageIntoCockpit === "function") {
         window.loadGalleryImageIntoCockpit(item.path, item.root);
+      }
+    });
+
+    $("btnGalLbToT2I")?.addEventListener("click", () => {
+      const item = state.items[state.lbIndex];
+      if (!item || !item.prompt) return;
+      closeLightbox();
+      if (typeof window.loadGalleryPromptForT2I === "function") {
+        window.loadGalleryPromptForT2I(item.prompt, item.neg_prompt || "", item.additional_prompt || "");
       }
     });
 

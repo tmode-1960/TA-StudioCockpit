@@ -6402,6 +6402,28 @@
     }
   };
 
+  window.loadGalleryPromptForT2I = (promptText, negPromptText = "", addPromptText = "") => {
+    if (!promptText) return;
+    if (txtPrompt) {
+      txtPrompt.value = promptText;
+      txtPrompt.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    if (txtNegPrompt && negPromptText) {
+      txtNegPrompt.value = negPromptText;
+      txtNegPrompt.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    if (typeof txtAddPrompt !== "undefined" && txtAddPrompt && addPromptText) {
+      txtAddPrompt.value = addPromptText;
+      txtAddPrompt.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    if (typeof setLLMMode === "function") setLLMMode("off");
+    if (typeof updatePromptControllerBadge === "function") updatePromptControllerBadge();
+    if (typeof window.switchStudioModule === "function") {
+      window.switchStudioModule("image");
+    }
+    showToast(t("toast_prompt_t2i_loaded", "📝 Prompt für T2I ins Image-Modul übernommen!"), "success", 2500);
+  };
+
   if (btnApplyAllParams) {
     btnApplyAllParams.addEventListener("click", () => {
       if (activeImageMeta && (activeImageMeta.filename || activeImageMeta.url)) {
