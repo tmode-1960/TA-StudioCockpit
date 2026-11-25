@@ -6,7 +6,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 🧩 Integrated Studio Modules
 
-### 🎨 Image Studio (`Bilder`)
+### 🎨 Image Studio
 * **Model & LoRA Hub:** Select model presets (*ZImage*, *Qwen-Image 2.1*, *Krea2-Turbo*, *FLUX3-Klein*, *MOSS-Image*, *FLUX1-DEV-FP8*, *Minimax H3 Image*, etc.) with quick-access favorite pills, plus an integrated LoRA stack with live strength sliders and automatic trigger-word detection.
 * **AI Prompt Engine (3-Way):** Switch between `🚫 Manual`, `✨ T2I Booster`, and `🖼️ I2I Analysis` (Vision-LLM + image upload) across `positive`, `additional`, and `negative` prompt channels using local LLMs (LM Studio, Ollama) or optional cloud providers (Gemini, OpenAI, OpenRouter, Groq).
 * **Sampling, Upscaling & Overlays:** 1-click sampler & aspect-ratio presets (`16:9`, `1:1`, `9:16`, `4:3`, `21:9`), AI upscaling, sharpening, background removal, signature/text overlays with auto-contrast font color, and before/after comparison.
@@ -16,12 +16,12 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 <summary>Technical details & tabs (Image Studio)</summary>
 
 * **ComfyUI / FLEXMOD Nodes:** Powered by `TAModelPreset`, `TASamplerPreset`, `TASmartLLM`, `TAPromptHub`, `TAPromptController`, `TASeedVR2Gate`, and `TAFastLaplacianSharpen`.
-* **Right-Panel Tabs:** Organized into **Sampling** (seed mode, sampler presets, dimensions), **Upscale** (SeedVR2 & sharpening), **Export** (lossless PNG & output options), and **Signatur** (signature & text overlays).
+* **Right-Panel Tabs:** Organized into **Sampling** (seed mode, sampler presets, dimensions), **Upscale** (SeedVR2 & sharpening), **Export** (lossless PNG & output options), and **Signature** (signature & text overlays).
 * **Security:** Cloud LLM API keys are stored encrypted via Windows DPAPI (`CryptProtectData`).
 
 </details>
 
-### 🖼️ Gallery (`Galerie`)
+### 🖼️ Gallery
 * **Fast Multi-Root Indexer:** Browse local images and videos (`.png`, `.jpg`, `.webp`, `.mp4`, `.webm`, `.mov`) across multiple persisted root folders with a persistent JPEG/FFmpeg thumbnail cache and infinite scroll auto-loading.
 * **Flexible Views & Organization:** Switch between **Masonry**, **1:1 Grid**, and **Explorer Rows** with live layout tuning, custom user folders, favorites, search/filtering, and a personal-notes filter.
 * **Lightbox Inspector & 1-Click Reuse:** Inspect zoomable media with a bottom filmstrip, personal notes, and embedded generation metadata — and jump straight back into **Image Studio** via **Reload Parameters**, **Prompt to T2I**, or **Use as I2I**, or hand off directly to **DiscordGIF** / **VideoMaker**.
