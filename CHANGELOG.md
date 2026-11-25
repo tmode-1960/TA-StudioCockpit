@@ -2,6 +2,11 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.37] – 2026-11-25
+### License & Documentation
+- **GNU GPL v3.0:** Switched project license from Apache 2.0 to **GNU General Public License v3.0** (`LICENSE`, `NOTICE`, `README.md`) while preserving `thomo.ART` / `StudioCockpit` trademark and brand asset notices.
+- **Credits & Acknowledgements:** Added credits in `README.md` for `HammelArt-Atelier`, `Plenio Music Production System`, VideoMaker workflow references (`minimaxH3Lipsync_v41.json`), and `CodexMundi`.
+
 ## [v1.36] – 2026-11-25
 ### Documentation
 - **README overhaul:** Expanded the **Integrated Studio Modules** section in `README.md` with balanced, user-focused descriptions, collapsible `<details>` technical blocks, and a UI screenshot (`assets/screenshot.jpg`).
