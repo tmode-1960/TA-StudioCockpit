@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.41 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.42 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -18,7 +18,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 <summary>Technical details & tabs (Image Studio)</summary>
 
 * **ComfyUI / FLEXMOD Nodes ([TA-ComfyUI-Nodes-Pack](https://github.com/tmode-1960/TA-ComfyUI-Nodes-Pack)):** Powered by `TAModelPreset`, `TASamplerPreset`, `TASmartLLM`, `TAPromptHub`, `TAPromptController`, `TASeedVR2Gate`, and `TAFastLaplacianSharpen`.
-* **Right-Panel Tabs:** Organized into **Sampling** (seed mode, sampler presets, dimensions), **Upscale** (SeedVR2 & sharpening), **Export** (lossless PNG & output options), and **Signature** (signature & text overlays).
+* **Right-Panel Tabs:** Organized into **Sampling** (seed mode, sampler presets, dimensions), **Upscale & FX** (SeedVR2, sharpening & film grain), **Export** (lossless PNG & output options), and **Signature** (signature & text overlays).
 * **Security:** Cloud LLM API keys are stored encrypted via Windows DPAPI (`CryptProtectData`).
 
 </details>
@@ -128,6 +128,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.42:** Renamed the Image Studio **Upscale** tab to **Upscale & FX** so users immediately see where SeedVR2, sharpness, and film grain live (`web/index.html`, `web/app.js`).
 * **v1.41:** Changed default application language to **English (`en`)** across all modules (German remains selectable in Settings).
 * **v1.40:** Hid `#emptyState` and showed `#mainPreview` when loading an image from the session filmstrip/gallery (`web/app.js`).
 * **v1.39:** Disabled artist signature overlay by default and removed the prefilled `thomo.ART` signature text (`web/index.html`, `web/app.js`).

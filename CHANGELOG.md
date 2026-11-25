@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.42] – 2026-11-25
+### UI / UX
+- **Tab Naming:** Renamed the Image Studio **Upscale** tab to **Upscale & FX** (`web/index.html`, `web/app.js`) to better surface Laplacian Sharpness and Film Grain controls.
+
 ## [v1.41] – 2026-11-25
 ### Localization
 - **Default Language (`en`):** Changed the default UI language from German (`de`) to English (`en`) in `server.py`, `web/app.js`, `web/gallery_module.js`, `web/gif_module.js`, and `web/video_module.js` (German can still be selected in Settings).
