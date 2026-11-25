@@ -571,7 +571,10 @@
 
   async function fetchItems(append = false, existingReqId = null) {
     const reqId = existingReqId || ++state.fetchSeq;
-    setLoadingOverlay(true);
+    if (!append) {
+      setLoadingOverlay(true);
+      state.loadingMore = false;
+    }
 
     if (!append) state.offset = 0;
     const params = new URLSearchParams({
@@ -625,13 +628,30 @@
         loadMoreWrap.hidden = state.items.length >= state.totalFiltered;
       }
 
-      await waitForInitialImages(renderedImgs);
+      if (!append) {
+        await waitForInitialImages(renderedImgs);
+      }
     } catch (err) {
       console.error("[Gallery] fetchItems error:", err);
     } finally {
-      if (reqId === state.fetchSeq) {
+      if (reqId === state.fetchSeq && !append) {
         setLoadingOverlay(false);
       }
+    }
+  }
+
+  async function loadMoreItems() {
+    if (state.loadingMore) return;
+    if (state.items.length >= state.totalFiltered) return;
+    state.loadingMore = true;
+    const btn = $("btnGalLoadMore");
+    if (btn) btn.disabled = true;
+    state.offset += state.limit;
+    try {
+      await fetchItems(true);
+    } finally {
+      state.loadingMore = false;
+      if (btn) btn.disabled = false;
     }
   }
 
@@ -1528,9 +1548,22 @@
     });
 
     $("btnGalLoadMore")?.addEventListener("click", () => {
-      state.offset += state.limit;
-      fetchItems(true);
+      loadMoreItems();
     });
+
+    const loadMoreWrap = $("galLoadMoreWrap");
+    const galStage = $("galStage");
+    if (loadMoreWrap && galStage && typeof IntersectionObserver !== "undefined") {
+      const io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((e) => e.isIntersecting)) {
+            loadMoreItems();
+          }
+        },
+        { root: galStage, rootMargin: "0px 0px 450px 0px", threshold: 0.01 }
+      );
+      io.observe(loadMoreWrap);
+    }
 
     // Lightbox events
     $("btnGalLbClose")?.addEventListener("click", closeLightbox);
