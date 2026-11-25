@@ -4065,6 +4065,8 @@ input[type="range"] {
   font-size: 12px;
   color: var(--text-strong);
   word-break: break-word;
+  user-select: text;
+  cursor: text;
 }
 .gal-lb-text {
   font-size: 12px;
@@ -4074,6 +4076,8 @@ input[type="range"] {
   word-break: break-word;
   max-height: 180px;
   overflow-y: auto;
+  user-select: text;
+  cursor: text;
 }
 .gal-lb-tech-chips {
   display: flex;
