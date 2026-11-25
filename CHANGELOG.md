@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.44] – 2026-11-25
+### VideoMaker (Optional RefPacks)
+- **Optional BExplains RefPacks & MiniMax H3 RefPacks Support:** Added opt-in support for `ComfyUI-RefPacks` and `ComfyUI-MiniMax-H3-RefPacks` (`required: False` in Extensions, reusing existing MiniMax H3 models without extra AI weight downloads). Includes `/api/video/refpacks/list` & `/api/video/refpacks/create` endpoints, role-aware `<Character>`/`<Outfit>`/`<Location>`/`<Style>`/`<Item>`/`<Motion>` tag protection, optional RefPack workflow wiring in Quick Clip, Long Clip, Scene, and H3 Image workflows, and a collapsible RefPacks panel in Quick Clip & Long Clip (`modules/video_comfy.py`, `modules/video_maker.py`, `web/index.html`, `web/video_module.js`).
+
 ## [v1.43] – 2026-11-25
 ### Settings & Storage
 - **Module Output Folders:** Added optional custom output folder settings for **VideoMaker** (`video_output_dir`) and **MusicMaker** (`music_output_dir`) in **Settings & Connections** (ordered **VideoMaker → MusicMaker → DiscordGIF**), falling back to the default ComfyUI / App output directories when left empty (`server.py`, `modules/music_maker/music_service.py`, `web/index.html`, `web/app.js`).

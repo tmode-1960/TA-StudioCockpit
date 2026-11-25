@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v1.43 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.44 (FLEXMOD Edition)</title>
   <link rel="icon" href="/favicon.ico">
   <script>
     (function () {
@@ -1627,6 +1627,15 @@
           </div>
         </div>
 
+        <!-- Optionale BExplains RefPacks (Charakter, Outfit, Style) -->
+        <details id="vm_quickRefPacksDetails" style="margin-top:8px; margin-bottom:12px; background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:8px 12px;">
+          <summary style="cursor:pointer; font-size:12px; font-weight:600; color:var(--accent); display:flex; align-items:center; justify-content:space-between;">
+            <span>🧩 RefPacks (Optional — Charakter, Outfit, Style)</span>
+            <span id="vm_quickRefPacksCountBadge" style="font-size:11px; color:var(--mute); font-weight:400;"></span>
+          </summary>
+          <div id="vm_quickRefPacksBody" style="margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.06);"></div>
+        </details>
+
         <button class="primary" id="vm_btnRenderQuick" data-video-i18n="btnRenderQuick"></button>
 
         <div id="vm_quickProgressBox" style="display:none; margin-top:14px; background:var(--panel-bg); border:1px solid var(--accent); border-radius:8px; padding:12px;">
@@ -1860,6 +1869,15 @@
           </label>
           <span style="font-size:11px; color:var(--mute);" data-video-i18n="longTurboHint">Reduziert Steps auf 8 für maximale Geschwindigkeit</span>
         </div>
+
+        <!-- Optionale BExplains RefPacks (Charakter, Outfit, Style) -->
+        <details id="vm_longRefPacksDetails" style="margin-top:8px; margin-bottom:12px; background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:8px 12px;">
+          <summary style="cursor:pointer; font-size:12px; font-weight:600; color:var(--accent); display:flex; align-items:center; justify-content:space-between;">
+            <span>🧩 RefPacks (Optional — Charakter, Outfit, Style)</span>
+            <span id="vm_longRefPacksCountBadge" style="font-size:11px; color:var(--mute); font-weight:400;"></span>
+          </summary>
+          <div id="vm_longRefPacksBody" style="margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.06);"></div>
+        </details>
 
         <button class="primary" id="vm_btnRenderLong" data-video-i18n="btnRenderLong">🎵 Long Clip generieren</button>
 
@@ -3121,7 +3139,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=1.43"></script>
+  <script src="/app.js?v=1.44"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=5"></script>
   <script src="/video_module.js?v=1.00"></script>

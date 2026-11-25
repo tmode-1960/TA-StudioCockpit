@@ -162,7 +162,10 @@ def format_h3_structured_prompt(
     return " ".join(parts).strip()
 
 
-_H3_REF_TAG_RE = re.compile(r"<(?:Subject|Picture|Audio|Video)\s+\d+>", re.IGNORECASE)
+_H3_REF_TAG_RE = re.compile(
+    r"<(?:Subject|Picture|Audio|Video|Character|Item|Outfit|Location|Style|Motion)\s+\d+>",
+    re.IGNORECASE,
+)
 _H3_DIALOGUE_TAG_RE = re.compile(r"<d>([\s\S]*?)</d>", re.IGNORECASE)
 _H3_AT_REF_RE = re.compile(r"@ref\d+\b", re.IGNORECASE)
 _H3_SHOT_TAG_RE = re.compile(r"\[Shot\s+\d+\]", re.IGNORECASE)
@@ -1104,6 +1107,26 @@ class ComfyClient:
                 "check_node": "WanInfiniteTalkToVideo",
                 "required": False,
             },
+            {
+                "id": "bexplains_refpacks",
+                "folder": "BExplains_RefPacks",
+                "folder_aliases": ["BExplains_RefPacks", "ComfyUI-RefPacks", "bexplains-refpacks"],
+                "title": "BExplains RefPacks (Optional Core)",
+                "repo_url": "https://github.com/BExplains/ComfyUI-RefPacks.git",
+                "description": "Optional: Save & reuse VAE-cached character, outfit, location and style packs (.safetensors) without extra AI models" if is_en else "Optional: VAE-gecachte Charakter-, Outfit-, Location- & Stil-Packs (.safetensors) wiederverwenden (ohne neue KI-Modelle)",
+                "check_node": "BExplainsLoadRefPack",
+                "required": False,
+            },
+            {
+                "id": "bexplains_h3_refpacks",
+                "folder": "BExplains_H3_RefPacks",
+                "folder_aliases": ["BExplains_H3_RefPacks", "ComfyUI-MiniMax-H3-RefPacks", "bexplains-h3-refpacks"],
+                "title": "BExplains MiniMax H3 RefPacks (Optional)",
+                "repo_url": "https://github.com/BExplains/ComfyUI-MiniMax-H3-RefPacks.git",
+                "description": "Optional: Role-aware <Character>/<Outfit>/<Style> prompting & RefPack conditioning for your existing MiniMax H3 models" if is_en else "Optional: Rollenbasiertes <Character>/<Outfit>/<Style>-Prompting & RefPack-Conditioning für vorhandene MiniMax-H3-Modelle",
+                "check_node": "BExplainsRefPackToH3",
+                "required": False,
+            },
         ]
 
         cn_path = self.get_custom_nodes_path(configured_comfy_dir)
@@ -1118,7 +1141,8 @@ class ComfyClient:
         for ext in extensions:
             chk = ext.get("check_node")
             is_node_ok = self.check_node_exists(chk) if chk else False
-            folder_present = ext["folder"].lower() in installed_folders if installed_folders else False
+            aliases = [a.lower() for a in ext.get("folder_aliases", [ext["folder"]])]
+            folder_present = any(a in installed_folders for a in aliases) if installed_folders else False
 
             # If a specific check_node is defined:
             # - installed is True ONLY if the node is actually loaded in ComfyUI
@@ -2620,6 +2644,248 @@ class ComfyClient:
         except Exception as ex:
             return False, f"Download des fertigen Films fehlgeschlagen: {ex}"
 
+    # ------------------------------------------------------------------
+    # Optional BExplains RefPacks + MiniMax H3 RefPacks Integration
+    # ------------------------------------------------------------------
+    def has_refpacks_support(self) -> bool:
+        """Returns True when both ComfyUI-RefPacks and ComfyUI-MiniMax-H3-RefPacks are loaded."""
+        return (
+            self.check_node_exists("BExplainsLoadRefPack")
+            and self.check_node_exists("BExplainsAddRefPack")
+            and self.check_node_exists("BExplainsRefPackToH3")
+        )
+
+    def get_refpacks_dir(self, configured_comfy_dir: str = "") -> Optional[str]:
+        """Returns ComfyUI/models/refpacks if a ComfyUI base directory can be resolved."""
+        base = self.get_comfy_base_dir(configured_comfy_dir)
+        if not base:
+            return None
+        return os.path.join(base, "models", "refpacks")
+
+    def list_refpacks(self, configured_comfy_dir: str = "") -> dict:
+        """Lists available individual RefPacks (.safetensors) and reference bundles."""
+        packs: List[str] = []
+        bundles: List[str] = []
+        installed = self.has_refpacks_support() if self.is_alive() else False
+
+        if self.is_alive():
+            try:
+                info = self._request("/object_info/BExplainsLoadRefPack", timeout=10)
+                node_info = info.get("BExplainsLoadRefPack", {}) if isinstance(info, dict) else {}
+                req = node_info.get("input", {}).get("required", {})
+                opts = _extract_combo_options(req.get("filename"))
+                if opts:
+                    packs = sorted({str(x) for x in opts if str(x).endswith(".safetensors") and not str(x).endswith(".references.safetensors")})
+            except Exception:
+                pass
+            try:
+                b_info = self._request("/object_info/BExplainsLoadRefPacksReferences", timeout=10)
+                b_node = b_info.get("BExplainsLoadRefPacksReferences", {}) if isinstance(b_info, dict) else {}
+                b_req = b_node.get("input", {}).get("required", {})
+                b_opts = _extract_combo_options(b_req.get("filename"))
+                if b_opts:
+                    bundles = sorted({str(x) for x in b_opts if str(x).endswith(".references.safetensors")})
+            except Exception:
+                pass
+
+        rp_dir = self.get_refpacks_dir(configured_comfy_dir)
+        if rp_dir and os.path.isdir(rp_dir):
+            disk_packs: List[str] = []
+            disk_bundles: List[str] = []
+            for root, _dirs, files in os.walk(rp_dir):
+                for fn in files:
+                    if not fn.endswith(".safetensors"):
+                        continue
+                    rel = os.path.relpath(os.path.join(root, fn), rp_dir).replace("\\", "/")
+                    if fn.endswith(".references.safetensors"):
+                        rel_b = rel[len("references/"):] if rel.startswith("references/") else rel
+                        disk_bundles.append(rel_b)
+                    else:
+                        disk_packs.append(rel)
+            if not packs:
+                packs = sorted(set(disk_packs))
+            if not bundles:
+                bundles = sorted(set(disk_bundles))
+
+        return {
+            "installed": installed,
+            "refpacks_dir": rp_dir,
+            "refpacks": packs,
+            "bundles": bundles,
+        }
+
+    def encode_image_refpack(
+        self,
+        image_paths: List[str],
+        pack_name: str,
+        reference_megapixels: float = 0.3,
+        overwrite: bool = False,
+        use_image_vae: bool = False,
+    ) -> Tuple[bool, str]:
+        """Encodes one or more images into a reusable .safetensors RefPack using existing H3 VAEs."""
+        if not self.is_alive():
+            return False, "ComfyUI ist nicht erreichbar."
+        if not (self.check_node_exists("BExplainsH3EncodeImages") and self.check_node_exists("BExplainsSaveRefPack")):
+            return False, "Die optionalen RefPacks-Extensions (ComfyUI-RefPacks & ComfyUI-MiniMax-H3-RefPacks) sind in ComfyUI nicht aktiv."
+
+        valid_paths = [p for p in image_paths if p and os.path.isfile(p)]
+        if not valid_paths:
+            return False, "Keine gültige Bilddatei zum Encoden gefunden."
+
+        clean_name = re.sub(r"[^a-zA-Z0-9_\-/]", "_", (pack_name or "").strip()).strip("/_")
+        if not clean_name:
+            clean_name = f"refpack_{int(time.time())}"
+
+        chosen_vae = None
+        if use_image_vae:
+            try:
+                img_models = self.resolve_minimax_image_models()
+                chosen_vae = img_models.get("vae")
+            except Exception:
+                chosen_vae = None
+        if not chosen_vae:
+            resolved = self.resolve_minimax_models()
+            chosen_vae = resolved.get("vae")
+        if not chosen_vae:
+            return False, "Kein MiniMax H3 VAE in ComfyUI gefunden."
+
+        wf: dict = {
+            "1": {
+                "class_type": "VAELoader",
+                "inputs": {"vae_name": chosen_vae},
+            }
+        }
+        img_refs: List[list] = []
+        for idx, p in enumerate(valid_paths):
+            up_name = self.upload_image(p)
+            nid = str(10 + idx)
+            wf[nid] = {"class_type": "LoadImage", "inputs": {"image": up_name}}
+            img_refs.append([nid, 0])
+
+        images_out = img_refs[0]
+        if len(img_refs) > 1 and self.check_node_exists("ImageBatch"):
+            cur = img_refs[0]
+            for idx, nxt in enumerate(img_refs[1:]):
+                bid = f"batch_{idx}"
+                wf[bid] = {
+                    "class_type": "ImageBatch",
+                    "inputs": {"image1": cur, "image2": nxt},
+                }
+                cur = [bid, 0]
+            images_out = cur
+
+        wf["2"] = {
+            "class_type": "BExplainsH3EncodeImages",
+            "inputs": {
+                "vae": ["1", 0],
+                "images": images_out,
+                "name": clean_name,
+                "reference_megapixels": max(0.05, min(4.0, float(reference_megapixels))),
+            },
+        }
+        wf["3"] = {
+            "class_type": "BExplainsSaveRefPack",
+            "inputs": {
+                "refpack": ["2", 0],
+                "filename": clean_name,
+                "overwrite": bool(overwrite),
+            },
+        }
+
+        try:
+            prompt_id = self.queue_prompt(wf)
+            self.wait_for_completion(prompt_id, timeout=300)
+            saved = clean_name if clean_name.endswith(".safetensors") else f"{clean_name}.safetensors"
+            return True, saved
+        except Exception as ex:
+            return False, f"RefPack-Encoding fehlgeschlagen: {ex}"
+
+    def _attach_refpacks_to_h3_workflow(
+        self,
+        wf: dict,
+        model_out: list,
+        clip_out: list,
+        vae_out: list,
+        refpacks: List[dict],
+        prompt: str,
+        width: int,
+        height: int,
+        length: int,
+        generation_mode: str = "Auto",
+        auto_outfit: bool = True,
+        negative_prompt: str = "",
+        node_prefix: str = "rp",
+    ) -> Tuple[list, list, list, list, list]:
+        """Wires LoadRefPack -> AddRefPack -> RefPackToH3 into an existing H3 workflow dict."""
+        if not self.has_refpacks_support():
+            raise RuntimeError(
+                "RefPacks wurden ausgewählt, aber 'ComfyUI-RefPacks' / 'ComfyUI-MiniMax-H3-RefPacks' "
+                "sind in ComfyUI nicht installiert oder nicht neu gestartet."
+            )
+
+        valid_roles = {"subject", "character", "item", "video", "motion", "outfit", "location", "reference", "audio", "style"}
+        prev_refs = None
+        for idx, item in enumerate(refpacks):
+            if isinstance(item, str):
+                fname = item.strip()
+                role = "character"
+            elif isinstance(item, dict):
+                fname = str(item.get("filename") or "").strip()
+                role = str(item.get("role") or "character").lower().strip()
+            else:
+                continue
+            if not fname:
+                continue
+            if role not in valid_roles:
+                role = "reference"
+
+            load_id = f"{node_prefix}_load_{idx}"
+            add_id = f"{node_prefix}_add_{idx}"
+            wf[load_id] = {
+                "class_type": "BExplainsLoadRefPack",
+                "inputs": {
+                    "filename": fname,
+                    "enabled": True,
+                },
+            }
+            add_inputs: dict = {
+                "refpack": [load_id, 0],
+                "role": role,
+            }
+            if prev_refs is not None:
+                add_inputs["references"] = prev_refs
+            wf[add_id] = {
+                "class_type": "BExplainsAddRefPack",
+                "inputs": add_inputs,
+            }
+            prev_refs = [add_id, 0]
+
+        if prev_refs is None:
+            raise ValueError("Keine gültigen RefPack-Dateinamen übergeben.")
+
+        enc_id = f"{node_prefix}_h3_enc"
+        wf[enc_id] = {
+            "class_type": "BExplainsRefPackToH3",
+            "inputs": {
+                "model": model_out,
+                "clip": clip_out,
+                "references": prev_refs,
+                "vae": vae_out,
+                "prompt": prompt or "Cinematic scene, high quality, natural lighting",
+                "negative_prompt": negative_prompt or "",
+                "width": int(width),
+                "height": int(height),
+                "length": int(length),
+                "auto_outfit": bool(auto_outfit),
+                "generation_mode": generation_mode,
+                "log_performance": True,
+                "compress_motion": False,
+                "allow_raw_prompt": False,
+            },
+        }
+        # Outputs: (model, positive, negative, latent, reference_map_and_prompt, vae)
+        return [enc_id, 0], [enc_id, 1], [enc_id, 2], [enc_id, 3], [enc_id, 5]
+
     def build_native_quick_clip_workflow(
         self,
         prompt: str,
@@ -2633,6 +2899,7 @@ class ComfyClient:
         turbo: bool = True,
         extra_lora: Optional[str] = None,
         extra_lora_strength: float = 0.85,
+        refpacks: Optional[List[dict]] = None,
     ) -> dict:
         """Constructs a native ComfyUI MiniMax H3 image/text-to-video workflow."""
         resolved = self.resolve_minimax_models()
@@ -2709,62 +2976,80 @@ class ComfyClient:
             model_out = ["1_extra_lora", 0]
             clip_out = ["1_extra_lora", 1]
 
-        # Handle optional input keyframes
-        h3_inputs = {
-            "clip": clip_out,
-            "vae": ["3", 0],
-            "prompt": prompt or "Cinematic scene, high quality, natural lighting",
-            "width": w,
-            "height": h,
-            "length": length,
-        }
+        # Handle optional RefPacks OR standard input keyframes
+        if refpacks:
+            model_out, pos_cond, neg_cond, lat_out, vae_out = self._attach_refpacks_to_h3_workflow(
+                wf=wf,
+                model_out=model_out,
+                clip_out=clip_out,
+                vae_out=["3", 0],
+                refpacks=refpacks,
+                prompt=prompt or "Cinematic scene, high quality, natural lighting",
+                width=w,
+                height=h,
+                length=length,
+                generation_mode="Video",
+            )
+        else:
+            h3_inputs = {
+                "clip": clip_out,
+                "vae": ["3", 0],
+                "prompt": prompt or "Cinematic scene, high quality, natural lighting",
+                "width": w,
+                "height": h,
+                "length": length,
+            }
 
-        if first_frame_path and os.path.isfile(first_frame_path):
-            try:
-                ff_name = self.upload_image(first_frame_path)
-                wf["5"] = {
-                    "class_type": "LoadImage",
-                    "inputs": {"image": ff_name}
-                }
-                wf["5_scale"] = {
-                    "class_type": "ImageScale",
-                    "inputs": {
-                        "image": ["5", 0],
-                        "upscale_method": "lanczos",
-                        "width": w,
-                        "height": h,
-                        "crop": "center",
+            if first_frame_path and os.path.isfile(first_frame_path):
+                try:
+                    ff_name = self.upload_image(first_frame_path)
+                    wf["5"] = {
+                        "class_type": "LoadImage",
+                        "inputs": {"image": ff_name}
                     }
-                }
-                h3_inputs["first_frame"] = ["5_scale", 0]
-            except Exception as ex:
-                print(f"[QuickClip] First frame upload error: {ex}")
-
-        if last_frame_path and os.path.isfile(last_frame_path):
-            try:
-                lf_name = self.upload_image(last_frame_path)
-                wf["6"] = {
-                    "class_type": "LoadImage",
-                    "inputs": {"image": lf_name}
-                }
-                wf["6_scale"] = {
-                    "class_type": "ImageScale",
-                    "inputs": {
-                        "image": ["6", 0],
-                        "upscale_method": "lanczos",
-                        "width": w,
-                        "height": h,
-                        "crop": "center",
+                    wf["5_scale"] = {
+                        "class_type": "ImageScale",
+                        "inputs": {
+                            "image": ["5", 0],
+                            "upscale_method": "lanczos",
+                            "width": w,
+                            "height": h,
+                            "crop": "center",
+                        }
                     }
-                }
-                h3_inputs["last_frame"] = ["6_scale", 0]
-            except Exception as ex:
-                print(f"[QuickClip] Last frame upload error: {ex}")
+                    h3_inputs["first_frame"] = ["5_scale", 0]
+                except Exception as ex:
+                    print(f"[QuickClip] First frame upload error: {ex}")
 
-        wf["7"] = {
-            "class_type": "MiniMaxH3ImageToVideo",
-            "inputs": h3_inputs,
-        }
+            if last_frame_path and os.path.isfile(last_frame_path):
+                try:
+                    lf_name = self.upload_image(last_frame_path)
+                    wf["6"] = {
+                        "class_type": "LoadImage",
+                        "inputs": {"image": lf_name}
+                    }
+                    wf["6_scale"] = {
+                        "class_type": "ImageScale",
+                        "inputs": {
+                            "image": ["6", 0],
+                            "upscale_method": "lanczos",
+                            "width": w,
+                            "height": h,
+                            "crop": "center",
+                        }
+                    }
+                    h3_inputs["last_frame"] = ["6_scale", 0]
+                except Exception as ex:
+                    print(f"[QuickClip] Last frame upload error: {ex}")
+
+            wf["7"] = {
+                "class_type": "MiniMaxH3ImageToVideo",
+                "inputs": h3_inputs,
+            }
+            pos_cond = ["7", 0]
+            neg_cond = ["7", 0]
+            lat_out = ["7", 1]
+            vae_out = ["3", 0]
 
         # Model sampling / sigma shift
         sigma_node = None
@@ -2795,9 +3080,9 @@ class ComfyClient:
                 "cfg": 1.0,
                 "sampler_name": "res_multistep",
                 "scheduler": "simple",
-                "positive": ["7", 0],
-                "negative": ["7", 0],
-                "latent_image": ["7", 1],
+                "positive": pos_cond,
+                "negative": neg_cond,
+                "latent_image": lat_out,
                 "denoise": 1.0,
             }
         }
@@ -2806,7 +3091,7 @@ class ComfyClient:
             "class_type": "VAEDecode",
             "inputs": {
                 "samples": ["9", 0],
-                "vae": ["3", 0],
+                "vae": vae_out,
             }
         }
 
@@ -2880,6 +3165,7 @@ class ComfyClient:
         turbo: bool = True,
         extra_lora: Optional[str] = None,
         extra_lora_strength: float = 0.85,
+        refpacks: Optional[List[dict]] = None,
         progress_callback: Optional[Callable[[int, str], None]] = None,
         cancel_check: Optional[Callable[[], bool]] = None,
     ) -> Tuple[bool, str]:
@@ -2922,6 +3208,7 @@ class ComfyClient:
                 turbo=turbo,
                 extra_lora=extra_lora,
                 extra_lora_strength=extra_lora_strength,
+                refpacks=refpacks,
             )
         except Exception as ex:
             return False, f"Fehler beim Erstellen des Quick-Clip-Workflows: {ex}"
@@ -3020,6 +3307,7 @@ class ComfyClient:
         last_frame_path: Optional[str] = None,
         audio_file_path: Optional[str] = None,
         turbo: bool = True,
+        refpacks: Optional[List[dict]] = None,
     ) -> dict:
         """Constructs a native MiniMax H3 Long Clip workflow with optional audio-sync and turbo acceleration."""
         resolved = self.resolve_minimax_models()
@@ -3147,10 +3435,25 @@ class ComfyClient:
                 print(f"[LongClip] Audio upload error: {ex}")
 
         # MiniMax H3 conditioning:
-        # If an audio reference is supplied, use MiniMaxH3ReferenceToVideo with ComfyUI V3 autogrow path prefixes.
-        # Otherwise, use MiniMaxH3ImageToVideo which natively accepts first_frame and optional last_frame.
+        # If RefPacks are supplied, use BExplainsRefPackToH3;
+        # else if an audio reference is supplied, use MiniMaxH3ReferenceToVideo with ComfyUI V3 autogrow path prefixes;
+        # otherwise use MiniMaxH3ImageToVideo which natively accepts first_frame and optional last_frame.
+        vae_out = ["3", 0]
         has_ref2vid = self.check_node_exists("MiniMaxH3ReferenceToVideo")
-        if audio_node and has_ref2vid:
+        if refpacks:
+            model_out, pos_cond, neg_cond_rp, lat_out, vae_out = self._attach_refpacks_to_h3_workflow(
+                wf=wf,
+                model_out=model_out,
+                clip_out=clip_out,
+                vae_out=vae_out,
+                refpacks=refpacks,
+                prompt=prompt or "Cinematic performance, highly detailed, fluid movement",
+                width=w,
+                height=h,
+                length=length,
+                generation_mode="Video",
+            )
+        elif audio_node and has_ref2vid:
             ref_inputs = {
                 "clip": clip_out,
                 "vae": ["3", 0],
@@ -3214,7 +3517,9 @@ class ComfyClient:
         else:
             sampler_model = model_out
 
-        if self.check_node_exists("ConditioningZeroOut"):
+        if refpacks:
+            neg_cond = neg_cond_rp
+        elif self.check_node_exists("ConditioningZeroOut"):
             wf["8_zero"] = {
                 "class_type": "ConditioningZeroOut",
                 "inputs": {
@@ -3245,7 +3550,7 @@ class ComfyClient:
             "class_type": "VAEDecode",
             "inputs": {
                 "samples": ["9", 0],
-                "vae": ["3", 0],
+                "vae": vae_out if refpacks else ["3", 0],
             }
         }
 
@@ -3319,6 +3624,7 @@ class ComfyClient:
         last_frame_path: Optional[str] = None,
         audio_file_path: Optional[str] = None,
         turbo: bool = True,
+        refpacks: Optional[List[dict]] = None,
         progress_callback: Optional[Callable[[int, str], None]] = None,
         cancel_check: Optional[Callable[[], bool]] = None,
     ) -> Tuple[bool, str]:
@@ -3361,6 +3667,7 @@ class ComfyClient:
                     last_frame_path=last_frame_path,
                     audio_file_path=audio_file_path,
                     turbo=turbo,
+                    refpacks=refpacks,
                 )
             except Exception as ex:
                 return False, f"Fehler beim Erstellen des Long-Clip-Workflows: {ex}"
@@ -3482,11 +3789,12 @@ class ComfyClient:
         turbo: bool = True,
         extra_lora: Optional[str] = None,
         extra_lora_strength: float = 0.85,
+        refpacks: Optional[List[dict]] = None,
         progress_callback: Optional[Callable[[int, str], None]] = None,
         cancel_check: Optional[Callable[[], bool]] = None,
     ) -> Tuple[bool, str]:
         """Submits a single scene prompt. Uses native MiniMaxH3 pipeline if available, otherwise Director."""
-        if self.check_node_exists("MiniMaxH3ImageToVideo"):
+        if self.check_node_exists("MiniMaxH3ImageToVideo") or (refpacks and self.has_refpacks_support()):
             full_prompt = prompt or ""
             if camera_preset and camera_preset.lower() not in full_prompt.lower():
                 full_prompt = f"{camera_preset}, {full_prompt}" if full_prompt else camera_preset
@@ -3507,6 +3815,7 @@ class ComfyClient:
                 turbo=turbo,
                 extra_lora=extra_lora,
                 extra_lora_strength=extra_lora_strength,
+                refpacks=refpacks,
                 progress_callback=progress_callback,
                 cancel_check=cancel_check,
             )
@@ -3992,6 +4301,7 @@ class ComfyClient:
         cfg: float = 1.0,
         models: Optional[dict] = None,
         use_style_lora: bool = True,
+        refpacks: Optional[List[dict]] = None,
     ) -> dict:
         """Builds a ComfyUI API workflow for MiniMax H3 Image start-frame / character-sheet generation."""
         resolved = models or self.resolve_minimax_image_models()
@@ -4064,6 +4374,25 @@ class ComfyClient:
             }
             model_ref = ["10", 0]
 
+        if refpacks:
+            model_ref, pos_ref, neg_ref, lat_ref, vae_ref = self._attach_refpacks_to_h3_workflow(
+                wf=wf,
+                model_out=model_ref,
+                clip_out=["2", 0],
+                vae_out=["3", 0],
+                refpacks=refpacks,
+                prompt=eff_prompt,
+                width=w,
+                height=h,
+                length=1,
+                generation_mode="Image",
+            )
+        else:
+            pos_ref = ["4", 0]
+            neg_ref = ["5", 0]
+            lat_ref = ["6", 0]
+            vae_ref = ["3", 0]
+
         wf["7"] = {
             "class_type": "KSampler",
             "inputs": {
@@ -4074,16 +4403,16 @@ class ComfyClient:
                 "scheduler": "simple",
                 "denoise": 1.0,
                 "model": model_ref,
-                "positive": ["4", 0],
-                "negative": ["5", 0],
-                "latent_image": ["6", 0],
+                "positive": pos_ref,
+                "negative": neg_ref,
+                "latent_image": lat_ref,
             },
         }
         wf["8"] = {
             "class_type": "VAEDecode",
             "inputs": {
                 "samples": ["7", 0],
-                "vae": ["3", 0],
+                "vae": vae_ref,
             },
         }
         wf["9"] = {
@@ -4103,6 +4432,7 @@ class ComfyClient:
         height: int = 720,
         seed: Optional[int] = None,
         steps: int = 6,
+        refpacks: Optional[List[dict]] = None,
     ) -> Tuple[bool, str]:
         """Generates a start image / keyframe via MiniMax H3 Image in ComfyUI."""
         if not self.is_alive():
@@ -4125,6 +4455,7 @@ class ComfyClient:
             seed=seed,
             steps=steps,
             models=models,
+            refpacks=refpacks,
         )
         try:
             prompt_id = self.queue_prompt(wf)

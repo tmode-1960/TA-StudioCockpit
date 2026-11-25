@@ -824,6 +824,12 @@ def handle_get(handler, path: str, parsed) -> bool:
         _send_json(handler, {"ok": True, "luts": list_available_luts()})
         return
 
+    elif path == "/api/video/refpacks/list":
+        comfy_cfg_dir = load_config().get("comfy_dir", "")
+        data = _get_comfy().list_refpacks(comfy_cfg_dir)
+        _send_json(handler, {"ok": True, **data})
+        return
+
     super().do_GET()
 
     return False
@@ -1068,6 +1074,29 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
         })
         return
 
+    elif path == "/api/video/refpacks/create":
+        if not _get_comfy().is_alive():
+            _send_json(handler, {"ok": False, "error": msg_comfy_offline()}, status=400)
+            return
+        pack_name = str(body.get("name") or "").strip()
+        raw_imgs = body.get("images") or ([body.get("image")] if body.get("image") else [])
+        img_paths = [p for p in (resolve_image_file(x) for x in raw_imgs) if p]
+        if not img_paths:
+            _send_json(handler, {"ok": False, "error": "Bitte zuerst ein gültiges Bild auswählen oder hochladen."}, status=400)
+            return
+        mp = float(body.get("reference_megapixels", 0.3) or 0.3)
+        overwrite = bool(body.get("overwrite", False))
+        use_image_vae = bool(body.get("use_image_vae", False))
+        ok, res = _get_comfy().encode_image_refpack(
+            image_paths=img_paths,
+            pack_name=pack_name,
+            reference_megapixels=mp,
+            overwrite=overwrite,
+            use_image_vae=use_image_vae,
+        )
+        _send_json(handler, {"ok": ok, "filename": res if ok else None, "error": None if ok else res}, status=200 if ok else 400)
+        return
+
     elif path == "/api/video/stitch":
         clips = body.get("clips", [])
         output_name = body.get("output_name", f"film_{int(time.time())}.mp4")
@@ -1149,6 +1178,7 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
         subject_name = body.get("subject_name", "")
         music_style = body.get("music_style", "")
         turbo = bool(body.get("turbo", True))
+        refpacks = body.get("refpacks") or []
 
         clip_name = f"scene_{scene_id}_{int(time.time())}.mp4"
         clip_path = os.path.join(get_output_dir(), clip_name)
@@ -1189,6 +1219,7 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
                     subject_name=subject_name,
                     music_style=music_style,
                     turbo=turbo,
+                    refpacks=refpacks,
                 )
         else:
             ok, out_path = generate_preview_clip(
@@ -1226,11 +1257,13 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
         audio_file = body.get("audio_file", "")
         audio_start = float(body.get("audio_start", 0.0))
         audio_volume = float(body.get("audio_volume", 1.0))
+        refpacks = body.get("refpacks") or []
         morph_mode = bool(body.get("morph_mode", False))
         lora_strength = float(body.get("lora_strength", 0.85))
         end_hold = max(0.0, min(5.0, float(body.get("end_hold", 0.0) or 0.0)))
         auto_upscale = bool(body.get("auto_upscale", False))
         upscale_engine = body.get("upscale_engine", "ffmpeg")
+        refpacks = body.get("refpacks") or []
 
         extra_lora = None
         if morph_mode and engine == "comfyui":
@@ -1302,6 +1335,7 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
                         turbo=bool(body.get("turbo", True)),
                         extra_lora=extra_lora,
                         extra_lora_strength=lora_strength,
+                        refpacks=refpacks,
                         progress_callback=_quick_progress,
                         cancel_check=_quick_cancel,
                     )
@@ -1404,6 +1438,7 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
         audio_file = body.get("audio_file", "")
         audio_start = float(body.get("audio_start", 0.0))
         audio_volume = float(body.get("audio_volume", 1.0))
+        refpacks = body.get("refpacks") or []
 
         clip_name = sanitize_video_title(title, default_prefix="long_clip")
         clip_path = os.path.join(get_output_dir(), clip_name)
@@ -1481,6 +1516,7 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
                         last_frame_path=last_frame,
                         audio_file_path=trimmed_audio or resolved_audio,
                         turbo=turbo,
+                        refpacks=refpacks,
                         progress_callback=_long_progress,
                         cancel_check=_long_cancel,
                     )

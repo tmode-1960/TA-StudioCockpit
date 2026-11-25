@@ -903,6 +903,7 @@ let state = {
     audio_file: null,
     audio_filename: "",
     audio_volume: 1.0,
+    refpacks: [],
   },
   morphClip: {
     first_frame: null,
@@ -927,6 +928,7 @@ let state = {
     audio_filename: "",
     audio_volume: 1.0,
     turbo: true,
+    refpacks: [],
   },
   modelsCheckedOnStartup: false,
 };
@@ -1244,6 +1246,7 @@ function collectUiState() {
       audio_filename: state.quickClip.audio_filename,
       audio_start: vmGetEl("quickAudioStartSec")?.value || "0",
       audio_volume: state.quickClip.audio_volume ?? 1.0,
+      refpacks: Array.isArray(state.quickClip.refpacks) ? state.quickClip.refpacks : [],
     },
     longClip: {
       first_frame: state.longClip.first_frame,
@@ -1257,6 +1260,7 @@ function collectUiState() {
       audio_start: vmGetEl("longAudioStartSec")?.value || "0",
       audio_volume: state.longClip.audio_volume ?? 1.0,
       turbo: vmGetEl("chkLongTurbo") ? !!vmGetEl("chkLongTurbo").checked : true,
+      refpacks: Array.isArray(state.longClip.refpacks) ? state.longClip.refpacks : [],
     },
     lipsync: {
       portrait_image: state.lipsync.portrait_image,
@@ -1450,11 +1454,15 @@ function restoreUiState(customUi = null) {
         }
         loadQuickAudioWaveform(qc.audio_file);
       }
+      state.quickClip.refpacks = Array.isArray(qc.refpacks) ? qc.refpacks : [];
+      if (typeof renderRefPacksPanel === "function") renderRefPacksPanel("quick");
     }
 
     // 3b. Long Clip
     if (ui.longClip) {
       const lc = ui.longClip;
+      state.longClip.refpacks = Array.isArray(lc.refpacks) ? lc.refpacks : [];
+      if (typeof renderRefPacksPanel === "function") renderRefPacksPanel("long");
       if (lc.title !== undefined && vmGetEl("longTitleInput")) {
         vmGetEl("longTitleInput").value = lc.title;
       }
@@ -3114,6 +3122,7 @@ async function renderQuickClip() {
         turbo: isTurboMode(),
         auto_upscale: !!vmGetEl("chkAutoUpscale")?.checked,
         upscale_engine: vmGetEl("selUpscaleEngine")?.value || "ffmpeg",
+        refpacks: Array.isArray(state.quickClip.refpacks) ? state.quickClip.refpacks : [],
       })
     });
     const data = await res.json();
@@ -3976,6 +3985,7 @@ async function renderLongClip() {
         audio_start: parseFloat(vmGetEl("longAudioStartSec")?.value) || 0.0,
         audio_volume: state.longClip.audio_volume ?? 1.0,
         turbo: turbo,
+        refpacks: Array.isArray(state.longClip.refpacks) ? state.longClip.refpacks : [],
       })
     });
     const data = await res.json();
@@ -5357,10 +5367,175 @@ async function renderMorphClip() {
     }
   };
 
+  // =========================================================================
+  // Optional BExplains RefPacks UI (Quick Clip & Long Clip)
+  // =========================================================================
+  const REFPACK_ROLES = [
+    { id: "character", labelDe: "Character (<Character n>)", labelEn: "Character (<Character n>)" },
+    { id: "outfit", labelDe: "Outfit (<Outfit n>)", labelEn: "Outfit (<Outfit n>)" },
+    { id: "location", labelDe: "Location (<Location n>)", labelEn: "Location (<Location n>)" },
+    { id: "style", labelDe: "Style (<Style n>)", labelEn: "Style (<Style n>)" },
+    { id: "item", labelDe: "Item (<Item n>)", labelEn: "Item (<Item n>)" },
+    { id: "subject", labelDe: "Subject (<Subject n>)", labelEn: "Subject (<Subject n>)" },
+    { id: "motion", labelDe: "Motion (<Motion n>)", labelEn: "Motion (<Motion n>)" },
+    { id: "reference", labelDe: "Reference (<Picture n>)", labelEn: "Reference (<Picture n>)" },
+    { id: "audio", labelDe: "Audio (<Audio n>)", labelEn: "Audio (<Audio n>)" },
+  ];
+  let _refPacksCatalog = { installed: false, refpacks: [], bundles: [], loaded: false };
+
+  async function refreshRefPacksCatalog() {
+    try {
+      const res = await fetch("/api/video/refpacks/list");
+      const data = await res.json();
+      if (data && data.ok) {
+        _refPacksCatalog = {
+          installed: !!data.installed,
+          refpacks: Array.isArray(data.refpacks) ? data.refpacks : [],
+          bundles: Array.isArray(data.bundles) ? data.bundles : [],
+          loaded: true,
+        };
+      }
+    } catch (_) {
+      _refPacksCatalog.loaded = true;
+    }
+    renderRefPacksPanel("quick");
+    renderRefPacksPanel("long");
+  }
+
+  function _getRefPackTargetState(target) {
+    return target === "long" ? state.longClip : state.quickClip;
+  }
+
+  function renderRefPacksPanel(target) {
+    const body = vmGetEl(target === "long" ? "longRefPacksBody" : "quickRefPacksBody");
+    const badge = vmGetEl(target === "long" ? "longRefPacksCountBadge" : "quickRefPacksCountBadge");
+    if (!body) return;
+
+    const targetState = _getRefPackTargetState(target);
+    if (!Array.isArray(targetState.refpacks)) targetState.refpacks = [];
+    const activeList = targetState.refpacks;
+
+    if (badge) {
+      badge.textContent = activeList.length > 0
+        ? (currentLang === "de" ? `${activeList.length} aktiv` : `${activeList.length} active`)
+        : (currentLang === "de" ? "inaktiv" : "inactive");
+    }
+
+    if (!_refPacksCatalog.loaded) {
+      body.innerHTML = `<div style="font-size:11px; color:var(--mute);">${currentLang === "de" ? "Prüfe RefPacks-Status..." : "Checking RefPacks status..."}</div>`;
+      return;
+    }
+
+    if (!_refPacksCatalog.installed) {
+      body.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+          <span style="font-size:11px; color:var(--mute);">
+            ${currentLang === "de"
+              ? "Optional: Installiere <b>BExplains RefPacks</b> &amp; <b>BExplains MiniMax H3 RefPacks</b> im Tab <i>Models &amp; Status → Extensions</i> (nutzt vorhandene H3-Modelle, keine neuen KI-Modelle nötig)."
+              : "Optional: Install <b>BExplains RefPacks</b> &amp; <b>BExplains MiniMax H3 RefPacks</b> in <i>Models &amp; Status → Extensions</i> (uses existing H3 models, no extra AI weights needed)."}
+          </span>
+          <button type="button" class="btn-mini" onclick="window._vmRefreshRefPacks()">↻ ${currentLang === "de" ? "Prüfen" : "Refresh"}</button>
+        </div>
+      `;
+      return;
+    }
+
+    const packOptions = _refPacksCatalog.refpacks.length > 0
+      ? _refPacksCatalog.refpacks.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join("")
+      : `<option value="">${currentLang === "de" ? "(Noch keine RefPacks in models/refpacks)" : "(No RefPacks yet)"}</option>`;
+
+    const roleOptions = REFPACK_ROLES.map(r =>
+      `<option value="${r.id}">${escapeHtml(currentLang === "de" ? r.labelDe : r.labelEn)}</option>`
+    ).join("");
+
+    const activeHtml = activeList.length > 0
+      ? activeList.map((item, idx) => `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:6px; padding:5px 8px; margin-top:6px; font-size:11px;">
+            <div>
+              <span style="background:rgba(99,102,241,0.18); color:var(--accent); padding:1px 6px; border-radius:4px; font-weight:600; margin-right:6px;">${escapeHtml(item.role)}</span>
+              <span style="color:var(--text); font-family:Consolas, monospace;">${escapeHtml(item.filename)}</span>
+            </div>
+            <button type="button" class="btn-mini" style="color:var(--danger);" onclick="window._vmRemoveRefPack('${target}', ${idx})">✕</button>
+          </div>
+        `).join("")
+      : `<div style="font-size:11px; color:var(--mute); margin-top:6px;">${currentLang === "de" ? "Keine RefPacks aktiv — Standard-Workflow wird genutzt." : "No RefPacks active — using standard workflow."}</div>`;
+
+    body.innerHTML = `
+      <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+        <select id="vm_${target}RefPackSelect" style="flex:2; min-width:150px; font-size:11px; padding:5px 8px;">${packOptions}</select>
+        <select id="vm_${target}RefPackRole" style="flex:1; min-width:130px; font-size:11px; padding:5px 8px;">${roleOptions}</select>
+        <button type="button" class="btn-mini" onclick="window._vmAddRefPack('${target}')">+ ${currentLang === "de" ? "Hinzufügen" : "Add"}</button>
+        <button type="button" class="btn-mini" onclick="window._vmRefreshRefPacks()" title="Refresh">↻</button>
+      </div>
+      ${activeHtml}
+      <div style="margin-top:10px; padding-top:8px; border-top:1px dashed rgba(255,255,255,0.08); display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+        <input type="text" id="vm_${target}NewRefPackName" placeholder="${currentLang === "de" ? "Neuer Pack-Name (z.B. elena_look)" : "New pack name (e.g. elena_look)"}" style="flex:1; min-width:150px; font-size:11px; padding:4px 8px;">
+        <button type="button" class="btn-mini" onclick="window._vmCreateRefPackFromFrame('${target}')" title="${currentLang === "de" ? "Startbild als RefPack speichern" : "Save Start Frame as RefPack"}">💾 ${currentLang === "de" ? "Aus Startbild erstellen" : "Create from Start Frame"}</button>
+      </div>
+    `;
+  }
+
+  window._vmRefreshRefPacks = refreshRefPacksCatalog;
+
+  window._vmAddRefPack = function (target) {
+    const sel = vmGetEl(target === "long" ? "longRefPackSelect" : "quickRefPackSelect");
+    const roleSel = vmGetEl(target === "long" ? "longRefPackRole" : "quickRefPackRole");
+    const fname = sel?.value?.trim();
+    if (!fname) {
+      showToast(currentLang === "de" ? "Bitte zuerst ein RefPack erstellen oder auswählen." : "Please create or select a RefPack first.", "warning");
+      return;
+    }
+    const role = roleSel?.value || "character";
+    const targetState = _getRefPackTargetState(target);
+    if (!Array.isArray(targetState.refpacks)) targetState.refpacks = [];
+    targetState.refpacks.push({ filename: fname, role });
+    saveUiState();
+    renderRefPacksPanel(target);
+  };
+
+  window._vmRemoveRefPack = function (target, idx) {
+    const targetState = _getRefPackTargetState(target);
+    if (Array.isArray(targetState.refpacks)) {
+      targetState.refpacks.splice(idx, 1);
+      saveUiState();
+      renderRefPacksPanel(target);
+    }
+  };
+
+  window._vmCreateRefPackFromFrame = async function (target) {
+    const targetState = _getRefPackTargetState(target);
+    const imgUrl = targetState.first_frame;
+    if (!imgUrl) {
+      showToast(currentLang === "de" ? "Bitte zuerst ein Startbild ablegen oder hochladen." : "Please drop or upload a Start Frame first.", "warning");
+      return;
+    }
+    const nameInput = vmGetEl(target === "long" ? "longNewRefPackName" : "quickNewRefPackName");
+    const name = (nameInput?.value || "").trim() || `refpack_${Date.now()}`;
+    showToast(currentLang === "de" ? `Erstelle RefPack '${name}'...` : `Encoding RefPack '${name}'...`, "info");
+    try {
+      const res = await fetch("/api/video/refpacks/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, image: imgUrl, reference_megapixels: 0.3, overwrite: false }),
+      });
+      const data = await res.json();
+      if (data.ok && data.filename) {
+        showToast(currentLang === "de" ? `RefPack gespeichert: ${data.filename}` : `RefPack saved: ${data.filename}`, "success");
+        if (nameInput) nameInput.value = "";
+        await refreshRefPacksCatalog();
+      } else {
+        showToast(data.error || "RefPack-Erstellung fehlgeschlagen", "error");
+      }
+    } catch (err) {
+      showToast(String(err), "error");
+    }
+  };
+
   window.addEventListener("studio-module-changed", (ev) => {
     if (ev?.detail?.module === "video") {
       initVideoModuleOnce();
       syncStudioLang();
+      refreshRefPacksCatalog();
     }
   });
 
