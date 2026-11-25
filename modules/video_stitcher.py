@@ -60,8 +60,8 @@ def concat_segments(
         # Create concat list for ffmpeg
         with open(concat_list_file, "w", encoding="utf-8") as f:
             for p in valid_paths:
-                # FFmpeg requires escaped forward slashes or safe paths
-                escaped = os.path.abspath(p).replace("\\", "/")
+                # FFmpeg requires escaped forward slashes and escaped single quotes
+                escaped = os.path.abspath(p).replace("\\", "/").replace("'", "'\\''")
                 f.write(f"file '{escaped}'\n")
 
         cmd = ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat_list_file]
@@ -80,9 +80,12 @@ def concat_segments(
             )
         video_filter = ",".join(vf_filters)
 
+        import math
+        safe_native_vol = float(native_audio_volume) if math.isfinite(float(native_audio_volume)) else 1.0
+        safe_bgm_vol = float(bgm_volume) if math.isfinite(float(bgm_volume)) else 0.25
         audio_filter = (
-            f"[0:a]volume={native_audio_volume}[a0];"
-            f"[1:a]volume={bgm_volume}[a1];"
+            f"[0:a]volume={max(0.0, min(5.0, safe_native_vol))}[a0];"
+            f"[1:a]volume={max(0.0, min(5.0, safe_bgm_vol))}[a1];"
             f"[a0][a1]amix=inputs=2:duration=first:dropout_transition=2[aout]"
         )
 
@@ -124,7 +127,7 @@ def concat_segments(
 
         cmd.append(os.path.abspath(output_path))
 
-        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, creationflags=NO_WINDOW_FLAG)
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=600, creationflags=NO_WINDOW_FLAG)
         if res.returncode != 0:
             return False, f"FFmpeg Fehler: {res.stderr[-400:]}"
 

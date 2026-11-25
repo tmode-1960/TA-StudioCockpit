@@ -322,6 +322,8 @@ class _WsListener(threading.Thread):
         elif length == 127:
             ext, buf = self._read_exact(sock, buf, 8)
             length = struct.unpack(">Q", ext)[0]
+        if length > 16 * 1024 * 1024:
+            raise ConnectionError(f"WebSocket frame too large: {length} bytes")
         mask = b""
         if masked:
             mask, buf = self._read_exact(sock, buf, 4)

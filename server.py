@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.20"
+APP_VERSION = "1.21"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -72,7 +72,7 @@ _ACTIVE_JOBS_MAX_ENTRIES = 200
 DEFAULT_LAUNCH_CMD = ""
 CONFIG_LOCK = threading.Lock()
 _NO_WINDOW_FLAGS = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
-_FORBIDDEN_LAUNCH_TOKENS = (";", "&&", "||", "|", "&", "`", "$(", "<", ">")
+_FORBIDDEN_LAUNCH_TOKENS = (";", "&&", "||", "|", "&", "`", "$(", "<", ">", "^", "\r", "\n")
 
 
 def _prune_active_jobs_locked(now: float | None = None) -> None:
@@ -334,12 +334,20 @@ def sanitize_config_for_client(cfg: dict) -> dict:
     return safe
 
 
+ALLOWED_CONFIG_KEYS = {
+    "comfy_url", "comfy_launch_cmd", "output_dir", "lms_url", "ollama_url",
+    "language", "theme_base", "theme_accent", "theme_custom_accent",
+    "custom_res_presets", "ui_state", "comfy_dir", "last_i2i_dir", "window",
+    "llm_provider", "ollama_model", "gemini_model",
+}
+
+
 def save_config(updates: dict) -> None:
     global COMFY_URL, OUTPUT_DIR, LMS_URL, OLLAMA_URL
     with CONFIG_LOCK:
         os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
         current = load_config()
-        updates_copy = dict(updates)
+        updates_copy = {k: v for k, v in dict(updates).items() if k in ALLOWED_CONFIG_KEYS or k in CLOUD_API_KEY_FIELDS or k == "cloud_api_keys_updates"}
         key_updates = updates_copy.pop("cloud_api_keys_updates", None)
         # Never persist raw API key fields directly from unencrypted payloads
         for field in CLOUD_API_KEY_FIELDS:
@@ -835,7 +843,30 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Vary", "Origin")
 
+    def _check_host_header(self) -> bool:
+        host_hdr = self.headers.get("Host", "").strip()
+        if not host_hdr:
+            return True
+        try:
+            parsed = urllib.parse.urlparse(f"http://{host_hdr}")
+        except Exception:
+            self.send_json({"error": "Ungültiger Host-Header."}, status=403)
+            return False
+        hostname = (parsed.hostname or "").lower()
+        allowed_hosts = {"127.0.0.1", "localhost", "::1"}
+        if BIND_HOST and BIND_HOST not in ("", "0.0.0.0", "::"):
+            allowed_hosts.add(BIND_HOST.lower())
+        if hostname not in allowed_hosts:
+            self.send_json({"error": "Ungültiger Host-Header."}, status=403)
+            return False
+        if parsed.port is not None and parsed.port != PORT:
+            self.send_json({"error": "Ungültiger Host-Port."}, status=403)
+            return False
+        return True
+
     def _check_post_origin(self) -> bool:
+        if not self._check_host_header():
+            return False
         origin = self.headers.get("Origin", "").strip()
         sec_fetch_site = self.headers.get("Sec-Fetch-Site", "").strip().lower()
         if (origin and not _is_allowed_origin(origin)) or sec_fetch_site == "cross-site":
@@ -856,6 +887,8 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
+        if not self._check_host_header():
+            return
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
 
@@ -1031,9 +1064,15 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_json({"error": "Kein Dateiname angegeben."}, status=400)
                 return
             cfg = load_config()
-            out_dir = cfg.get("output_dir", OUTPUT_DIR)
+            out_dir = str(cfg.get("output_dir") or OUTPUT_DIR or "").strip()
+            if not out_dir or not os.path.isdir(out_dir):
+                self.send_json({"error": "Ausgabeordner nicht konfiguriert."}, status=400)
+                return
             bname = os.path.basename(fname)
             target = os.path.join(out_dir, bname)
+            if not _is_path_within(out_dir, target):
+                self.send_json({"error": "Ungültiger Dateipfad."}, status=403)
+                return
             deleted = False
             if os.path.isfile(target):
                 os.remove(target)
@@ -2464,7 +2503,7 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                     cur_job = ACTIVE_JOBS.get(pid, {})
                     if cur_job.get("status") in ("cancelled", "interrupted"):
                         return
-                    ACTIVE_JOBS[pid] = {
+                    cur_job.update({
                         "status": "done",
                         "prompt_id": pid,
                         "start_time": cur_job.get("start_time", time.time()),
@@ -2474,7 +2513,8 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                         "before_image_url": before_image_url,
                         "llm_prompt": llm_prompt,
                         "llm_status": llm_status,
-                    }
+                    })
+                    ACTIVE_JOBS[pid] = cur_job
 
             threading.Thread(target=watch_job, args=(prompt_id, existing_files, job_client_id), daemon=True).start()
 
@@ -3696,7 +3736,10 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
 
                     if out_dir and os.path.isdir(out_dir):
                         rel_dir = os.path.dirname(rel_filename.replace("\\", "/")).strip("/") if rel_filename else ""
-                        target_dir = os.path.join(out_dir, rel_dir.replace("/", os.sep)) if rel_dir else out_dir
+                        target_dir = os.path.normpath(os.path.join(out_dir, rel_dir.replace("/", os.sep))) if rel_dir else out_dir
+                        if not _is_path_within(out_dir, target_dir):
+                            rel_dir = ""
+                            target_dir = out_dir
                         os.makedirs(target_dir, exist_ok=True)
                         clean_stem = stem[:-5] if stem.endswith("_nobg") else stem
                         candidate_name = f"{clean_stem}_nobg.png"
@@ -3705,6 +3748,8 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                             candidate_name = f"{clean_stem}_nobg_{idx}.png"
                             idx += 1
                         target_path = os.path.join(target_dir, candidate_name)
+                        if not _is_path_within(out_dir, target_path):
+                            raise ValueError("Ungültiger Ausgabepfad außerhalb des Ausgabeordners.")
                         with open(target_path, "wb") as f:
                             f.write(result_bytes)
                         rel_out = f"{rel_dir}/{candidate_name}" if rel_dir else candidate_name
@@ -3755,10 +3800,13 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             target_wsl = f"{custom_nodes_dir.rstrip('/')}/{pack_id}"
             try:
                 cls._append_install_log(f"  [WSL] {'Target' if en else 'Ziel'}: {target_wsl}")
+                q_cn = shlex.quote(custom_nodes_dir)
+                q_tw = shlex.quote(target_wsl)
+                q_repo = shlex.quote(f"{repo_url}.git")
                 cmd_script = (
-                    f'mkdir -p "{custom_nodes_dir}" && '
-                    f'if [ -d "{target_wsl}/.git" ]; then git -C "{target_wsl}" pull; '
-                    f'else rm -rf "{target_wsl}" && git clone --depth 1 "{repo_url}.git" "{target_wsl}"; fi'
+                    f"mkdir -p {q_cn} && "
+                    f"if [ -d {q_tw}/.git ]; then git -C {q_tw} pull; "
+                    f"else rm -rf {q_tw} && git clone --depth 1 {q_repo} {q_tw}; fi"
                 )
                 proc = subprocess.run(
                     ["wsl", "bash", "-l", "-c", cmd_script],
@@ -3771,9 +3819,10 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                     return False, err
 
                 if python_exe:
+                    q_py = shlex.quote(python_exe)
                     req_cmd = (
-                        f'if [ -f "{target_wsl}/requirements.txt" ]; then '
-                        f'"{python_exe}" -m pip install -r "{target_wsl}/requirements.txt"; fi'
+                        f"if [ -f {q_tw}/requirements.txt ]; then "
+                        f"{q_py} -m pip install -r {q_tw}/requirements.txt; fi"
                     )
                     cls._append_install_log(f"  [WSL] {'Checking' if en else 'Prüfe'} requirements.txt ({python_exe})...")
                     p_req = subprocess.run(
@@ -3844,6 +3893,10 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                 if os.path.isdir(target_dir):
                     shutil.rmtree(target_dir, ignore_errors=True)
                 with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
+                    for member in zf.infolist():
+                        member_dest = os.path.normpath(os.path.join(custom_nodes_dir, member.filename))
+                        if not _is_path_within(custom_nodes_dir, member_dest):
+                            raise ValueError(f"Unsicherer ZIP-Eintrag: {member.filename}")
                     top_dirs = {name.split("/")[0] for name in zf.namelist() if "/" in name}
                     zf.extractall(custom_nodes_dir)
                 extracted_root = os.path.join(custom_nodes_dir, next(iter(top_dirs), ""))

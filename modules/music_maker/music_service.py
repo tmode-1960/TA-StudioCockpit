@@ -2190,7 +2190,7 @@ def render_video_ffmpeg(audio_url: str, title: str = "Song", aspect: str = "16:9
         if audio_duration is not None and audio_duration > 0.001:
             cut_cmd.extend(["-t", f"{audio_duration:.3f}"])
         cut_cmd.extend(["-c:a", "flac", cut_tmp])
-        proc_cut = subprocess.run(cut_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=flags)
+        proc_cut = subprocess.run(cut_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180, creationflags=flags)
         if proc_cut.returncode == 0 and os.path.isfile(cut_tmp):
             try:
                 os.remove(audio_tmp)
@@ -2377,7 +2377,7 @@ def render_video_ffmpeg(audio_url: str, title: str = "Song", aspect: str = "16:9
         default_sys_fonts = os.path.join(windir, "Fonts")
         font_dir = os.path.dirname(font_path) if font_path and os.path.isfile(font_path) else default_sys_fonts
         font_dir_escaped = font_dir.replace("\\", "/").replace(":", r"\:")
-        safe_font = chosen_font.replace("'", "").replace(",", "").strip() or "Impact"
+        safe_font = re.sub(r"['\",:;=\[\]\\/]", "", chosen_font).strip() or "Impact"
         filters.append(f"[{last_v}]subtitles=filename='{escaped_srt}':fontsdir='{font_dir_escaped}':force_style='Fontname={safe_font},FontSize={fsize},PrimaryColour=&H00ffffff,OutlineColour=&HB0000000,BorderStyle=1,Outline=3.0,Shadow=1.5,Alignment=2,MarginV=45'[vout]")
         last_v = "vout"
 
@@ -2385,7 +2385,7 @@ def render_video_ffmpeg(audio_url: str, title: str = "Song", aspect: str = "16:9
     cmd.extend(["-map", f"[{last_v}]", "-map", "1:a", "-c:v", "libx264", "-preset", "veryfast", "-crf", "22", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-shortest", out_path])
 
     flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
-    proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=flags)
+    proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=600, creationflags=flags)
 
     # Clean up temp inputs
     for tmp in (audio_tmp, cover_tmp, bg_video_tmp):
@@ -2752,17 +2752,33 @@ class _MusicHandlerProxy:
                 return self._json(self._browse_start_cmd(body))
             if path == "/api/comfy/fix_transformers":
                 return self._json(self._fix_comfy_transformers())
-            if path == "/api/reveal_file":
+            if path == "/api/reveal_file" or path == "/api/open_file":
                 fpath = str(body.get("path") or "").strip()
-                if not fpath or not os.path.exists(fpath):
+                studio_cfg = _GET_STUDIO_CONFIG() if _GET_STUDIO_CONFIG else {}
+                allowed_dirs = [
+                    d for d in (
+                        RENDERS_DIR,
+                        DATA_DIR,
+                        os.path.join(APP_DIR, "data"),
+                        str(studio_cfg.get("output_dir") or "").strip(),
+                        os.path.expandvars(r"%LOCALAPPDATA%\Programs\tA-MusicMaker\data\renders"),
+                    )
+                    if d
+                ]
+                if not fpath or not any(_is_path_within(base, fpath) for base in allowed_dirs):
+                    return self._json({"ok": False, "error": _tr("Access denied (outside allowed folders)", "Zugriff verweigert (außerhalb erlaubter Ordner)")}, status=403)
+                norm_fpath = os.path.realpath(os.path.normpath(fpath))
+                if path == "/api/reveal_file":
+                    if not os.path.exists(norm_fpath):
+                        return self._json({"ok": False, "error": _tr("File not found", "Datei nicht gefunden")})
+                    subprocess.Popen(["explorer", "/select,", norm_fpath])
+                    return self._json({"ok": True})
+                if not os.path.isfile(norm_fpath):
                     return self._json({"ok": False, "error": _tr("File not found", "Datei nicht gefunden")})
-                subprocess.Popen(["explorer", "/select,", os.path.normpath(fpath)])
-                return self._json({"ok": True})
-            if path == "/api/open_file":
-                fpath = str(body.get("path") or "").strip()
-                if not fpath or not os.path.isfile(fpath):
-                    return self._json({"ok": False, "error": _tr("File not found", "Datei nicht gefunden")})
-                os.startfile(os.path.normpath(fpath))  # type: ignore[attr-defined]
+                blocked_exts = {".exe", ".bat", ".cmd", ".ps1", ".vbs", ".vbe", ".js", ".jse", ".msi", ".scr", ".com", ".pif"}
+                if os.path.splitext(norm_fpath)[1].lower() in blocked_exts:
+                    return self._json({"ok": False, "error": _tr("Executable file type not allowed", "Ausführbarer Dateityp nicht erlaubt")}, status=403)
+                os.startfile(norm_fpath)  # type: ignore[attr-defined]
                 return self._json({"ok": True})
             if path == "/api/plenio_player/launch":
                 return self._json(self._launch_plenio_player())
@@ -3166,10 +3182,10 @@ class _MusicHandlerProxy:
                     "Incomplete WSL start command. Please provide the script path.",
                     "Unvollständiger WSL-Start-Befehl. Bitte Skriptpfad angeben.",
                 ))
-            if any(ch in clean_subcmd for ch in ("$", "(", ")")):
+            if any(tok in clean_subcmd for tok in _FORBIDDEN_LAUNCH_TOKENS) or any(ch in clean_subcmd for ch in ("\r", "\n", "\x00")):
                 raise ValueError(_tr(
-                    "Invalid characters in WSL start command ($ and parentheses are not allowed).",
-                    "Ungültige Zeichen im WSL-Startbefehl ($ und Klammern sind nicht erlaubt).",
+                    "Invalid characters in WSL start command.",
+                    "Ungültige Zeichen im WSL-Startbefehl.",
                 ))
             wsl_argv = ["wsl", "--cd", "~", "bash", "-l", "-c", clean_subcmd]
 

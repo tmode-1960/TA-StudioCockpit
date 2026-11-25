@@ -840,28 +840,32 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
         if not url_or_path:
             _send_json(handler, {"error": "Missing url or path"}, status=400)
             return True
+        out_dir = get_output_dir()
+        c_out = _get_comfy().get_comfy_output_dir()
+        allowed_bases = [b for b in (out_dir, c_out, UPLOADS_DIR) if b]
         src_path = None
-        if os.path.isfile(url_or_path):
-            src_path = url_or_path
+        if os.path.isfile(url_or_path) and any(_is_path_within(b, url_or_path) for b in allowed_bases):
+            src_path = os.path.realpath(url_or_path)
         else:
             # Resolve /output/... or /api/gallery/file?... or /view?...
             parsed_ref = urllib.parse.urlparse(url_or_path)
             qs = urllib.parse.parse_qs(parsed_ref.query)
-            if "path" in qs and os.path.isfile(qs["path"][0]):
-                src_path = qs["path"][0]
-            elif parsed_ref.path.startswith("/output/"):
+            if "path" in qs:
+                cand_q = qs["path"][0]
+                if os.path.isfile(cand_q) and any(_is_path_within(b, cand_q) for b in allowed_bases):
+                    src_path = os.path.realpath(cand_q)
+            elif parsed_ref.path.startswith("/output/") and out_dir:
                 rel = urllib.parse.unquote(parsed_ref.path[len("/output/"):]).lstrip("/\\")
-                cand = os.path.join(get_output_dir(), rel)
-                if os.path.isfile(cand):
+                cand = os.path.normpath(os.path.join(out_dir, rel))
+                if _is_path_within(out_dir, cand) and os.path.isfile(cand):
                     src_path = cand
             elif "filename" in qs:
-                fname = qs["filename"][0]
-                sub = qs.get("subfolder", [""])[0]
-                c_out = _get_comfy().get_comfy_output_dir()
-                for base in (get_output_dir(), c_out):
+                fname = os.path.basename(qs["filename"][0])
+                sub = qs.get("subfolder", [""])[0].lstrip("/\\")
+                for base in (out_dir, c_out):
                     if base:
-                        cand = os.path.join(base, sub, fname) if sub else os.path.join(base, fname)
-                        if os.path.isfile(cand):
+                        cand = os.path.normpath(os.path.join(base, sub, fname) if sub else os.path.join(base, fname))
+                        if _is_path_within(base, cand) and os.path.isfile(cand):
                             src_path = cand
                             break
         if not src_path or not os.path.isfile(src_path):
@@ -1410,7 +1414,7 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
                         trimmed_audio,
                     ]
                     try:
-                        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+                        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=180, check=True)
                     except Exception as ex:
                         print(f"[LongClip] Audio trim warning: {ex}")
                         trimmed_audio = resolved_audio
@@ -1485,7 +1489,7 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
                     try:
                         probe = subprocess.run(
                             ["ffprobe", "-v", "error", "-show_streams", "-select_streams", "a", "-of", "json", out_path],
-                            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True
+                            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, timeout=30
                         )
                         if probe.stdout and '"codec_type": "audio"' in probe.stdout:
                             has_audio_stream = True
@@ -1728,8 +1732,39 @@ def _get_upload_search_dirs() -> List[str]:
     return dirs
 
 
+def _is_path_within(base_dir: str, target_path: str) -> bool:
+    """Return True iff target_path resolves inside base_dir."""
+    if not base_dir or not target_path:
+        return False
+    try:
+        base_real = os.path.realpath(os.path.abspath(base_dir))
+        target_real = os.path.realpath(os.path.abspath(target_path))
+        return os.path.commonpath([base_real, target_real]) == base_real
+    except (ValueError, OSError):
+        return False
+
+
+def _get_allowed_media_dirs() -> List[str]:
+    """Return directories from which local media files may be resolved."""
+    dirs = list(_get_upload_search_dirs())
+    out_dir = get_output_dir()
+    if out_dir:
+        dirs.append(out_dir)
+    for d in (
+        DATA_DIR,
+        os.path.join(APP_DIR, "data") if APP_DIR else "",
+        os.path.join(BUNDLE_DIR, "data") if BUNDLE_DIR else "",
+        os.path.join(BUNDLE_DIR, "assets") if BUNDLE_DIR else "",
+    ):
+        if d:
+            abs_d = os.path.abspath(d)
+            if abs_d not in dirs and os.path.isdir(abs_d):
+                dirs.append(abs_d)
+    return dirs
+
+
 def resolve_image_file(img_ref: Optional[str]) -> Optional[str]:
-    """Resolves a web URL like /api/video/uploads/abc.png or local path to absolute file path."""
+    """Resolves a web URL like /api/video/uploads/abc.png or allowed local path to absolute file path."""
     if not img_ref:
         return None
     for prefix in ("/api/video/uploads/", "/uploads/"):
@@ -1737,25 +1772,29 @@ def resolve_image_file(img_ref: Optional[str]) -> Optional[str]:
             rel = urllib.parse.unquote(img_ref[len(prefix):]).lstrip("/\\")
             for cand_dir in _get_upload_search_dirs():
                 p = os.path.abspath(os.path.join(cand_dir, rel))
-                if os.path.isfile(p):
-                    return p
+                if _is_path_within(cand_dir, p) and os.path.isfile(p):
+                    return os.path.realpath(p)
     if os.path.isfile(img_ref):
-        return os.path.abspath(img_ref)
+        abs_p = os.path.realpath(os.path.abspath(img_ref))
+        if any(_is_path_within(base, abs_p) for base in _get_allowed_media_dirs()):
+            return abs_p
     return None
 
 
 def resolve_audio_file(audio_ref: Optional[str]) -> Optional[str]:
-    """Resolves a web URL like /uploads/song.mp3 or local path to absolute file path."""
+    """Resolves a web URL like /uploads/song.mp3 or allowed local path to absolute file path."""
     if not audio_ref:
         return None
     if audio_ref.startswith("/api/video/uploads/"):
         rel = urllib.parse.unquote(audio_ref[len("/api/video/uploads/"):]).lstrip("/\\")
-        for cand_dir in [UPLOADS_DIR, os.path.join(APP_DIR, "data", "uploads"), os.path.join(BUNDLE_DIR, "data", "uploads")]:
+        for cand_dir in _get_upload_search_dirs():
             p = os.path.abspath(os.path.join(cand_dir, rel))
-            if os.path.isfile(p):
-                return p
+            if _is_path_within(cand_dir, p) and os.path.isfile(p):
+                return os.path.realpath(p)
     if os.path.isfile(audio_ref):
-        return os.path.abspath(audio_ref)
+        abs_p = os.path.realpath(os.path.abspath(audio_ref))
+        if any(_is_path_within(base, abs_p) for base in _get_allowed_media_dirs()):
+            return abs_p
     return None
 
 

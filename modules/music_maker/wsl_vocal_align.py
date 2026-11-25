@@ -131,7 +131,7 @@ def _isolate_vocals(audio_path: Path, vocals_cache: Path | None) -> Path:
             str(tmp_dir),
             str(audio_path),
         ]
-        subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=600)
         found = list(tmp_dir.rglob("vocals.wav"))
         if not found:
             raise RuntimeError("Demucs produced no vocals.wav")

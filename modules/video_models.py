@@ -652,7 +652,8 @@ def check_models_status(
                             return {**model, "name": candidate, "local_path": cp}
                 try:
                     for root_w, dirs_w, files_w in os.walk(base_cat):
-                        rel_depth = os.path.relpath(root_w, base_cat).count(os.sep)
+                        rel_w = os.path.relpath(root_w, base_cat)
+                        rel_depth = 0 if rel_w == "." else rel_w.count(os.sep) + 1
                         if rel_depth > 4:
                             dirs_w[:] = []
                             continue

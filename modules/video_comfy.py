@@ -1145,17 +1145,37 @@ class ComfyClient:
         """Installs a custom node repository into ComfyUI's custom_nodes folder.
         Uses git clone if git is available, otherwise falls back to pure-Python GitHub ZIP download.
         """
+        raw_url = str(repo_url or "").strip()
+        if (
+            not raw_url
+            or raw_url.startswith("-")
+            or any(ch in raw_url for ch in ("\r", "\n", "\x00"))
+            or any(ch.isspace() for ch in raw_url)
+        ):
+            return False, "Ungültige Repository-URL."
+        parsed_repo = urllib.parse.urlparse(raw_url)
+        if parsed_repo.scheme not in ("https", "http") or not parsed_repo.netloc:
+            return False, "Repository-URL muss mit https:// oder http:// beginnen."
+
+        safe_folder = os.path.basename(str(folder_name or "").strip().rstrip("/\\"))
+        if not safe_folder or safe_folder in (".", "..") or any(sep in safe_folder for sep in ("/", "\\", "\x00")):
+            return False, "Ungültiger Zielordnername."
+
         cn_path = self.get_custom_nodes_path(configured_comfy_dir)
         if not cn_path or not os.path.isdir(cn_path):
             return False, "ComfyUI custom_nodes Verzeichnis konnte nicht lokalisiert werden. Bitte ComfyUI-Pfad in den Einstellungen prüfen."
 
-        target_dir = os.path.join(cn_path, folder_name)
+        cn_real = os.path.realpath(os.path.abspath(cn_path))
+        target_dir = os.path.realpath(os.path.join(cn_real, safe_folder))
+        if os.path.commonpath([cn_real, target_dir]) != cn_real or target_dir == cn_real:
+            return False, "Ungültiger Zielordner (außerhalb von custom_nodes)."
+
         if os.path.isdir(target_dir):
             try:
                 # If target directory already has python files, consider it installed
                 files = os.listdir(target_dir)
                 if any(f.endswith(".py") for f in files):
-                    return True, f"Erweiterung '{folder_name}' ist bereits im custom_nodes Ordner vorhanden."
+                    return True, f"Erweiterung '{safe_folder}' ist bereits im custom_nodes Ordner vorhanden."
             except Exception:
                 pass
 
@@ -1164,17 +1184,17 @@ class ComfyClient:
         if git_exe:
             no_win = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
             try:
-                cmd = [git_exe, "clone", "--depth", "1", repo_url, target_dir]
+                cmd = [git_exe, "clone", "--depth", "1", "--", raw_url, target_dir]
                 proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=120, creationflags=no_win)
                 if proc.returncode == 0 and os.path.isdir(target_dir):
                     self._auto_install_requirements(target_dir, cn_path)
-                    return True, f"'{folder_name}' erfolgreich installiert! Bitte ComfyUI neu starten."
+                    return True, f"'{safe_folder}' erfolgreich installiert! Bitte ComfyUI neu starten."
             except Exception as ex:
                 print(f"[Extensions] Git clone fehlgeschlagen ({ex}), versuche automatischen ZIP-Download...")
 
         # 2. Fallback: Pure-Python GitHub ZIP download & extraction (0 external tools required)
         try:
-            clean_url = repo_url.rstrip("/")
+            clean_url = raw_url.rstrip("/")
             if clean_url.endswith(".git"):
                 clean_url = clean_url[:-4]
 
@@ -1213,7 +1233,9 @@ class ComfyClient:
                     if not rel_path:
                         continue
 
-                    dest_file = os.path.join(target_dir, os.path.normpath(rel_path))
+                    dest_file = os.path.realpath(os.path.join(target_dir, os.path.normpath(rel_path)))
+                    if os.path.commonpath([target_dir, dest_file]) != target_dir:
+                        raise ValueError(f"Unsicherer ZIP-Eintrag: {m_path}")
                     if member.is_dir():
                         os.makedirs(dest_file, exist_ok=True)
                     else:
@@ -1222,7 +1244,7 @@ class ComfyClient:
                             target.write(source.read())
 
             self._auto_install_requirements(target_dir, cn_path)
-            return True, f"'{folder_name}' erfolgreich per Direkt-Download installiert! Bitte ComfyUI neu starten."
+            return True, f"'{safe_folder}' erfolgreich per Direkt-Download installiert! Bitte ComfyUI neu starten."
         except Exception as ex:
             return False, f"Fehler bei Installation: {ex}"
 

@@ -230,6 +230,9 @@ def run_voice_conversion(
 
     os.makedirs(os.path.dirname(os.path.abspath(vocal_out)), exist_ok=True)
 
+    safe_f0 = str(f0_method or "rmvpe").strip()
+    if not re.fullmatch(r"[a-zA-Z0-9_.,+-]+", safe_f0):
+        raise ValueError(f"Invalid f0_method: {safe_f0}")
     worker_code = f"""
 import os, sys, numpy as np, soundfile as sf
 runtime_dir = r"{paths['runtime_dir']}"
@@ -248,7 +251,7 @@ vc.convert_audio(
     index_path=r"{os.path.abspath(index_file)}" if r"{index_file}" else "",
     pitch={int(pitch)},
     index_rate={float(index_rate)},
-    f0_method="{f0_method}",
+    f0_method="{safe_f0}",
     export_format="WAV"
 )
 
