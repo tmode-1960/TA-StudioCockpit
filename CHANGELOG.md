@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.45] – 2026-11-25
+### Branding & UI
+- **New `tA` App Icon & Header Logo:** Replaced the placeholder palette emoji and legacy icon with a sharp, 3D glassmorphic `tA` squircle logo across `app.ico`, `web/favicon.ico`, `web/logo.png`, and the top navigation bar (`web/index.html`, `web/style.css`).
+
 ## [v1.44] – 2026-11-25
 ### VideoMaker (Optional RefPacks)
 - **Optional BExplains RefPacks & MiniMax H3 RefPacks Support:** Added opt-in support for `ComfyUI-RefPacks` and `ComfyUI-MiniMax-H3-RefPacks` (`required: False` in Extensions, reusing existing MiniMax H3 models without extra AI weight downloads). Includes `/api/video/refpacks/list` & `/api/video/refpacks/create` endpoints, role-aware `<Character>`/`<Outfit>`/`<Location>`/`<Style>`/`<Item>`/`<Motion>` tag protection, optional RefPack workflow wiring in Quick Clip, Long Clip, Scene, and H3 Image workflows, and a collapsible RefPacks panel in Quick Clip & Long Clip (`modules/video_comfy.py`, `modules/video_maker.py`, `web/index.html`, `web/video_module.js`).

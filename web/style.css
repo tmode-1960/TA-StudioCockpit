@@ -407,6 +407,14 @@ header {
 .brand .logo {
   font-size: 20px;
 }
+.brand .logo-img {
+  width: 24px;
+  height: 24px;
+  display: block;
+  flex-shrink: 0;
+  border-radius: 5px;
+  object-fit: contain;
+}
 .brand-thomo {
   color: var(--mute);
   font-weight: 500;
