@@ -156,5 +156,5 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 ## 📄 License
 
 Copyright © 2026 Thomas Möhrling (thomo.ART)  
-Licensed under the **Apache License 2.0** — see [LICENSE](LICENSE) and [NOTICE](NOTICE) for details.  
+Licensed under the **GNU General Public License v3.0 (GPL-3.0)** — see [LICENSE](LICENSE) and [NOTICE](NOTICE) for details.  
 `thomo.ART`, `StudioCockpit`, logos, and application icons remain reserved brand assets of **Thomas Möhrling (thomo.ART)**.

@@ -1,18 +1,25 @@
 thomo.ART StudioCockpit
 Copyright © 2026 Thomas Möhrling (thomo.ART)
 
-This product includes software developed by Thomas Möhrling (thomo.ART).
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version. See the LICENSE file for details.
 
 Trademarks & Brand Assets:
 "thomo.ART", "StudioCockpit", the thomo.ART logos, and application icons
 (including app.ico and UI branding assets) are trademarks and/or proprietary
-brand assets of Thomas Möhrling (thomo.ART). Under Section 6 of the Apache
-License, Version 2.0, no rights to use these trade names, trademarks,
-logos, or brand assets are granted for derivative works or forks, except as
-required for reasonable and customary use in describing the origin of the
-Work and reproducing this NOTICE file.
+brand assets of Thomas Möhrling (thomo.ART). The GNU General Public License
+covers the source code only and does not grant rights to use these trade
+names, trademarks, logos, or brand assets for derivative works or forks,
+except as required for reasonable and customary use in describing the origin
+of the Work.
 
-Third-Party Components:
-Bundled or external third-party tools, libraries, and models (such as
-ComfyUI, FFmpeg, pywebview, Pillow, or external AI models/LUTs) remain
-subject to their respective original licenses.
+Third-Party Components & References:
+- Incorporates concepts and gallery workflow references from HammelArt-Atelier
+  (https://github.com/HammelArt/HammelArt-Atelier, GPL-3.0).
+- Incorporates template/workflow references from Plenio Music Production System
+  (https://github.com/jplenio/Plenio-Music-Production-System, Apache-2.0).
+- Bundled or external third-party tools, libraries, and models (such as
+  ComfyUI, FFmpeg, pywebview, Pillow, or external AI models/LUTs) remain
+  subject to their respective original licenses.
