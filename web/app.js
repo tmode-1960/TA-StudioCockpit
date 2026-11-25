@@ -7760,6 +7760,9 @@
     if (elem) elem.classList.add("active");
     const targetUrl = fileObj.url || `/output/${encodeURIComponent(fileObj.filename || fileObj)}`;
     mainPreview.src = targetUrl;
+    mainPreview.style.display = "block";
+    const emptyState = document.getElementById("emptyState") || document.querySelector(".viewer-empty");
+    if (emptyState) emptyState.style.display = "none";
     syncCompareAvailability(targetUrl);
 
     // Sync prompt to editor so preview and prompt ALWAYS match

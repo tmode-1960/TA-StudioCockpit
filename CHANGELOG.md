@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.40] – 2026-11-25
+### UI Fix
+- **Filmstrip Preview State:** Ensured `#emptyState` is hidden and `#mainPreview` is shown when loading an image from the session filmstrip/gallery (`web/app.js`).
+
 ## [v1.39] – 2026-11-25
 ### Release Defaults
 - **Neutral Signature Defaults:** Unchecked `#chkOverlaySig` by default, cleared the prefilled `thomo.ART` signature text in `#txtOverlaySig`, and replaced the `"thomo.ART"` fallback label in `web/app.js` with localized `"Signatur"` (`web/index.html`, `web/app.js`).
