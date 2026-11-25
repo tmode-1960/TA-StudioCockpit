@@ -95,6 +95,9 @@
       primary_root_prefix: "ComfyUI-Ausgabe",
       root_offline: "(offline)",
       prompt_new_folder: "Name des neuen Unterordners:",
+      confirm_delete_title: "Endgültig löschen?",
+      confirm_cancel: "Abbrechen",
+      confirm_delete_ok: "🔥 Löschen",
       confirm_batch_delete: "{n} ausgewählte Datei(en) endgültig von der Festplatte löschen?",
       confirm_single_delete: '"{name}" endgültig von der Festplatte löschen?',
     },
@@ -186,6 +189,9 @@
       primary_root_prefix: "ComfyUI Output",
       root_offline: "(offline)",
       prompt_new_folder: "New subfolder name:",
+      confirm_delete_title: "Permanently delete?",
+      confirm_cancel: "Cancel",
+      confirm_delete_ok: "🔥 Delete",
       confirm_batch_delete: "Permanently delete {n} selected file(s) from disk?",
       confirm_single_delete: 'Permanently delete "{name}" from disk?',
     },
@@ -252,6 +258,56 @@
         metaEl.textContent = `${dims}${formatBytes(item.size)} · ${formatDate(item.mtime)}`;
       }
     }
+  }
+
+  function galConfirm(message) {
+    const modal = $("galConfirmModal");
+    if (!modal) return Promise.resolve(window.confirm(message));
+    const titleEl = $("galConfirmTitle");
+    const msgEl = $("galConfirmMessage");
+    const btnOk = $("btnGalConfirmOk");
+    const btnCancel = $("btnGalConfirmCancel");
+    const btnClose = $("btnGalConfirmClose");
+    if (titleEl) titleEl.textContent = gt("confirm_delete_title");
+    if (msgEl) msgEl.textContent = message;
+    if (btnCancel) btnCancel.textContent = gt("confirm_cancel");
+    if (btnOk) btnOk.textContent = gt("confirm_delete_ok");
+
+    modal.style.display = "flex";
+    if (btnCancel) btnCancel.focus();
+
+    return new Promise((resolve) => {
+      const cleanup = (result) => {
+        modal.style.display = "none";
+        btnOk?.removeEventListener("click", onOk);
+        btnCancel?.removeEventListener("click", onCancel);
+        btnClose?.removeEventListener("click", onCancel);
+        modal.removeEventListener("click", onBackdrop);
+        document.removeEventListener("keydown", onKey, true);
+        resolve(result);
+      };
+      const onOk = () => cleanup(true);
+      const onCancel = () => cleanup(false);
+      const onBackdrop = (e) => {
+        if (e.target === modal) cleanup(false);
+      };
+      const onKey = (e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          e.stopPropagation();
+          cleanup(false);
+        } else if (e.key === "Enter") {
+          e.preventDefault();
+          e.stopPropagation();
+          cleanup(document.activeElement === btnOk);
+        }
+      };
+      btnOk?.addEventListener("click", onOk);
+      btnCancel?.addEventListener("click", onCancel);
+      btnClose?.addEventListener("click", onCancel);
+      modal.addEventListener("click", onBackdrop);
+      document.addEventListener("keydown", onKey, true);
+    });
   }
 
   const DEFAULT_LAYOUT = {
@@ -1266,7 +1322,7 @@
       const n = state.selectedPaths.size;
       if (n === 0) return;
       const msg = gt("confirm_batch_delete", { n });
-      if (!window.confirm(msg)) return;
+      if (!(await galConfirm(msg))) return;
       if (await burnItems(Array.from(state.selectedPaths))) {
         await fetchItems(false);
       }
@@ -1413,7 +1469,7 @@
       const item = state.items[state.lbIndex];
       if (!item) return;
       const msg = gt("confirm_single_delete", { name: item.name });
-      if (!window.confirm(msg)) return;
+      if (!(await galConfirm(msg))) return;
       if (await burnItems([item.path])) {
         closeLightbox();
         await fetchItems(false);
@@ -1507,7 +1563,7 @@
           const item = state.items[state.lbIndex];
           if (!item) return;
           if (e.shiftKey) {
-            if (window.confirm(gt("confirm_single_delete", { name: item.name }))) {
+            if (await galConfirm(gt("confirm_single_delete", { name: item.name }))) {
               if (await burnItems([item.path])) {
                 closeLightbox();
                 await fetchItems(false);
@@ -1530,7 +1586,7 @@
         if (e.key === "x" || e.key === "X" || e.key === "Delete") {
           const paths = Array.from(state.selectedPaths);
           if (e.shiftKey) {
-            if (window.confirm(gt("confirm_batch_delete", { n: paths.length }))) {
+            if (await galConfirm(gt("confirm_batch_delete", { n: paths.length }))) {
               if (await burnItems(paths)) await fetchItems(false);
             }
           } else {
