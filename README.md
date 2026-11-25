@@ -157,7 +157,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
   * **[Plenio Music Production System](https://github.com/jplenio/Plenio-Music-Production-System)** — Reference templates and concepts behind the **MusicMaker** module.
   * **VideoMaker Workflow Base:** Built around ComfyUI **MiniMax H3 / Wan 2.2** video & lipsync workflows (including `minimaxH3Lipsync_v41.json` as reference).
 * **Core Ecosystem & Backends:** ComfyUI, MiniMax H3, Wan 2.2, Wav2Vec2, Eclipse, Demucs, `YuE2-Song`, `faster-whisper`, Applio (RVC), and FFmpeg.
-* **Special Thanks:** **CodexMundi** for extensive testing and valuable feedback.
+* **Special Thanks:** **CodexMundi** for testing and valuable feedback.
 
 ---
 
