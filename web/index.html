@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v1.37 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.38 (FLEXMOD Edition)</title>
   <link rel="icon" href="/favicon.ico">
   <script>
     (function () {
@@ -1274,14 +1274,13 @@
 
       <!-- Large Center Canvas -->
       <div class="viewer-canvas" id="viewerCanvas">
-        <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="empty-state" id="emptyState">
           <div class="empty-icon">🖼️</div>
           <div class="empty-text" data-i18n="empty_state_title">Bereit zum Generieren</div>
           <div class="empty-hint" data-i18n="empty_state_hint">Wähle dein Model-Preset, passe die Prompts an und drücke auf "Bild generieren".</div>
         </div>
 
-        <!-- Initial Mockup Image as Demonstration -->
-        <img src="/ta_studio_cockpit_ui_mockup_1794363751920.jpg" alt="Vorschau" data-i18n-alt="alt_preview" class="main-preview-img" id="mainPreview" draggable="false">
+        <img src="" alt="Vorschau" data-i18n-alt="alt_preview" class="main-preview-img" id="mainPreview" style="display:none;" draggable="false">
 
         <!-- Live Logo Overlay Preview Frame -->
         <div id="logoPreviewOverlay" style="display:none; position:absolute; pointer-events:none; border:1px dashed rgba(168,85,247,0.75); box-sizing:border-box; z-index:15;">
@@ -3092,7 +3091,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=1.37"></script>
+  <script src="/app.js?v=1.38"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=5"></script>
   <script src="/video_module.js?v=1.00"></script>

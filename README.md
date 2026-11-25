@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.37 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.38 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -128,6 +128,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.38:** Fixed broken initial preview image icon in the standalone `.exe` by showing the empty-state prompt canvas on startup (`web/index.html`).
 * **v1.37:** Switched project license to **GNU GPL v3.0** (`LICENSE`, `NOTICE`, `README.md`) and added the **Credits & Acknowledgements** section (`HammelArt-Atelier`, `Plenio Music Production System`, VideoMaker workflow references, `CodexMundi`).
 * **v1.36:** Expanded the **Integrated Studio Modules** documentation in `README.md` with balanced module overviews, collapsible `<details>` sections, and a live UI screenshot (`assets/screenshot.jpg`).
 * **v1.35:** Hardened updater download URLs to official GitHub domains, added 256 MB `do_POST` payload cap (`HTTP 413`), added `requirements.txt`, automatic `.sha256` checksums in `build_dist.bat`, and GitHub bug report template.

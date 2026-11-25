@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.38] – 2026-11-25
+### UI Fix
+- **Initial Preview State:** Fixed a broken `Vorschau` image icon in the standalone `.exe` by displaying `#emptyState` on startup and hiding `#mainPreview` until an image is loaded or generated (`web/index.html`).
+
 ## [v1.37] – 2026-11-25
 ### License & Documentation
 - **GNU GPL v3.0:** Switched project license from Apache 2.0 to **GNU General Public License v3.0** (`LICENSE`, `NOTICE`, `README.md`) while preserving `thomo.ART` / `StudioCockpit` trademark and brand asset notices.
