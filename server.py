@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.23"
+APP_VERSION = "1.24"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -817,6 +817,9 @@ def extract_image_metadata(img_path: str) -> dict:
         "loras": [],
         "has_workflow": False,
     }
+    is_generated_only = False
+    prefer_sidecar_pos = False
+    hub_pos = ""
     # 1. Prioritize embedded PNG/WebP metadata (contains clean TAPromptHub inputs without concatenated tags)
     try:
         from PIL import Image, ImageDraw, ImageFont, ImageStat, PngImagePlugin
@@ -829,23 +832,41 @@ def extract_image_metadata(img_path: str) -> dict:
 
             if raw_prompt and isinstance(raw_prompt, str):
                 pdata = json.loads(raw_prompt)
+                ctrl_mode = ""
+                llm_active = False
                 for n in pdata.values():
-                    if n.get("class_type") == "TAPromptHub":
+                    if not isinstance(n, dict):
+                        continue
+                    ct = n.get("class_type")
+                    if ct == "TAPromptController":
+                        ctrl_mode = str(n.get("inputs", {}).get("mode", "")).strip()
+                    elif ct == "TASmartLLM" and bool(n.get("inputs", {}).get("llm_enable")):
+                        llm_active = True
+
+                is_generated_only = (ctrl_mode == "Generated Only") or (llm_active and ctrl_mode != "Manual Only")
+                prefer_sidecar_pos = bool((ctrl_mode and ctrl_mode != "Manual Only") or llm_active)
+                hub_pos = ""
+
+                for n in pdata.values():
+                    if isinstance(n, dict) and n.get("class_type") == "TAPromptHub":
                         inp = n.get("inputs", {})
                         pos = inp.get("positive_prompt")
                         add_p = inp.get("additional_prompt")
                         neg = inp.get("negative_prompt")
                         if isinstance(pos, str) and pos.strip():
-                            meta["positive_prompt"] = pos.strip()
+                            hub_pos = pos.strip()
                         if isinstance(add_p, str) and add_p.strip():
                             meta["additional_prompt"] = add_p.strip()
                         if isinstance(neg, str) and neg.strip():
                             meta["negative_prompt"] = neg.strip()
                         break
 
-                if not meta["positive_prompt"]:
+                if not prefer_sidecar_pos and hub_pos:
+                    meta["positive_prompt"] = hub_pos
+
+                if not prefer_sidecar_pos and not meta["positive_prompt"]:
                     for n in pdata.values():
-                        if n.get("class_type") == "CLIPTextEncode":
+                        if isinstance(n, dict) and n.get("class_type") == "CLIPTextEncode":
                             txt = n.get("inputs", {}).get("text")
                             if isinstance(txt, str) and txt.strip():
                                 meta["positive_prompt"] = txt.strip()
@@ -966,16 +987,8 @@ def extract_image_metadata(img_path: str) -> dict:
     except Exception:
         pass
 
-    # Merge inline <lora:...> tags if not already captured
-    if meta["positive_prompt"]:
-        existing_l = {l["name"].lower() for l in meta["loras"]}
-        for il in _extract_inline_loras(meta["positive_prompt"]):
-            if il["name"].lower() not in existing_l:
-                meta["loras"].append(il)
-                existing_l.add(il["name"].lower())
-
-    # 2. Fallback to sidecar .txt file (standard for TASaveImageWithPrompt) if positive_prompt not found
-    if not meta["positive_prompt"]:
+    # 2. Read sidecar .txt file (standard for TASaveImageWithPrompt) when LLM/Generated prompt is active or positive_prompt is missing
+    if prefer_sidecar_pos or not meta["positive_prompt"]:
         txt_path = os.path.splitext(img_path)[0] + ".txt"
         if os.path.isfile(txt_path):
             try:
@@ -984,15 +997,30 @@ def extract_image_metadata(img_path: str) -> dict:
                 m_pos = re.search(r"POSITIVE PROMPT:\s*\n(.*?)(?=\nNEGATIVE PROMPT:|\n=+|\Z)", content, re.DOTALL)
                 if m_pos:
                     raw_pos = m_pos.group(1).strip()
-                    # Clean out workflow-added boilerplate if present
+                    # Clean out workflow-added additional_prompt or boilerplate if present
+                    if meta["additional_prompt"] and raw_pos.endswith(meta["additional_prompt"]):
+                        raw_pos = raw_pos[: -len(meta["additional_prompt"])].strip()
                     raw_pos = re.sub(r",\s*This image is a masterpiece\. The subject is sharply depicted with outstanding detail\.?", "", raw_pos, flags=re.IGNORECASE)
                     meta["positive_prompt"] = raw_pos.strip(" ,")
                     meta["has_workflow"] = True
-                m_neg = re.search(r"NEGATIVE PROMPT:\s*\n(.*?)(?=\n=+|\Z)", content, re.DOTALL)
-                if m_neg:
-                    meta["negative_prompt"] = m_neg.group(1).strip()
+                if not meta["negative_prompt"]:
+                    m_neg = re.search(r"NEGATIVE PROMPT:\s*\n(.*?)(?=\n=+|\Z)", content, re.DOTALL)
+                    if m_neg:
+                        meta["negative_prompt"] = m_neg.group(1).strip()
             except Exception:
                 pass
+
+    # If Prompt Controller is in a combined mode without a sidecar .txt, fall back to TAPromptHub
+    if not meta["positive_prompt"] and hub_pos and not is_generated_only:
+        meta["positive_prompt"] = hub_pos
+
+    # Merge inline <lora:...> tags if not already captured
+    if meta["positive_prompt"]:
+        existing_l = {l["name"].lower() for l in meta["loras"]}
+        for il in _extract_inline_loras(meta["positive_prompt"]):
+            if il["name"].lower() not in existing_l:
+                meta["loras"].append(il)
+                existing_l.add(il["name"].lower())
 
     return meta
 

@@ -252,6 +252,7 @@ class GalleryIndexer:
                     and existing.get("size", 0) == size
                     and "media_type" in existing
                     and "has_workflow" in existing
+                    and existing.get("meta_v") == 2
                 ):
                     continue
 
@@ -290,6 +291,7 @@ class GalleryIndexer:
                     "vae": meta.get("vae", ""),
                     "loras": meta.get("loras", []),
                     "has_workflow": bool(meta.get("has_workflow", False)),
+                    "meta_v": 2,
                 }
                 dirty = True
 
