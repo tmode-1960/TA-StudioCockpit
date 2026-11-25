@@ -20,6 +20,27 @@ GITHUB_OWNER = "tmode-1960"
 GITHUB_REPO = "TA-StudioCockpit"
 GITHUB_API_LATEST = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/releases/latest"
 GITHUB_RELEASES_URL = f"https://github.com/{GITHUB_OWNER}/{GITHUB_REPO}/releases"
+_ALLOWED_DOWNLOAD_HOSTS = frozenset({
+    "github.com",
+    "objects.githubusercontent.com",
+    "release-assets.githubusercontent.com",
+    "github-releases.githubusercontent.com",
+    "codeload.github.com",
+})
+_MAX_UPDATE_ARCHIVE_BYTES = 512 * 1024 * 1024  # 512 MB safety cap
+
+
+def _is_allowed_download_url(url: str) -> bool:
+    """Allow only HTTPS release asset URLs hosted on official GitHub domains."""
+    val = str(url or "").strip()
+    if not val or any(ch in val for ch in ("\r", "\n", "\x00")) or any(ch.isspace() for ch in val):
+        return False
+    try:
+        parsed = urllib.parse.urlparse(val)
+    except Exception:
+        return False
+    host = (parsed.hostname or "").lower()
+    return parsed.scheme == "https" and host in _ALLOWED_DOWNLOAD_HOSTS
 
 _CACHE_TTL_SEC = 1800  # 30 minutes
 
@@ -146,7 +167,8 @@ def check_for_updates(force: bool = False) -> dict:
     update_available = bool(latest_ver) and _is_newer_version(latest_ver, current_ver)
 
     asset = _pick_release_asset(data.get("assets") or [])
-    download_url = str(asset.get("browser_download_url") or "") if asset else ""
+    raw_download_url = str(asset.get("browser_download_url") or "") if asset else ""
+    download_url = raw_download_url if _is_allowed_download_url(raw_download_url) else ""
     asset_name = str(asset.get("name") or "") if asset else ""
     asset_size = int(asset.get("size") or 0) if asset else 0
 
@@ -219,6 +241,9 @@ def _run_install_worker(info: dict) -> None:
     staging_dir = tempfile.mkdtemp(prefix="ta_cockpit_update_")
 
     try:
+        if not _is_allowed_download_url(download_url):
+            raise RuntimeError("Untrusted update download URL.")
+
         _set_install_state(
             status="downloading",
             progress=5,
@@ -234,7 +259,12 @@ def _run_install_worker(info: dict) -> None:
             method="GET",
         )
         with urllib.request.urlopen(req, timeout=60) as resp:
+            final_url = resp.geturl() or download_url
+            if not _is_allowed_download_url(final_url):
+                raise RuntimeError("Untrusted redirect target for update download.")
             total = int(resp.headers.get("Content-Length") or info.get("asset_size") or 0)
+            if total > _MAX_UPDATE_ARCHIVE_BYTES:
+                raise RuntimeError("Update archive exceeds maximum allowed size.")
             downloaded = 0
             chunk_size = 65536
             with open(archive_path, "wb") as out_fh:
@@ -242,8 +272,10 @@ def _run_install_worker(info: dict) -> None:
                     chunk = resp.read(chunk_size)
                     if not chunk:
                         break
-                    out_fh.write(chunk)
                     downloaded += len(chunk)
+                    if downloaded > _MAX_UPDATE_ARCHIVE_BYTES:
+                        raise RuntimeError("Update archive exceeds maximum allowed size.")
+                    out_fh.write(chunk)
                     if total > 0:
                         pct = min(75, 5 + int((downloaded / total) * 70))
                         _set_install_state(progress=pct)

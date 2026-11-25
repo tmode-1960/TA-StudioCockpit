@@ -91,6 +91,7 @@ if errorlevel 1 (
     echo [WARNUNG] ZIP-Erstellung fehlgeschlagen, Ordner dist\tA-Studio-Cockpit ist aber bereit.
 ) else (
     echo ZIP erstellt: dist\%ZIP_NAME%
+    powershell -NoProfile -Command "$h = (Get-FileHash -Path 'dist\%ZIP_NAME%' -Algorithm SHA256).Hash.ToLowerInvariant(); \"$h  %ZIP_NAME%\" | Set-Content -Path 'dist\%ZIP_NAME%.sha256' -Encoding ascii; Write-Host \"SHA256: $h\""
 )
 if exist "build\zip_stage" rmdir /s /q "build\zip_stage"
 

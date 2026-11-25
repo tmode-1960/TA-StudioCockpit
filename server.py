@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.34"
+APP_VERSION = "1.35"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -73,6 +73,7 @@ DEFAULT_LAUNCH_CMD = ""
 CONFIG_LOCK = threading.Lock()
 _NO_WINDOW_FLAGS = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
 _FORBIDDEN_LAUNCH_TOKENS = (";", "&&", "||", "|", "&", "`", "$(", "<", ">", "^", "\r", "\n")
+_MAX_POST_BODY_BYTES = 256 * 1024 * 1024  # 256 MB safety cap for POST payloads
 
 
 def _prune_active_jobs_locked(now: float | None = None) -> None:
@@ -1266,7 +1267,20 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
 
-        content_length = int(self.headers.get("Content-Length", 0))
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+        except (TypeError, ValueError):
+            self.send_json({"error": "Ungültiger Content-Length-Header."}, status=400)
+            return
+        if content_length < 0:
+            self.send_json({"error": "Ungültiger Content-Length-Header."}, status=400)
+            return
+        if content_length > _MAX_POST_BODY_BYTES:
+            self.send_json(
+                {"error": f"Payload zu groß (max. {_MAX_POST_BODY_BYTES // (1024 * 1024)} MB)."},
+                status=413,
+            )
+            return
         post_body = self.rfile.read(content_length) if content_length > 0 else None
 
         if path == "/api/config":
