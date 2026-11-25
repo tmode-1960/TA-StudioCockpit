@@ -53,7 +53,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 ### 🎬 VideoMaker
 * **Complete MiniMax H3 / Wan 2.2 Suite:** Integrated 7-tab ComfyUI video production workspace directly inside StudioCockpit:
   * **Storyboard & Director:** Multi-shot sequences with FL2V continuity (`from_prev`) and an integrated AI Storyboard Assistant.
-  * **Quick Clip, Morph & Transform, Long Clip:** Fast single takes, frame-to-frame morphing, and extended multi-segment clips.
+  * **Quick Clip, Morph & Transform, Long Clip:** Fast single takes, frame-to-frame morphing, and extended multi-segment clips (with optional **BExplains RefPacks** for reusable VAE-cached character, outfit, location, and style references).
   * **Lipsync & Avatar Studio:** Audio-driven portrait animation (MiniMax H3 + Wav2Vec2 + Eclipse) with optional Demucs vocal isolation and captions.
   * **Player & FFmpeg Stitcher:** Combine scenes, apply bundled film LUTs (`.cube`), add auto-matched soundscapes, and upscale Eco renders to 1080p.
   * **Models:** Pre-flight checkpoint verification, disk-space checks, and a resumable multi-part downloader.
@@ -63,7 +63,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 <summary>Hardware & setup details (VideoMaker)</summary>
 
 * **Hardware Profiles & Turbo Mode:** Adapts resolution/preset defaults to your GPU profile and tracks live ComfyUI render progress with cancel support.
-* **Extensions & ComfyUI Control:** Built-in extension status check, installer, and ComfyUI restart trigger.
+* **Extensions & ComfyUI Control:** Built-in extension status check, installer, and ComfyUI restart trigger (including optional `BExplains RefPacks` + `MiniMax H3 RefPacks`, reusing existing H3 weights with no extra AI model downloads).
 
 </details>
 
