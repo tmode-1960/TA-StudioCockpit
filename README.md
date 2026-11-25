@@ -7,40 +7,77 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 ## 🧩 Integrated Studio Modules
 
 ### 🎨 Image Studio (`Bilder`)
-* **Model & LoRA Hub:**
-  * Direct selection of `TAModelPreset` profiles (*ZImage*, *Qwen-Image 2.1*, *Krea2-Turbo*, *FLUX3-Klein*, *MOSS-Image*, *FLUX1-DEV-FP8*, *Minimax H3 Image*, etc.) and quick-access favorite pills.
-  * Integrated LoRA stack with live strength sliders and automatic trigger-word detection.
-* **Sampler Presets (`TASamplerPreset`):** 1-click sampling profiles (Steps, CFG, Sampler, Scheduler).
-* **Prompt Hub & AI Prompt Engine (`TASmartLLM`):**
-  * Full access to `TAPromptHub` channels (`positive_prompt`, `additional_prompt`, `negative_prompt`) and `TAPromptController` modes.
-  * 3-way AI engine: `🚫 Manual`, `✨ T2I Booster`, and `🖼️ I2I Analysis` (Vision-LLM + `LoadImage` upload).
-  * Supports local LLMs (LM Studio, Ollama) and optional cloud providers (Gemini, OpenAI, OpenRouter, Groq) with Windows DPAPI-encrypted key storage.
-* **Post-Processing & Viewer:**
-  * `TASeedVR2Gate` upscaler, `TAFastLaplacianSharpen`, background removal, text overlays (with auto-contrast font color), before/after comparison, and quick aspect-ratio presets (`16:9`, `1:1`, `9:16`, `4:3`, `21:9`).
-  * Studio viewer & session filmstrip with 1-click actions (*Reuse Seed*, *Apply All Parameters*, *Send to DiscordGIF*, *Send to VideoMaker*).
+* **Model & LoRA Hub:** Select model presets (*ZImage*, *Qwen-Image 2.1*, *Krea2-Turbo*, *FLUX3-Klein*, *MOSS-Image*, *FLUX1-DEV-FP8*, *Minimax H3 Image*, etc.) with quick-access favorite pills, plus an integrated LoRA stack with live strength sliders and automatic trigger-word detection.
+* **AI Prompt Engine (3-Way):** Switch between `🚫 Manual`, `✨ T2I Booster`, and `🖼️ I2I Analysis` (Vision-LLM + image upload) across `positive`, `additional`, and `negative` prompt channels using local LLMs (LM Studio, Ollama) or optional cloud providers (Gemini, OpenAI, OpenRouter, Groq).
+* **Sampling, Upscaling & Overlays:** 1-click sampler & aspect-ratio presets (`16:9`, `1:1`, `9:16`, `4:3`, `21:9`), AI upscaling, sharpening, background removal, signature/text overlays with auto-contrast font color, and before/after comparison.
+* **Studio Viewer & Session Filmstrip:** Review generations with 1-click actions (*Reuse Seed*, *Apply All Parameters*, *Send to DiscordGIF*, *Send to VideoMaker*).
+
+<details>
+<summary>Technical details & tabs (Image Studio)</summary>
+
+* **ComfyUI / FLEXMOD Nodes:** Powered by `TAModelPreset`, `TASamplerPreset`, `TASmartLLM`, `TAPromptHub`, `TAPromptController`, `TASeedVR2Gate`, and `TAFastLaplacianSharpen`.
+* **Right-Panel Tabs:** Organized into **Sampling** (seed mode, sampler presets, dimensions), **Upscale** (SeedVR2 & sharpening), **Export** (lossless PNG & output options), and **Signatur** (signature & text overlays).
+* **Security:** Cloud LLM API keys are stored encrypted via Windows DPAPI (`CryptProtectData`).
+
+</details>
 
 ### 🖼️ Gallery (`Galerie`)
-* Fast local media indexer with persistent JPEG/FFmpeg thumbnail cache for images and videos (`.png`, `.jpg`, `.webp`, `.mp4`, `.webm`, `.mov`), multi-root support, and infinite scroll auto-loading.
-* Lightbox inspector displaying embedded generation metadata (Model, Seed, Prompts, wired text nodes & `UnetLoaderGGUF`) with **1-click parameter reload**, **Prompt to T2I**, and **Use as I2I** back into the Image Studio.
-* User-created custom folders, favorites, search/filtering, keyboard shortcuts modal, themed confirmation dialogs, and direct cross-module handoff to **DiscordGIF** or **VideoMaker**.
+* **Fast Multi-Root Indexer:** Browse local images and videos (`.png`, `.jpg`, `.webp`, `.mp4`, `.webm`, `.mov`) across multiple persisted root folders with a persistent JPEG/FFmpeg thumbnail cache and infinite scroll auto-loading.
+* **Flexible Views & Organization:** Switch between **Masonry**, **1:1 Grid**, and **Explorer Rows** with live layout tuning, custom user folders, favorites, search/filtering, and a personal-notes filter.
+* **Lightbox Inspector & 1-Click Reuse:** Inspect zoomable media with a bottom filmstrip, personal notes, and embedded generation metadata — and jump straight back into **Image Studio** via **Reload Parameters**, **Prompt to T2I**, or **Use as I2I**, or hand off directly to **DiscordGIF** / **VideoMaker**.
+* **Batch Actions & Safe Delete:** Multi-select items to move, copy, stage in **Purgatory** (with 1-click rescue), or permanently delete (with themed confirmation modal) plus a built-in keyboard shortcuts modal.
+
+<details>
+<summary>Metadata & workflow details (Gallery)</summary>
+
+* **Metadata Extraction:** Resolves wired text nodes, `UnetLoaderGGUF` checkpoints, and LLM/I2I sidecar prompts directly from generated files.
+* **Pure View & Zoom:** Supports 1:1 pixel zoom, fit-to-screen, and distraction-free pure mode in the Lightbox.
+
+</details>
 
 ### 👾 DiscordGIF
-* **Local Library & Tenor:** Manage custom animated GIFs, search & download from Tenor, and organize favorites.
-* **AI Image-to-GIF:** Animate any generated or gallery image via ComfyUI workflows.
-* **Discord Quick-Paste:** Win32 clipboard/file-drop integration with optional auto-paste and global hotkey (`Alt+G`).
+* **Local Library & Tenor Search:** Manage your local animated GIF collection, browse category pills, organize favorites, and search/download GIFs directly from Tenor.
+* **AI Image-to-GIF:** Animate any uploaded image — or an image sent directly from **Image Studio** or **Gallery** — using ComfyUI animation workflows.
+* **Discord Quick-Paste (`Alt+G`):** Send or copy GIFs straight into Discord via Win32 clipboard/file-drop integration with optional auto-paste and a configurable global hotkey.
+
+<details>
+<summary>Workflow & configuration details (DiscordGIF)</summary>
+
+* **Direct Cross-Module Handoff:** Both the Image Studio viewer and Gallery Lightbox include a 1-click *Send to DiscordGIF* action that preloads the image into the AI GIF generator.
+* **Custom GIF Folder:** Configure and rescan any local folder as your active GIF collection.
+
+</details>
 
 ### 🎬 VideoMaker
-* Full **MiniMax H3 / Wan 2.2** ComfyUI video suite directly inside StudioCockpit with 7 specialized sub-tabs:
-  * **Storyboard & Director:** Multi-shot sequences with FL2V continuity (`from_prev`) and integrated AI Storyboard Assistant.
+* **Complete MiniMax H3 / Wan 2.2 Suite:** Integrated 7-tab ComfyUI video production workspace directly inside StudioCockpit:
+  * **Storyboard & Director:** Multi-shot sequences with FL2V continuity (`from_prev`) and an integrated AI Storyboard Assistant.
   * **Quick Clip, Morph & Transform, Long Clip:** Fast single takes, frame-to-frame morphing, and extended multi-segment clips.
   * **Lipsync & Avatar Studio:** Audio-driven portrait animation (MiniMax H3 + Wav2Vec2 + Eclipse) with optional Demucs vocal isolation and captions.
-  * **Player & FFmpeg Stitcher:** Combine scenes, apply bundled film LUTs (`.cube`), auto-matched soundscapes, and Eco-to-1080p upscaling.
-  * **Models:** Pre-flight checkpoint verification, disk-space check, and resumable multi-part downloader.
-* Direct **Image → VideoMaker** handoff from both the Image Studio viewer and the Gallery lightbox.
+  * **Player & FFmpeg Stitcher:** Combine scenes, apply bundled film LUTs (`.cube`), add auto-matched soundscapes, and upscale Eco renders to 1080p.
+  * **Models:** Pre-flight checkpoint verification, disk-space checks, and a resumable multi-part downloader.
+* **Project & Cross-Module Handoff:** Save/load entire video projects and send images straight from **Image Studio** or **Gallery** into VideoMaker.
+
+<details>
+<summary>Hardware & setup details (VideoMaker)</summary>
+
+* **Hardware Profiles & Turbo Mode:** Adapts resolution/preset defaults to your GPU profile and tracks live ComfyUI render progress with cancel support.
+* **Extensions & ComfyUI Control:** Built-in extension status check, installer, and ComfyUI restart trigger.
+
+</details>
 
 ### 🎵 MusicMaker
-* **AI Song Generation:** Integrated `YuE2-Song` ComfyUI workflow with style/lyrics prompting, Plenio templates, and generation history.
-* **Lyrics, SRT & Audio Tools:** Whisper-based SRT generation & translation (`faster-whisper`), vocal alignment, and optional RVC voice-swap backend support.
+* **AI Song Generation (`YuE2-Song`):** Create full songs from style prompts, **Lyrics & Song Sheet** structures, and Plenio templates, complete with generated cover artwork and a persistent **History** tab.
+* **Mastering, Refine & Voice Swap:** Optional 48 kHz audio refinement (`Refine`) and custom voice conversion (**RVC**) via a local Applio backend with selectable voice models.
+* **Subtitles & Translation:** Automatic `.srt` lyric alignment via `faster-whisper`, bidirectional **EN ↔ DE** `.srt` translation, and DaVinci Resolve-ready subtitle export.
+* **Integrated Player & Results:** Preview tracks with synchronized lyrics in the **Player** tab and download audio, cover artwork, and `.srt` files from **Results**.
+
+<details>
+<summary>Tab structure & audio backends (MusicMaker)</summary>
+
+* **5 Tabs:** **Lyrics & Sheet**, **Mastering & Refine**, **Player**, **Results**, and **History**.
+* **Optional RVC Setup:** Configure a custom voice models directory (or use the Applio default) in MusicMaker settings; includes a reference voice-recording guide (`Stimmaufnahme-Vorlage-RVC.pdf`).
+
+</details>
 
 ---
 
