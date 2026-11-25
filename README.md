@@ -138,8 +138,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
-* **v1.46:** Added `web/logo.png` to `StudioCockpit.spec` so the new **`tA` header logo** is bundled and displayed in the standalone `.exe`.
-* **v1.45:** Replaced the placeholder palette emoji and legacy icon with the new sharp 3D glassmorphic **`tA` App Logo** (`app.ico`, `web/favicon.ico`, `web/logo.png`, `web/index.html`, `web/style.css`).
+* **v1.46:** Replaced the placeholder palette emoji and legacy icon with the new sharp 3D glassmorphic **`tA` App Logo** (`app.ico`, `web/favicon.ico`, `web/logo.png`, `web/index.html`, `web/style.css`, bundled in `StudioCockpit.spec`).
 * **v1.44:** Added optional **BExplains RefPacks / MiniMax H3 RefPacks** support in **VideoMaker** (opt-in, reuses existing H3 models without extra AI downloads; Quick Clip & Long Clip UI + `/api/video/refpacks/*` endpoints).
 * **v1.43:** Added optional custom output folder settings for **VideoMaker** and **MusicMaker** (ordered **VideoMaker → MusicMaker → DiscordGIF** in Settings).
 * **v1.42:** Renamed the Image Studio **Upscale** tab to **Upscale & FX** so users immediately see where SeedVR2, sharpness, and film grain live (`web/index.html`, `web/app.js`).

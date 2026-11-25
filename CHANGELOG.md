@@ -3,12 +3,8 @@
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
 ## [v1.46] – 2026-11-25
-### Build Fix
-- **Bundle `web/logo.png` in PyInstaller Spec:** Added `web/logo.png` to `datas` in `StudioCockpit.spec` so the new `tA` header logo renders in the standalone `.exe` as well as dev mode.
-
-## [v1.45] – 2026-11-25
 ### Branding & UI
-- **New `tA` App Icon & Header Logo:** Replaced the placeholder palette emoji and legacy icon with a sharp, 3D glassmorphic `tA` squircle logo across `app.ico`, `web/favicon.ico`, `web/logo.png`, and the top navigation bar (`web/index.html`, `web/style.css`).
+- **New `tA` App Icon & Header Logo:** Replaced the placeholder palette emoji and legacy icon with a sharp, 3D glassmorphic `tA` squircle logo across `app.ico`, `web/favicon.ico`, `web/logo.png`, and the top navigation bar (`web/index.html`, `web/style.css`), and bundled `web/logo.png` in `StudioCockpit.spec` for the standalone `.exe`.
 
 ## [v1.44] – 2026-11-25
 ### VideoMaker (Optional RefPacks)
