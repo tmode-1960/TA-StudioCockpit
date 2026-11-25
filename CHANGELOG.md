@@ -2,6 +2,35 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.29] – 2026-11-25
+### Studio Navigation
+- **Persist active module:** StudioCockpit now remembers the last opened module (`Images`, `Gallery`, `DiscordGIF`, `VideoMaker`, `MusicMaker`) across restarts via `localStorage`.
+
+## [v1.28] – 2026-11-25
+### Gallery UX & Discoverability
+- **Explicit permanent delete buttons:** Labeled the permanent delete buttons clearly (`🔥 Endgültig löschen` / `🔥 Delete Permanently`) in both the Gallery batch bar and the Lightbox.
+- **Shortcuts overview modal:** Added a `⌨️ Shortcuts` button in the Gallery toolbar that opens a themed modal listing all active Gallery Grid and Lightbox keyboard shortcuts.
+
+## [v1.27] – 2026-11-25
+### Gallery Dialogs
+- **Themed confirmation modal:** Replaced native `window.confirm` delete dialogs with a centered, theme-matching `#galConfirmModal` supporting `Escape`/`Enter` and backdrop dismissal.
+
+## [v1.26] – 2026-11-25
+### Gallery Sidebar
+- **User-created folders only:** Tracked folders created via `+ Neu` in `custom_folders.json` and filtered the sidebar `FOLDERS` list so auto-discovered or empty ComfyUI subfolders are no longer shown.
+
+## [v1.25] – 2026-11-25
+### Desktop Window & Selection
+- **Text selection in prompt fields:** Enabled `text_select: True` in `pywebview.create_window` and added `user-select: text` on Lightbox prompt fields so prompt text can be selected and copied with the mouse.
+
+## [v1.24] – 2026-11-25
+### Gallery Metadata
+- **LLM/I2I prompt extraction:** Updated `extract_image_metadata` to prefer the sidecar `.txt` prompt when `TAPromptController` is not in `Manual Only` mode or `TASmartLLM` is enabled, instead of showing the inactive `TAPromptHub` manual prompt. Bumped gallery index `meta_v` to `2` to refresh existing entries automatically.
+
+## [v1.23] – 2026-11-25
+### Text Overlays
+- **Auto-contrast font color:** Added an auto-contrast black/white font color option for text overlays.
+
 ## [v1.22] – 2026-11-25
 ### Security & Repository Hygiene
 - **Repository cleanup:** Reset personal/local paths in `data/gif_config.json` and `music_maker/config.json` to neutral defaults; removed internal analysis report.
