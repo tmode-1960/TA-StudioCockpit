@@ -624,12 +624,13 @@ def build_flexmod_api_prompt(
             "latent_noise_scale": float(seedvr2_latent_noise_scale),
         },
         # CR Overlay Text 1 / LazySwitchKJ (nodes 1981 & 1978: KI-Wasserzeichen)
-        "1981": {"switch": bool(overlay_ai_enabled)},
+        # When font_color is "auto", disable the ComfyUI overlay node so server.py renders it with auto-contrast.
+        "1981": {"switch": bool(overlay_ai_enabled) and str(overlay_ai_color).lower() != "auto"},
         "1978": {
             "text": overlay_ai_text,
             "font_name": overlay_ai_font,
             "font_size": int(overlay_ai_size),
-            "font_color": overlay_ai_color,
+            "font_color": "white" if str(overlay_ai_color).lower() == "auto" else overlay_ai_color,
             "align": overlay_ai_align,
             "justify": overlay_ai_justify,
             "position_x": int(overlay_ai_pos_x),
@@ -638,12 +639,12 @@ def build_flexmod_api_prompt(
             "margins": int(overlay_ai_margins),
         },
         # CR Overlay Text 2 / LazySwitchKJ (nodes 1982 & 1979: Signatur)
-        "1982": {"switch": bool(overlay_sig_enabled)},
+        "1982": {"switch": bool(overlay_sig_enabled) and str(overlay_sig_color).lower() != "auto"},
         "1979": {
             "text": overlay_sig_text,
             "font_name": overlay_sig_font,
             "font_size": int(overlay_sig_size),
-            "font_color": overlay_sig_color,
+            "font_color": "white" if str(overlay_sig_color).lower() == "auto" else overlay_sig_color,
             "align": overlay_sig_align,
             "justify": overlay_sig_justify,
             "position_x": int(overlay_sig_pos_x),

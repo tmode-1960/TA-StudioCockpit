@@ -34,13 +34,13 @@ import uuid
 import webbrowser
 import zipfile
 from typing import Any
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont, ImageStat, PngImagePlugin
 
 import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.22"
+APP_VERSION = "1.23"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -557,6 +557,201 @@ def get_output_dir() -> str:
     return _detect_comfy_output_dir(cfg)
 
 
+def _resolve_overlay_font(font_name: str, font_size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    """Find and load a TrueType font matching ComfyUI Comfyroll's font_name."""
+    size = max(8, int(font_size))
+    fname = os.path.basename(str(font_name or "").strip())
+    search_dirs: list[str] = []
+
+    cfg = load_config()
+    cmd = (cfg.get("comfy_launch_cmd") or "").strip()
+    if cmd:
+        if cmd.startswith('"'):
+            end_q = cmd.find('"', 1)
+            script_path = cmd[1:end_q] if end_q > 1 else cmd.strip('"')
+        else:
+            script_path = cmd if os.path.exists(cmd) else cmd.split()[0]
+        if script_path and os.path.exists(script_path):
+            base = script_path if os.path.isdir(script_path) else os.path.dirname(os.path.abspath(script_path))
+            for root in (base, os.path.join(base, "ComfyUI"), os.path.join(os.path.dirname(base), "ComfyUI")):
+                search_dirs.append(os.path.join(root, "custom_nodes", "ComfyUI_Comfyroll_CustomNodes", "fonts"))
+
+    out_dir = get_output_dir()
+    if out_dir:
+        comfy_root = os.path.dirname(os.path.abspath(out_dir))
+        search_dirs.append(os.path.join(comfy_root, "custom_nodes", "ComfyUI_Comfyroll_CustomNodes", "fonts"))
+
+    app_base = os.path.dirname(os.path.abspath(__file__))
+    search_dirs.extend([
+        os.path.join(app_base, "web", "music", "fonts"),
+        os.path.join(app_base, "fonts"),
+        os.path.join(os.environ.get("WINDIR", "C:\\Windows"), "Fonts"),
+    ])
+
+    if fname:
+        for d in search_dirs:
+            candidate = os.path.join(d, fname)
+            if os.path.isfile(candidate):
+                try:
+                    return ImageFont.truetype(candidate, size=size)
+                except Exception:
+                    pass
+
+    for fallback in ("arial.ttf", "segoeui.ttf", "DejaVuSans.ttf"):
+        try:
+            return ImageFont.truetype(fallback, size=size)
+        except Exception:
+            pass
+    return ImageFont.load_default()
+
+
+def _pick_auto_contrast_rgba(img: Image.Image, box: tuple[int, int, int, int]) -> tuple[int, int, int, int]:
+    """Return pure black or pure white RGBA based on average WCAG luminance in box."""
+    w, h = img.size
+    x0 = max(0, min(w, int(box[0])))
+    y0 = max(0, min(h, int(box[1])))
+    x1 = max(0, min(w, int(box[2])))
+    y1 = max(0, min(h, int(box[3])))
+    if x1 <= x0 or y1 <= y0:
+        return (255, 255, 255, 255)
+    crop = img.convert("RGB").crop((x0, y0, x1, y1))
+    r, g, b = ImageStat.Stat(crop).mean[:3]
+    luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    return (0, 0, 0, 255) if luminance >= 128.0 else (255, 255, 255, 255)
+
+
+def _draw_auto_contrast_text(img: Image.Image, spec: dict) -> Image.Image:
+    """Render a single text overlay onto img using automatic black/white contrast."""
+    text = str(spec.get("text") or "")
+    if not text.strip():
+        return img
+
+    w, h = img.size
+    font = _resolve_overlay_font(str(spec.get("font_name", "")), int(spec.get("font_size", 14)))
+    probe_draw = ImageDraw.Draw(img)
+    bbox = probe_draw.textbbox((0, 0), text, font=font)
+    ox, oy = bbox[0], bbox[1]
+    tw = max(1, bbox[2] - bbox[0])
+    th = max(1, bbox[3] - bbox[1])
+
+    margins = max(0, int(spec.get("margins", 0)))
+    pos_x = int(spec.get("position_x", 0))
+    pos_y = int(spec.get("position_y", 0))
+    justify = str(spec.get("justify", "right")).lower()
+    align = str(spec.get("align", "bottom")).lower()
+    angle = float(spec.get("rotation_angle", 0.0))
+
+    if justify == "left":
+        x = float(margins + pos_x)
+    elif justify == "center":
+        x = (w - tw) / 2.0 + pos_x
+    else:  # right
+        x = float(w - tw - margins + pos_x)
+
+    if align == "top":
+        y = float(margins + pos_y)
+    elif align == "center":
+        y = (h - th) / 2.0 + pos_y
+    else:  # bottom
+        y = float(h - th - margins + pos_y)
+
+    base_rgba = img.convert("RGBA")
+    if abs(angle) < 0.01:
+        fill_rgba = _pick_auto_contrast_rgba(base_rgba, (int(x), int(y), int(x + tw), int(y + th)))
+        overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(overlay)
+        draw.text((x - ox, y - oy), text, font=font, fill=fill_rgba)
+        composed = Image.alpha_composite(base_rgba, overlay)
+    else:
+        pad = 4
+        # Determine bounding box after rotation by rotating a dummy mask
+        tmp_sz = (tw + pad * 2, th + pad * 2)
+        rot_probe = Image.new("RGBA", tmp_sz, (0, 0, 0, 0)).rotate(-angle, expand=True, resample=Image.BICUBIC)
+        rw, rh = rot_probe.size
+        cx = x + tw / 2.0
+        cy = y + th / 2.0
+        px = int(round(cx - rw / 2.0))
+        py = int(round(cy - rh / 2.0))
+        fill_rgba = _pick_auto_contrast_rgba(base_rgba, (px, py, px + rw, py + rh))
+
+        stamp = Image.new("RGBA", tmp_sz, (0, 0, 0, 0))
+        ImageDraw.Draw(stamp).text((pad - ox, pad - oy), text, font=font, fill=fill_rgba)
+        rotated = stamp.rotate(-angle, expand=True, resample=Image.BICUBIC)
+        overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        overlay.paste(rotated, (px, py), rotated)
+        composed = Image.alpha_composite(base_rgba, overlay)
+
+    return composed if img.mode == "RGBA" else composed.convert(img.mode)
+
+
+def _apply_auto_text_overlays(file_paths: list[str], params: dict) -> None:
+    """Apply auto-contrast black/white text overlays to generated output files when color == 'auto'."""
+    specs: list[dict] = []
+    if bool(params.get("overlay_ai_enabled", False)) and str(params.get("overlay_ai_color", "white")).lower() == "auto":
+        specs.append({
+            "text": params.get("overlay_ai_text", "Created with AI '26"),
+            "font_name": params.get("overlay_ai_font", "Caveat-VariableFont_wght.ttf"),
+            "font_size": int(params.get("overlay_ai_size", 14)),
+            "align": params.get("overlay_ai_align", "bottom"),
+            "justify": params.get("overlay_ai_justify", "left"),
+            "position_x": int(params.get("overlay_ai_pos_x", 10)),
+            "position_y": int(params.get("overlay_ai_pos_y", -15)),
+            "rotation_angle": float(params.get("overlay_ai_rotation", 0)),
+            "margins": int(params.get("overlay_ai_margins", 0)),
+        })
+    if bool(params.get("overlay_sig_enabled", True)) and str(params.get("overlay_sig_color", "white")).lower() == "auto":
+        specs.append({
+            "text": params.get("overlay_sig_text", "thomo.ART"),
+            "font_name": params.get("overlay_sig_font", "Caveat-VariableFont_wght.ttf"),
+            "font_size": int(params.get("overlay_sig_size", 14)),
+            "align": params.get("overlay_sig_align", "bottom"),
+            "justify": params.get("overlay_sig_justify", "right"),
+            "position_x": int(params.get("overlay_sig_pos_x", -15)),
+            "position_y": int(params.get("overlay_sig_pos_y", -15)),
+            "rotation_angle": float(params.get("overlay_sig_rotation", 0)),
+            "margins": int(params.get("overlay_sig_margins", 0)),
+        })
+    if not specs:
+        return
+
+    seen: set[str] = set()
+    for raw_path in file_paths:
+        if not raw_path:
+            continue
+        fpath = os.path.abspath(raw_path)
+        if fpath in seen or not os.path.isfile(fpath):
+            continue
+        seen.add(fpath)
+        try:
+            with Image.open(fpath) as src:
+                fmt = (src.format or "").upper()
+                png_info = None
+                if fmt == "PNG" and src.info:
+                    png_info = PngImagePlugin.PngInfo()
+                    for k, v in src.info.items():
+                        if isinstance(k, str) and isinstance(v, str):
+                            png_info.add_text(k, v)
+                out_img = src.copy()
+
+            for spec in specs:
+                out_img = _draw_auto_contrast_text(out_img, spec)
+
+            save_kwargs: dict[str, Any] = {}
+            if fmt == "PNG":
+                if png_info is not None:
+                    save_kwargs["pnginfo"] = png_info
+            elif fmt in ("JPEG", "JPG"):
+                if out_img.mode not in ("RGB", "L"):
+                    out_img = out_img.convert("RGB")
+                save_kwargs["quality"] = int(params.get("extra_save_quality", 95) or 95)
+            elif fmt == "WEBP":
+                save_kwargs["quality"] = int(params.get("extra_save_quality", 95) or 95)
+
+            out_img.save(fpath, format=fmt or None, **save_kwargs)
+        except Exception as exc:
+            print(f"[AutoOverlay] Failed for {fpath}: {exc}")
+
+
 def scan_output_images(out_dir: str) -> list[tuple[float, str, str]]:
     """Recursively scan out_dir for generated image files.
 
@@ -624,7 +819,7 @@ def extract_image_metadata(img_path: str) -> dict:
     }
     # 1. Prioritize embedded PNG/WebP metadata (contains clean TAPromptHub inputs without concatenated tags)
     try:
-        from PIL import Image
+        from PIL import Image, ImageDraw, ImageFont, ImageStat, PngImagePlugin
         with Image.open(img_path) as im:
             raw_prompt = im.info.get("prompt")
             raw_workflow = im.info.get("workflow")
@@ -2456,6 +2651,24 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                             new_image = rel
                             image_url = f"/output/{urllib.parse.quote(new_image, safe='/')}"
                             break
+
+                # Apply auto-contrast black/white text overlays in-place on all generated output files
+                if out_dir:
+                    auto_overlay_files: list[str] = []
+                    if isinstance(history, dict):
+                        outputs = history.get("outputs", {})
+                        for nid in ("1597", "1620", "1229", "1619"):
+                            imgs = outputs.get(nid, {}).get("images")
+                            if isinstance(imgs, list):
+                                for img_info in imgs:
+                                    if isinstance(img_info, dict) and img_info.get("type", "output") == "output" and img_info.get("filename"):
+                                        sub = img_info.get("subfolder", "") or ""
+                                        rel_p = f"{sub}/{img_info['filename']}".lstrip("/") if sub else img_info["filename"]
+                                        auto_overlay_files.append(os.path.join(out_dir, rel_p.replace("/", os.sep)))
+                    if new_image:
+                        auto_overlay_files.append(os.path.join(out_dir, new_image.replace("/", os.sep)))
+                    if auto_overlay_files:
+                        _apply_auto_text_overlays(auto_overlay_files, params)
 
                 # Fallback extraction from history outputs if not captured via WebSocket
                 if not llm_prompt and isinstance(history, dict):
