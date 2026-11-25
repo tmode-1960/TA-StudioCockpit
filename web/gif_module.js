@@ -348,6 +348,9 @@
 
   function switchStudioModule(moduleName) {
     state.activeModule = moduleName;
+    try {
+      localStorage.setItem("tAStudio.activeModule", moduleName);
+    } catch (_) {}
     const imgView = $("moduleImageView");
     const gifView = $("moduleGifView");
     const galView = $("moduleGalleryView");
@@ -926,6 +929,13 @@
     document.querySelectorAll("#studioNav .studio-nav-btn").forEach((btn) => {
       btn.addEventListener("click", () => switchStudioModule(btn.dataset.module));
     });
+
+    try {
+      const savedMod = localStorage.getItem("tAStudio.activeModule");
+      if (savedMod && savedMod !== "image" && ["gallery", "gif", "video", "music"].includes(savedMod)) {
+        setTimeout(() => switchStudioModule(savedMod), 0);
+      }
+    } catch (_) {}
 
     // Settings modal integration for GIF directory
     $("btnSettings")?.addEventListener("click", async () => {
