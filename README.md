@@ -101,11 +101,16 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ### Option B: Running from Python Source
 1. Python **3.11+** (Windows) and Git.
-2. Install Python dependencies:
+2. Clone the repository:
+   ```bash
+   git clone https://github.com/tmode-1960/TA-StudioCockpit.git
+   cd TA-StudioCockpit
+   ```
+3. Install Python dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-3. Start the app:
+4. Start the app:
    ```bash
    python server.py
    ```
