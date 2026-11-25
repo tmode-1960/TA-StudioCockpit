@@ -2,6 +2,27 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.34] – 2026-11-25
+### Gallery UX
+- **Infinite scroll auto-loading:** Automatically loads additional gallery pages when scrolling near the bottom of the grid.
+
+## [v1.33] – 2026-11-25
+### Gallery Lightbox
+- **Prompt to T2I:** Added a **Prompt to T2I** button in the Gallery Lightbox to send the image's prompt directly into the Image Studio.
+
+## [v1.32] – 2026-11-25
+### Gallery & Image Studio Handoff
+- **Multi-root parameter reload:** Supported loading generation parameters from all configured gallery root folders.
+- **Use as I2I:** Added a **Use as I2I** button in the Gallery Lightbox.
+
+## [v1.31] – 2026-11-25
+### Gallery Navigation
+- **Persist gallery root:** Saved the selected gallery root folder across app restarts.
+
+## [v1.30] – 2026-11-25
+### Gallery Metadata
+- **Deep node resolution:** Resolved wired text nodes and `UnetLoaderGGUF` entries when extracting ComfyUI metadata in the gallery indexer.
+
 ## [v1.29] – 2026-11-25
 ### Studio Navigation
 - **Persist active module:** StudioCockpit now remembers the last opened module (`Images`, `Gallery`, `DiscordGIF`, `VideoMaker`, `MusicMaker`) across restarts via `localStorage`.

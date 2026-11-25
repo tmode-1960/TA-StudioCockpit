@@ -1,8 +1,0 @@
-{
-  "models_dir": "",
-  "teacache_enabled": true,
-  "cache_mode": "auto",
-  "video_engine": "minimax_h3",
-  "subtitles_enabled": false,
-  "comfy_dir": ""
-}
