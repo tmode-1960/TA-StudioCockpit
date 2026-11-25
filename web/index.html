@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v1.27 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.28 (FLEXMOD Edition)</title>
   <link rel="icon" href="/favicon.ico">
   <script>
     (function () {
@@ -2890,6 +2890,7 @@
         <button type="button" class="btn-action" id="btnGalSelectMode" title="Mehrfachauswahl zum Verschieben / Kopieren / Löschen (oder Strg+Klick)" data-gal-i18n="btn_select_mode" data-gal-i18n-title="btn_select_mode_title" style="padding:5px 9px; font-size:12px;">☑ Auswahl</button>
         <span class="value-badge" id="galStatsBadge">0</span>
         <button type="button" class="btn-action active" id="btnGalToggleTuning" title="Layout- &amp; Design-Regler ein-/ausblenden" data-gal-i18n="btn_layout" data-gal-i18n-title="btn_layout_title" style="padding:5px 10px; font-size:12px;">🎛️ Layout</button>
+        <button type="button" class="btn-action" id="btnGalShortcuts" title="Aktive Tastenkürzel anzeigen" data-gal-i18n="btn_shortcuts" data-gal-i18n-title="btn_shortcuts_title" style="padding:5px 9px; font-size:12px;">⌨️ Shortcuts</button>
       </div>
 
       <div class="gallery-batch-bar" id="galBatchBar" hidden>
@@ -2899,7 +2900,7 @@
         <button type="button" class="btn-action" id="btnGalBatchCopy" data-gal-i18n="batch_copy">📋 Kopieren</button>
         <button type="button" class="btn-action" id="btnGalBatchRescue" data-gal-i18n="batch_rescue" hidden>↩️ Wiederherstellen</button>
         <button type="button" class="btn-action" id="btnGalBatchDelete" data-gal-i18n="batch_purgatory" style="color:var(--warning, #f59e0b);">🕯️ Purgatory</button>
-        <button type="button" class="btn-action" id="btnGalBatchBurn" data-gal-i18n="batch_burn" style="color:var(--danger);">🔥 Endgültig</button>
+        <button type="button" class="btn-action" id="btnGalBatchBurn" data-gal-i18n="batch_burn" style="color:var(--danger);">🔥 Endgültig löschen</button>
         <div class="spacer"></div>
         <button type="button" class="btn-action" id="btnGalBatchClear" data-gal-i18n="batch_clear">✕ Aufheben</button>
       </div>
@@ -3012,8 +3013,8 @@
             <button type="button" class="btn-action" id="btnGalLbCleanPng" title="Metadatenfreies PNG herunterladen" data-gal-i18n="lb_clean_png" data-gal-i18n-title="lb_clean_png_title">🧼 Clean PNG</button>
             <button type="button" class="btn-action" id="btnGalLbFolder" title="Im Explorer zeigen" data-gal-i18n="lb_folder" data-gal-i18n-title="lb_folder_title">📁 Ordner</button>
             <button type="button" class="btn-action" id="btnGalLbRescue" title="Aus Purgatory retten" data-gal-i18n="lb_rescue" data-gal-i18n-title="lb_rescue_title" hidden>↩️</button>
-            <button type="button" class="btn-action" id="btnGalLbDelete" title="In Purgatory verschieben (X)" data-gal-i18n-title="lb_purgatory_title" style="color:var(--warning, #f59e0b);">🕯️</button>
-            <button type="button" class="btn-action" id="btnGalLbBurn" title="Endgültig löschen (Shift+X)" data-gal-i18n-title="lb_burn_title" style="color:var(--danger);">🔥</button>
+            <button type="button" class="btn-action" id="btnGalLbDelete" title="In Purgatory verschieben (X)" data-gal-i18n="lb_purgatory" data-gal-i18n-title="lb_purgatory_title" style="color:var(--warning, #f59e0b);">🕯️ Purgatory</button>
+            <button type="button" class="btn-action" id="btnGalLbBurn" title="Endgültig löschen (Shift+X)" data-gal-i18n="lb_burn" data-gal-i18n-title="lb_burn_title" style="color:var(--danger);">🔥 Endgültig löschen</button>
           </div>
         </div>
         <div class="gal-lb-fields">
@@ -3069,10 +3070,27 @@
     </div>
   </div>
 
+  <!-- Gallery Shortcuts Modal -->
+  <div class="modal-overlay" id="galShortcutsModal" style="display:none; z-index:1100;">
+    <div class="modal-card" style="width: 500px; max-width: 92vw;">
+      <div class="modal-header">
+        <h3 style="display: flex; align-items: center; gap: 8px;">
+          <span>⌨️</span>
+          <span id="galShortcutsTitle">Galerie-Tastenkürzel</span>
+        </h3>
+        <button type="button" class="modal-close" id="btnGalShortcutsClose">✕</button>
+      </div>
+      <div class="modal-body" id="galShortcutsBody" style="max-height: 70vh; overflow-y: auto; display: flex; flex-direction: column; gap: 14px;"></div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end;">
+        <button type="button" class="btn-action" id="btnGalShortcutsOk" style="padding: 7px 16px; font-size: 13px;">Schließen</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=1.27"></script>
+  <script src="/app.js?v=1.28"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=5"></script>
   <script src="/video_module.js?v=1.00"></script>

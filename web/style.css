@@ -4068,6 +4068,38 @@ input[type="range"] {
   user-select: text;
   cursor: text;
 }
+.gal-shortcuts-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.gal-shortcuts-heading {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--mute);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 4px;
+}
+.gal-shortcuts-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12.5px;
+  color: var(--text);
+}
+.gal-kbd {
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--text-strong);
+  white-space: nowrap;
+}
 .gal-lb-text {
   font-size: 12px;
   line-height: 1.45;

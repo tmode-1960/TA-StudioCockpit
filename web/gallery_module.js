@@ -50,8 +50,38 @@
       batch_copy: "📋 Kopieren",
       batch_rescue: "↩️ Wiederherstellen",
       batch_purgatory: "🕯️ Purgatory",
-      batch_burn: "🔥 Endgültig",
+      batch_burn: "🔥 Endgültig löschen",
       batch_delete: "🗑️ Löschen",
+      btn_shortcuts: "⌨️ Shortcuts",
+      btn_shortcuts_title: "Aktive Tastenkürzel anzeigen",
+      shortcuts_title: "Galerie-Tastenkürzel",
+      shortcuts_close: "Schließen",
+      shortcuts_grid: "Galerie-Raster",
+      shortcuts_lb: "Lightbox (Einzelansicht)",
+      sc_ctrl_click: "Strg + Klick",
+      sc_ctrl_click_desc: "Bild auswählen / abwählen",
+      sc_grid_purg: "X / Entf",
+      sc_grid_purg_desc: "Ausgewählte in Purgatory verschieben (bzw. wiederherstellen)",
+      sc_grid_burn: "Shift + X / Shift + Entf",
+      sc_grid_burn_desc: "Ausgewählte endgültig von der Festplatte löschen",
+      sc_lb_nav: "← / →",
+      sc_lb_nav_desc: "Vorheriges / nächstes Bild",
+      sc_lb_esc: "Esc",
+      sc_lb_esc_desc: "Lightbox schließen (oder Pure View beenden)",
+      sc_lb_zoom_fit: "0",
+      sc_lb_zoom_fit_desc: "Zoom zurücksetzen (Einpassen)",
+      sc_lb_zoom_11: "1",
+      sc_lb_zoom_11_desc: "Originalgröße (1:1)",
+      sc_lb_zoom_step: "+ / - / Mausrad",
+      sc_lb_zoom_step_desc: "Hinein- / herauszoomen",
+      sc_lb_pure: "H",
+      sc_lb_pure_desc: "Pure View (Bedienelemente ausblenden)",
+      sc_lb_strip: "T",
+      sc_lb_strip_desc: "Filmstreifen ein-/ausblenden",
+      sc_lb_purg: "X / Entf",
+      sc_lb_purg_desc: "Bild in Purgatory verschieben (bzw. retten)",
+      sc_lb_burn: "Shift + X / Shift + Entf",
+      sc_lb_burn_desc: "Bild endgültig von der Festplatte löschen",
       batch_clear: "✕ Aufheben",
       empty_media: "Keine Medien gefunden.",
       load_more: "Mehr laden…",
@@ -75,7 +105,9 @@
       lb_clean_png_title: "Metadatenfreies PNG herunterladen",
       lb_rescue: "↩️",
       lb_rescue_title: "Aus Purgatory retten",
+      lb_purgatory: "🕯️ Purgatory",
       lb_purgatory_title: "In Purgatory verschieben (X)",
+      lb_burn: "🔥 Endgültig löschen",
       lb_burn_title: "Endgültig löschen (Shift+X)",
       lb_delete_title: "Löschen",
       lb_zoom_fit_title: "Einpassen (0)",
@@ -144,8 +176,38 @@
       batch_copy: "📋 Copy",
       batch_rescue: "↩️ Rescue",
       batch_purgatory: "🕯️ Purgatory",
-      batch_burn: "🔥 Burn",
+      batch_burn: "🔥 Delete Permanently",
       batch_delete: "🗑️ Delete",
+      btn_shortcuts: "⌨️ Shortcuts",
+      btn_shortcuts_title: "Show active keyboard shortcuts",
+      shortcuts_title: "Gallery Keyboard Shortcuts",
+      shortcuts_close: "Close",
+      shortcuts_grid: "Gallery Grid",
+      shortcuts_lb: "Lightbox (Single View)",
+      sc_ctrl_click: "Ctrl + Click",
+      sc_ctrl_click_desc: "Select / deselect item",
+      sc_grid_purg: "X / Del",
+      sc_grid_purg_desc: "Move selected to Purgatory (or rescue)",
+      sc_grid_burn: "Shift + X / Shift + Del",
+      sc_grid_burn_desc: "Permanently delete selected from disk",
+      sc_lb_nav: "← / →",
+      sc_lb_nav_desc: "Previous / next image",
+      sc_lb_esc: "Esc",
+      sc_lb_esc_desc: "Close Lightbox (or exit Pure View)",
+      sc_lb_zoom_fit: "0",
+      sc_lb_zoom_fit_desc: "Reset zoom (Fit)",
+      sc_lb_zoom_11: "1",
+      sc_lb_zoom_11_desc: "Original size (1:1)",
+      sc_lb_zoom_step: "+ / - / Wheel",
+      sc_lb_zoom_step_desc: "Zoom in / out",
+      sc_lb_pure: "H",
+      sc_lb_pure_desc: "Pure View (hide UI)",
+      sc_lb_strip: "T",
+      sc_lb_strip_desc: "Toggle filmstrip",
+      sc_lb_purg: "X / Del",
+      sc_lb_purg_desc: "Move image to Purgatory (or rescue)",
+      sc_lb_burn: "Shift + X / Shift + Del",
+      sc_lb_burn_desc: "Permanently delete image from disk",
       batch_clear: "✕ Clear",
       empty_media: "No media found.",
       load_more: "Load more…",
@@ -169,7 +231,9 @@
       lb_clean_png_title: "Download metadata-stripped PNG",
       lb_rescue: "↩️",
       lb_rescue_title: "Rescue from Purgatory",
+      lb_purgatory: "🕯️ Purgatory",
       lb_purgatory_title: "Move to Purgatory (X)",
+      lb_burn: "🔥 Delete Permanently",
       lb_burn_title: "Delete permanently (Shift+X)",
       lb_delete_title: "Delete",
       lb_zoom_fit_title: "Fit to view (0)",
@@ -258,6 +322,73 @@
         metaEl.textContent = `${dims}${formatBytes(item.size)} · ${formatDate(item.mtime)}`;
       }
     }
+  }
+
+  function openShortcutsModal() {
+    const modal = $("galShortcutsModal");
+    const body = $("galShortcutsBody");
+    const titleEl = $("galShortcutsTitle");
+    const okBtn = $("btnGalShortcutsOk");
+    if (!modal || !body) return;
+    if (titleEl) titleEl.textContent = gt("shortcuts_title");
+    if (okBtn) okBtn.textContent = gt("shortcuts_close");
+
+    const sections = [
+      {
+        heading: gt("shortcuts_grid"),
+        rows: [
+          [gt("sc_ctrl_click"), gt("sc_ctrl_click_desc")],
+          [gt("sc_grid_purg"), gt("sc_grid_purg_desc")],
+          [gt("sc_grid_burn"), gt("sc_grid_burn_desc")],
+        ],
+      },
+      {
+        heading: gt("shortcuts_lb"),
+        rows: [
+          [gt("sc_lb_nav"), gt("sc_lb_nav_desc")],
+          [gt("sc_lb_esc"), gt("sc_lb_esc_desc")],
+          [gt("sc_lb_zoom_fit"), gt("sc_lb_zoom_fit_desc")],
+          [gt("sc_lb_zoom_11"), gt("sc_lb_zoom_11_desc")],
+          [gt("sc_lb_zoom_step"), gt("sc_lb_zoom_step_desc")],
+          [gt("sc_lb_pure"), gt("sc_lb_pure_desc")],
+          [gt("sc_lb_strip"), gt("sc_lb_strip_desc")],
+          [gt("sc_lb_purg"), gt("sc_lb_purg_desc")],
+          [gt("sc_lb_burn"), gt("sc_lb_burn_desc")],
+        ],
+      },
+    ];
+
+    body.innerHTML = "";
+    sections.forEach((sec) => {
+      const wrap = document.createElement("div");
+      wrap.className = "gal-shortcuts-group";
+      const h = document.createElement("div");
+      h.className = "gal-shortcuts-heading";
+      h.textContent = sec.heading;
+      wrap.appendChild(h);
+
+      sec.rows.forEach(([keyLabel, desc]) => {
+        const row = document.createElement("div");
+        row.className = "gal-shortcuts-row";
+        const d = document.createElement("span");
+        d.className = "gal-shortcuts-desc";
+        d.textContent = desc;
+        const k = document.createElement("kbd");
+        k.className = "gal-kbd";
+        k.textContent = keyLabel;
+        row.appendChild(d);
+        row.appendChild(k);
+        wrap.appendChild(row);
+      });
+      body.appendChild(wrap);
+    });
+
+    modal.style.display = "flex";
+  }
+
+  function closeShortcutsModal() {
+    const modal = $("galShortcutsModal");
+    if (modal) modal.style.display = "none";
   }
 
   function galConfirm(message) {
@@ -1332,6 +1463,12 @@
       state.layout.tuningOpen = !state.layout.tuningOpen;
       applyLayoutToDOM(true);
     });
+    $("btnGalShortcuts")?.addEventListener("click", () => openShortcutsModal());
+    $("btnGalShortcutsClose")?.addEventListener("click", closeShortcutsModal);
+    $("btnGalShortcutsOk")?.addEventListener("click", closeShortcutsModal);
+    $("galShortcutsModal")?.addEventListener("click", (e) => {
+      if (e.target === $("galShortcutsModal")) closeShortcutsModal();
+    });
     $("btnGalResetLayout")?.addEventListener("click", () => {
       state.layout = { ...DEFAULT_LAYOUT, tuningOpen: state.layout.tuningOpen };
       setViewMode(state.layout.mode);
@@ -1536,6 +1673,12 @@
     document.addEventListener("keydown", async (e) => {
       const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
       if (tag === "input" || tag === "textarea" || tag === "select") return;
+
+      const scModal = $("galShortcutsModal");
+      if (scModal && scModal.style.display !== "none") {
+        if (e.key === "Escape") closeShortcutsModal();
+        return;
+      }
 
       const lb = $("galLightbox");
       if (lb && !lb.hidden) {
