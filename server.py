@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.31"
+APP_VERSION = "1.32"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -2855,11 +2855,16 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             if post_body.strip().startswith(b"{"):
                 data = json.loads(post_body.decode("utf-8"))
                 fname = data.get("filename") or data.get("path")
+                root_id = str(data.get("root") or "primary").strip() or "primary"
                 if fname:
                     if not isinstance(fname, str):
                         self.send_json({"error": "Ungültiger Dateiname."}, status=400)
                         return
-                    out_dir = get_output_dir()
+                    if root_id != "primary":
+                        root_entry = next((r for r in gallery_indexer.get_all_roots() if r.get("id") == root_id), None)
+                        out_dir = root_entry.get("path", "") if root_entry else ""
+                    else:
+                        out_dir = get_output_dir()
                     img_name = os.path.basename(fname)
                     if os.path.isabs(fname):
                         target_path = os.path.normpath(fname)

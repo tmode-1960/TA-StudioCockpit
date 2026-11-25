@@ -99,6 +99,8 @@
       lb_apply: "⚡ Parameter ins Cockpit laden",
       lb_fav: "☆ Favorit",
       lb_fav_active: "★ Favorit",
+      lb_to_i2i: "🖼️ Als I2I-Bild",
+      lb_to_i2i_title: "Bild als I2I-Referenz ins Image-Modul übernehmen",
       lb_folder: "📁 Ordner",
       lb_folder_title: "Im Explorer zeigen",
       lb_clean_png: "🧼 Clean PNG",
@@ -225,6 +227,8 @@
       lb_apply: "⚡ Load parameters into Cockpit",
       lb_fav: "☆ Favorite",
       lb_fav_active: "★ Favorite",
+      lb_to_i2i: "🖼️ Use as I2I",
+      lb_to_i2i_title: "Send image as I2I reference to Images module",
       lb_folder: "📁 Folder",
       lb_folder_title: "Show in Explorer",
       lb_clean_png: "🧼 Clean PNG",
@@ -778,13 +782,11 @@
       applyBtn.title = gt("card_apply_title");
       applyBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        if (item.root === "primary" && typeof window.loadGalleryImageIntoCockpit === "function") {
-          window.loadGalleryImageIntoCockpit(item.path);
+        if (typeof window.loadGalleryImageIntoCockpit === "function") {
+          window.loadGalleryImageIntoCockpit(item.path, item.root);
         }
       });
-      if (item.root === "primary") {
-        media.appendChild(applyBtn);
-      }
+      media.appendChild(applyBtn);
     }
 
     const favBtn = document.createElement("button");
@@ -865,7 +867,7 @@
       rowApplyBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         if (typeof window.loadGalleryImageIntoCockpit === "function") {
-          window.loadGalleryImageIntoCockpit(item.path);
+          window.loadGalleryImageIntoCockpit(item.path, item.root);
         }
       });
       rowActions.appendChild(rowApplyBtn);
@@ -1189,7 +1191,10 @@
 
     if ($("galLbZoomBar")) $("galLbZoomBar").hidden = isVideo;
     if ($("btnGalLbApply")) {
-      $("btnGalLbApply").hidden = isVideo || item.root !== "primary";
+      $("btnGalLbApply").hidden = isVideo;
+    }
+    if ($("btnGalLbToI2I")) {
+      $("btnGalLbToI2I").hidden = isVideo;
     }
     if ($("btnGalLbGif")) {
       $("btnGalLbGif").hidden = isVideo;
@@ -1551,8 +1556,17 @@
       const item = state.items[state.lbIndex];
       if (!item || item.media_type === "video") return;
       closeLightbox();
-      if (item.root === "primary" && typeof window.loadGalleryImageIntoCockpit === "function") {
-        window.loadGalleryImageIntoCockpit(item.path);
+      if (typeof window.loadGalleryImageIntoCockpit === "function") {
+        window.loadGalleryImageIntoCockpit(item.path, item.root);
+      }
+    });
+
+    $("btnGalLbToI2I")?.addEventListener("click", async () => {
+      const item = state.items[state.lbIndex];
+      if (!item || item.media_type === "video") return;
+      closeLightbox();
+      if (typeof window.loadGalleryImageAsI2I === "function") {
+        await window.loadGalleryImageAsI2I(item.url, item.name);
       }
     });
 

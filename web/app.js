@@ -6375,11 +6375,30 @@
     }
   }
 
-  window.loadGalleryImageIntoCockpit = (relPath) => {
+  window.loadGalleryImageIntoCockpit = (relPath, rootId = "primary") => {
     if (!relPath) return;
-    extractAndApplyImageMetadata({ filename: relPath });
+    extractAndApplyImageMetadata({ filename: relPath, root: rootId || "primary" });
     if (typeof window.switchStudioModule === "function") {
       window.switchStudioModule("image");
+    }
+  };
+
+  window.loadGalleryImageAsI2I = async (imgUrl, fileName) => {
+    if (!imgUrl) return;
+    try {
+      const resp = await fetch(imgUrl);
+      if (!resp.ok) throw new Error(t("err_image_load_failed", "Konnte Bild nicht laden"));
+      const blob = await resp.blob();
+      const ext = (blob.type && blob.type.split("/")[1]) || "png";
+      const safeName = fileName && fileName.includes(".") ? fileName : `${fileName || "ref_" + Date.now()}.${ext}`;
+      const file = new File([blob], safeName, { type: blob.type || "image/png" });
+      if (typeof setLLMMode === "function") setLLMMode("i2i");
+      uploadI2IImage(file);
+      if (typeof window.switchStudioModule === "function") {
+        window.switchStudioModule("image");
+      }
+    } catch (err) {
+      showToast(t("toast_i2i_adopt_error", "Fehler beim Übernehmen aus der Vorschau: ") + (err?.message || err), "error", 4000);
     }
   };
 
