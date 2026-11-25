@@ -1566,8 +1566,17 @@ class ComfyClient:
         params = urllib.parse.urlencode({"filename": filename, "subfolder": subfolder, "type": folder_type})
         url = f"{self.base_url}/view?{params}"
         req = urllib.request.Request(url, headers={"User-Agent": "tA-VideoMaker"})
+        max_bytes = 2 * (1024 ** 3)  # 2 GB safety cap
+        copied = 0
         with urllib.request.urlopen(req, timeout=120) as resp, open(dest_path, "wb") as out_f:
-            shutil.copyfileobj(resp, out_f)
+            while True:
+                chunk = resp.read(65536)
+                if not chunk:
+                    break
+                copied += len(chunk)
+                if copied > max_bytes:
+                    raise ValueError("ComfyUI output file exceeds 2 GB safety limit")
+                out_f.write(chunk)
         return dest_path
 
     def _start_ws_progress_listener(self, prompt_id: str, ws_state: dict, ws_stop: threading.Event) -> None:

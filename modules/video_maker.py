@@ -425,7 +425,10 @@ def _download_file_highspeed(
             except Exception:
                 completed_chunks = set()
 
-        # Pre-allocate sparse file if needed
+        # Pre-allocate sparse file if needed (cap at 100 GB to prevent Content-Range DoS)
+        max_dl_bytes = 100 * (1024 ** 3)
+        if file_size > max_dl_bytes:
+            raise ValueError(f"Download size ({file_size} bytes) exceeds 100 GB safety limit.")
         if not os.path.isfile(temp_dest) or os.path.getsize(temp_dest) != file_size:
             with open(temp_dest, "wb") as f:
                 if file_size > 0:
@@ -920,6 +923,19 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
         return
 
     elif path == "/api/video/config":
+        if "comfy_url" in body:
+            raw_c_url = str(body.get("comfy_url") or "").strip()
+            if raw_c_url:
+                parsed_c = urllib.parse.urlparse(raw_c_url)
+                if (
+                    any(ch in raw_c_url for ch in ("\r", "\n", "\x00"))
+                    or any(ch.isspace() for ch in raw_c_url)
+                    or parsed_c.scheme not in ("http", "https")
+                    or not parsed_c.netloc
+                ):
+                    _send_json(handler, {"ok": False, "error": "Ungültige comfy_url (nur http/https erlaubt)."}, status=400)
+                    return True
+                body["comfy_url"] = raw_c_url
         with _CONFIG_LOCK:
             current = load_config()
             updated = {**current, **body}
@@ -933,8 +949,12 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
         return
 
     elif path == "/api/video/open_output_folder":
-        custom_dir = body.get("dir", "")
-        target = custom_dir if custom_dir and os.path.isdir(custom_dir) else get_output_dir()
+        custom_dir = str(body.get("dir", "") or "").strip()
+        allowed_open_dirs = [d for d in (get_output_dir(), UPLOADS_DIR, DATA_DIR) if d]
+        if custom_dir and os.path.isdir(custom_dir) and any(_is_path_within(b, custom_dir) for b in allowed_open_dirs):
+            target = os.path.realpath(custom_dir)
+        else:
+            target = get_output_dir()
         os.makedirs(target, exist_ok=True)
         try:
             if sys.platform == "win32":

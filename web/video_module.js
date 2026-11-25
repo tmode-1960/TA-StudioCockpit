@@ -1413,7 +1413,7 @@ function restoreUiState(customUi = null) {
         const qFirstDrop = vmGetEl("quickFirstFrameDrop");
         if (qFirstDrop) {
           qFirstDrop.classList.add("has-image");
-          qFirstDrop.innerHTML = `<img src="${qc.first_frame}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetQuickFrame('first')">×</button>`;
+          qFirstDrop.innerHTML = `<img src="${escapeHtml(qc.first_frame)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetQuickFrame('first')">×</button>`;
         }
       }
       if (qc.last_frame) {
@@ -1421,7 +1421,7 @@ function restoreUiState(customUi = null) {
         const qLastDrop = vmGetEl("quickLastFrameDrop");
         if (qLastDrop) {
           qLastDrop.classList.add("has-image");
-          qLastDrop.innerHTML = `<img src="${qc.last_frame}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetQuickFrame('last')">×</button>`;
+          qLastDrop.innerHTML = `<img src="${escapeHtml(qc.last_frame)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetQuickFrame('last')">×</button>`;
         }
       }
       if (qc.audio_enabled !== undefined && vmGetEl("chkQuickAudio")) {
@@ -1473,7 +1473,7 @@ function restoreUiState(customUi = null) {
         const lFirstDrop = vmGetEl("longFirstFrameDrop");
         if (lFirstDrop) {
           lFirstDrop.classList.add("has-image");
-          lFirstDrop.innerHTML = `<img src="${lc.first_frame}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLongFrame('first')">×</button>`;
+          lFirstDrop.innerHTML = `<img src="${escapeHtml(lc.first_frame)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLongFrame('first')">×</button>`;
         }
       }
       if (lc.last_frame) {
@@ -1481,7 +1481,7 @@ function restoreUiState(customUi = null) {
         const lLastDrop = vmGetEl("longLastFrameDrop");
         if (lLastDrop) {
           lLastDrop.classList.add("has-image");
-          lLastDrop.innerHTML = `<img src="${lc.last_frame}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLongFrame('last')">×</button>`;
+          lLastDrop.innerHTML = `<img src="${escapeHtml(lc.last_frame)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLongFrame('last')">×</button>`;
         }
       }
       if (lc.audio_start !== undefined && vmGetEl("longAudioStartSec")) {
@@ -1564,7 +1564,7 @@ function restoreUiState(customUi = null) {
         const lsPortraitDrop = vmGetEl("lipsyncPortraitDrop");
         if (lsPortraitDrop) {
           lsPortraitDrop.classList.add("has-image");
-          lsPortraitDrop.innerHTML = `<img src="${ls.portrait_image}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLipsyncFrame('portrait')">×</button>`;
+          lsPortraitDrop.innerHTML = `<img src="${escapeHtml(ls.portrait_image)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLipsyncFrame('portrait')">×</button>`;
         }
       }
       if (ls.second_image) {
@@ -1572,7 +1572,7 @@ function restoreUiState(customUi = null) {
         const lsSecondDrop = vmGetEl("lipsyncSecondDrop");
         if (lsSecondDrop) {
           lsSecondDrop.classList.add("has-image");
-          lsSecondDrop.innerHTML = `<img src="${ls.second_image}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLipsyncFrame('second')">×</button>`;
+          lsSecondDrop.innerHTML = `<img src="${escapeHtml(ls.second_image)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLipsyncFrame('second')">×</button>`;
         }
       }
       if (ls.audio_file) {
@@ -2411,7 +2411,7 @@ function renderScenes() {
     if (sc.from_prev && idx > 0) {
       firstFrameContent = `<div class="frame-auto-badge">${t("autoLinkedBadge")}</div>`;
     } else if (sc.first_frame) {
-      firstFrameContent = `<img src="${sc.first_frame}"><button class="btn-remove-frame" onclick="event.stopPropagation(); removeSceneFrame(${idx}, 'first')">×</button>`;
+      firstFrameContent = `<img src="${escapeHtml(sc.first_frame)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); removeSceneFrame(${idx}, 'first')">×</button>`;
     } else {
       firstFrameContent = `<span style="font-size:11px; color:var(--mute);">${t("dropImagePrompt")}</span>`;
     }
@@ -2419,7 +2419,7 @@ function renderScenes() {
     // Last frame block
     let lastFrameContent = "";
     if (sc.last_frame) {
-      lastFrameContent = `<img src="${sc.last_frame}"><button class="btn-remove-frame" onclick="event.stopPropagation(); removeSceneFrame(${idx}, 'last')">×</button>`;
+      lastFrameContent = `<img src="${escapeHtml(sc.last_frame)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); removeSceneFrame(${idx}, 'last')">×</button>`;
     } else {
       lastFrameContent = `<span style="font-size:11px; color:var(--mute);">${t("dropImagePrompt")}</span>`;
     }
@@ -4582,7 +4582,7 @@ function initEventListeners() {
         const url = await uploadImageFile(file);
         state.quickClip.first_frame = url;
         qFirstDrop.classList.add("has-image");
-        qFirstDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetQuickFrame('first')">×</button>`;
+        qFirstDrop.innerHTML = `<img src="${escapeHtml(url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetQuickFrame('first')">×</button>`;
         autoMatchResolutionAspect(url);
         saveUiState();
       } catch (err) {
@@ -4594,7 +4594,7 @@ function initEventListeners() {
         const url = await uploadImageFile(file);
         state.quickClip.first_frame = url;
         qFirstDrop.classList.add("has-image");
-        qFirstDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetQuickFrame('first')">×</button>`;
+        qFirstDrop.innerHTML = `<img src="${escapeHtml(url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetQuickFrame('first')">×</button>`;
         autoMatchResolutionAspect(url);
         saveUiState();
       } catch (err) {
@@ -4615,7 +4615,7 @@ function initEventListeners() {
         const url = await uploadImageFile(file);
         state.quickClip.last_frame = url;
         qLastDrop.classList.add("has-image");
-        qLastDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetQuickFrame('last')">×</button>`;
+        qLastDrop.innerHTML = `<img src="${escapeHtml(url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetQuickFrame('last')">×</button>`;
         saveUiState();
       } catch (err) {
         showToast(t("imageUploadFailed") + err, "error");
@@ -4626,7 +4626,7 @@ function initEventListeners() {
         const url = await uploadImageFile(file);
         state.quickClip.last_frame = url;
         qLastDrop.classList.add("has-image");
-        qLastDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetQuickFrame('last')">×</button>`;
+        qLastDrop.innerHTML = `<img src="${escapeHtml(url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetQuickFrame('last')">×</button>`;
         saveUiState();
       } catch (err) {
         showToast(t("dropUploadFailed") + err, "error");
@@ -4714,7 +4714,7 @@ function initEventListeners() {
         const url = await uploadImageFile(file);
         state.longClip.first_frame = url;
         lFirstDrop.classList.add("has-image");
-        lFirstDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLongFrame('first')">×</button>`;
+        lFirstDrop.innerHTML = `<img src="${escapeHtml(url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLongFrame('first')">×</button>`;
         saveUiState();
       } catch (err) {
         showToast(t("imageUploadFailed") + err, "error");
@@ -4725,7 +4725,7 @@ function initEventListeners() {
         const url = await uploadImageFile(file);
         state.longClip.first_frame = url;
         lFirstDrop.classList.add("has-image");
-        lFirstDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLongFrame('first')">×</button>`;
+        lFirstDrop.innerHTML = `<img src="${escapeHtml(url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLongFrame('first')">×</button>`;
         saveUiState();
       } catch (err) {
         showToast(t("dropUploadFailed") + err, "error");
@@ -4740,7 +4740,7 @@ function initEventListeners() {
       generateH3StartImage(promptEl ? promptEl.value : "", btnGenLongStart, (url) => {
         state.longClip.first_frame = url;
         lFirstDrop.classList.add("has-image");
-        lFirstDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLongFrame('first')">×</button>`;
+        lFirstDrop.innerHTML = `<img src="${escapeHtml(url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLongFrame('first')">×</button>`;
       });
     });
   }
@@ -4767,7 +4767,7 @@ function initEventListeners() {
         const url = await uploadImageFile(file);
         state.longClip.last_frame = url;
         lLastDrop.classList.add("has-image");
-        lLastDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLongFrame('last')">×</button>`;
+        lLastDrop.innerHTML = `<img src="${escapeHtml(url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLongFrame('last')">×</button>`;
         saveUiState();
       } catch (err) {
         showToast(t("imageUploadFailed") + err, "error");
@@ -4778,7 +4778,7 @@ function initEventListeners() {
         const url = await uploadImageFile(file);
         state.longClip.last_frame = url;
         lLastDrop.classList.add("has-image");
-        lLastDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLongFrame('last')">×</button>`;
+        lLastDrop.innerHTML = `<img src="${escapeHtml(url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLongFrame('last')">×</button>`;
         saveUiState();
       } catch (err) {
         showToast(t("dropUploadFailed") + err, "error");
@@ -4862,7 +4862,7 @@ function initEventListeners() {
         const url = await uploadImageFile(file);
         state.lipsync.portrait_image = url;
         lsPortraitDrop.classList.add("has-image");
-        lsPortraitDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLipsyncFrame('portrait')">×</button>`;
+        lsPortraitDrop.innerHTML = `<img src="${escapeHtml(url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLipsyncFrame('portrait')">×</button>`;
         updateLipsyncSegmentBadge();
         saveUiState();
       } catch (err) {
@@ -4874,7 +4874,7 @@ function initEventListeners() {
         const url = await uploadImageFile(file);
         state.lipsync.portrait_image = url;
         lsPortraitDrop.classList.add("has-image");
-        lsPortraitDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLipsyncFrame('portrait')">×</button>`;
+        lsPortraitDrop.innerHTML = `<img src="${escapeHtml(url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLipsyncFrame('portrait')">×</button>`;
         updateLipsyncSegmentBadge();
         saveUiState();
       } catch (err) {
@@ -4890,7 +4890,7 @@ function initEventListeners() {
       generateH3StartImage(lsPromptEl ? lsPromptEl.value : "", btnGenLsStart, (url) => {
         state.lipsync.portrait_image = url;
         lsPortraitDrop.classList.add("has-image");
-        lsPortraitDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLipsyncFrame('portrait')">×</button>`;
+        lsPortraitDrop.innerHTML = `<img src="${escapeHtml(url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLipsyncFrame('portrait')">×</button>`;
         updateLipsyncSegmentBadge();
       });
     });
@@ -4908,7 +4908,7 @@ function initEventListeners() {
         const url = await uploadImageFile(file);
         state.lipsync.second_image = url;
         lsSecondDrop.classList.add("has-image");
-        lsSecondDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLipsyncFrame('second')">×</button>`;
+        lsSecondDrop.innerHTML = `<img src="${escapeHtml(url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLipsyncFrame('second')">×</button>`;
         updateLipsyncSegmentBadge();
         saveUiState();
       } catch (err) {
@@ -4920,7 +4920,7 @@ function initEventListeners() {
         const url = await uploadImageFile(file);
         state.lipsync.second_image = url;
         lsSecondDrop.classList.add("has-image");
-        lsSecondDrop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLipsyncFrame('second')">×</button>`;
+        lsSecondDrop.innerHTML = `<img src="${escapeHtml(url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLipsyncFrame('second')">×</button>`;
         updateLipsyncSegmentBadge();
         saveUiState();
       } catch (err) {
@@ -5180,7 +5180,7 @@ function _bindMorphDropzone(dropId, frameKey) {
       const url = await uploadImageFile(file);
       state.morphClip[frameKey] = url;
       drop.classList.add("has-image");
-      drop.innerHTML = `<img src="${url}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetMorphFrame('${frameKey === "first_frame" ? "first" : "last"}')">×</button>`;
+      drop.innerHTML = `<img src="${escapeHtml(url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetMorphFrame('${frameKey === "first_frame" ? "first" : "last"}')">×</button>`;
       if (frameKey === "first_frame") autoMatchResolutionAspect(url);
       saveUiState();
     } catch (err) {

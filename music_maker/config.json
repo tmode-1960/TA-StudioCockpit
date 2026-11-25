@@ -2,7 +2,7 @@
   "comfy_url": "http://127.0.0.1:8188",
   "workflow": "YuE2-Song.json",
   "comfy_dir": "",
-  "comfy_start_command": "wsl bash ~/scripts/cei1-dev.sh",
+  "comfy_start_command": "",
   "voice_models_dir": "",
   "theme": "dark",
   "language": "en"
