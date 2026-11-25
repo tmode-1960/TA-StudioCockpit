@@ -89,6 +89,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.35:** Hardened updater download URLs to official GitHub domains, added 256 MB `do_POST` payload cap (`HTTP 413`), added `requirements.txt`, automatic `.sha256` checksums in `build_dist.bat`, and GitHub bug report template.
 * **v1.34:** Added infinite scroll auto-loading to Gallery.
 * **v1.33:** Added **Prompt to T2I** button in Gallery Lightbox.
 * **v1.32:** Added multi-root parameter loading and **Use as I2I** button in Gallery Lightbox.

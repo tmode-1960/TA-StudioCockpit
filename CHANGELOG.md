@@ -2,6 +2,12 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.35] – 2026-11-25
+### Security, Release & Documentation
+- **Updater hardening:** Restricted `modules/updater.py` download and redirect targets to official GitHub release domains (`github.com`, `*.githubusercontent.com`) and added a 512 MB archive size cap.
+- **POST payload limit:** Added `Content-Length` validation and a 256 MB body limit (`HTTP 413`) in `server.py`.
+- **Release tooling & repo hygiene:** Added `requirements.txt`, automatic `.sha256` checksum generation in `build_dist.bat`, `.github/ISSUE_TEMPLATE/bug_report.md`, and excluded local gallery cache/history files from Git.
+
 ## [v1.34] – 2026-11-25
 ### Gallery UX
 - **Infinite scroll auto-loading:** Automatically loads additional gallery pages when scrolling near the bottom of the grid.
