@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.36] – 2026-11-25
+### Documentation
+- **README overhaul:** Expanded the **Integrated Studio Modules** section in `README.md` with balanced, user-focused descriptions, collapsible `<details>` technical blocks, and a UI screenshot (`assets/screenshot.jpg`).
+
 ## [v1.35] – 2026-11-25
 ### Security, Release & Documentation
 - **Updater hardening:** Restricted `modules/updater.py` download and redirect targets to official GitHub release domains (`github.com`, `*.githubusercontent.com`) and added a 512 MB archive size cap.

@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.35 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.36 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -128,6 +128,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.36:** Expanded the **Integrated Studio Modules** documentation in `README.md` with balanced module overviews, collapsible `<details>` sections, and a live UI screenshot (`assets/screenshot.jpg`).
 * **v1.35:** Hardened updater download URLs to official GitHub domains, added 256 MB `do_POST` payload cap (`HTTP 413`), added `requirements.txt`, automatic `.sha256` checksums in `build_dist.bat`, and GitHub bug report template.
 * **v1.34:** Added infinite scroll auto-loading to Gallery.
 * **v1.33:** Added **Prompt to T2I** button in Gallery Lightbox.
