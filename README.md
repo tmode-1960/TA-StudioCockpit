@@ -47,6 +47,23 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ---
 
+## 📝 Recent Changes (Changelog)
+
+### v1.22 (2026-11-25)
+* **Repository Hygiene:** Cleaned personal local paths from `data/gif_config.json` and `music_maker/config.json`.
+* **VideoMaker Hardening:** Validated `comfy_url` in `/api/video/config`, restricted `/api/video/open_output_folder` to studio directories, and added download size caps (100 GB model pre-alloc / 2 GB ComfyUI output).
+* **DOM-XSS Hardening:** Escaped dynamic `<img src>` attributes in `web/video_module.js`.
+
+### v1.21 (2026-11-25)
+* **Security Hardening:** Added path traversal & Zip-Slip checks across `server.py`, `video_maker.py`, and `video_comfy.py`; restricted `/api/open_file` & `/api/reveal_file` to allowed folders and non-executable files; hardened WSL/FFmpeg/RVC command handling; added `Host` header validation (DNS-rebinding protection) and `ALLOWED_CONFIG_KEYS` whitelist in `save_config`; added subprocess timeouts and WebSocket frame size limits.
+
+### v1.20
+* Added Apache License 2.0 (`LICENSE`, `NOTICE`), RVC roadmap (`TODO.md`), and hidden console windows for gallery FFmpeg thumbnails.
+
+👉 Full history: [CHANGELOG.md](CHANGELOG.md)
+
+---
+
 ## 🚀 Quick Start
 
 1. Start ComfyUI (`http://127.0.0.1:8188`) — or launch it directly from the StudioCockpit header.
