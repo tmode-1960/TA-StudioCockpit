@@ -77,12 +77,12 @@ const I18N = {
     vramOptimizationTitle: "💡 VRAM Optimization",
 
     // Tabs
-    tabStoryboard: "Director & Storyboard",
-    tabQuick: "Quick Clip",
+    tabStoryboard: "🎬 Director & Storyboard",
+    tabQuick: "⚡ Quick Clip",
     tabLongClip: "🎵 Long Clip",
     tabLipsync: "🗣️ Lipsync Studio",
-    tabPlayer: "Studio Player & Edit",
-    tabModels: "Models & Status",
+    tabPlayer: "🎞️ Studio Player & Edit",
+    tabModels: "⚙️ Models & Status",
 
     // Storyboard
     storyboardTitle: "Timeline & Storyboard",
@@ -443,12 +443,12 @@ const I18N = {
     vramOptimizationTitle: "💡 VRAM Optimierung",
 
     // Tabs
-    tabStoryboard: "Regie & Storyboard",
-    tabQuick: "Quick Clip",
+    tabStoryboard: "🎬 Regie & Storyboard",
+    tabQuick: "⚡ Quick Clip",
     tabLongClip: "🎵 Long Clip",
     tabLipsync: "🗣️ Lipsync Studio",
-    tabPlayer: "Studio Player & Schnitt",
-    tabModels: "Modelle & Status",
+    tabPlayer: "🎞️ Studio Player & Schnitt",
+    tabModels: "⚙️ Modelle & Status",
 
     // Storyboard
     storyboardTitle: "Szenen-Ablauf & Regieplan",

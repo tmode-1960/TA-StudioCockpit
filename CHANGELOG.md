@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.52] – 2026-11-26
+### VideoMaker UI
+- **Consistent Tab Icons & Order:** Added matching icons to all VideoMaker tabs (`🎬`, `⚡`, `🎵`, `🗣️`, `🌀`, `🎞️`, `⚙️`) in `web/video_module.js` and moved **Morph & Transform** after **Lipsync Studio** in both `#vm_tabs` and `#vm_modeSeg` (`web/index.html`).
+
 ## [v1.51] – 2026-11-26
 ### UI & Gallery Fixes
 - **Long Clip Start Frame Label Layout:** Allowed `.studio-layout-video .frame-box-label` in `web/style.css` to wrap cleanly so the Start Frame label sits on its own line above the `Image→Prompt` / `H3 Image` buttons instead of squeezing into 4 narrow lines.
