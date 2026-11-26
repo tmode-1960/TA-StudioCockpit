@@ -31,3 +31,9 @@ ta_smart_llm_models.json
 
 # Lokale Antigravity Workspace-Regeln (nicht im oeffentlichen Repo)
 .agents/rules/
+
+# Interne Notizen & Doku (nur lokal, nicht auf GitHub)
+TECHNIK.md
+TODO.md
+ZUSAMMENFASSUNG.md
+strata_func.md
