@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.53] – 2026-11-26
+### Image Studio UI
+- **Upscale & FX Help Text:** Updated `help_tuning_html` (DE & EN) in `web/app.js` to reference **Upscale & FX** instead of **Upscale** and to mention SeedVR2 upscaling, sharpening, and film grain.
+
 ## [v1.52] – 2026-11-26
 ### VideoMaker UI
 - **Consistent Tab Icons & Order:** Added matching icons to all VideoMaker tabs (`🎬`, `⚡`, `🎵`, `🗣️`, `🌀`, `🎞️`, `⚙️`) in `web/video_module.js` and moved **Morph & Transform** after **Lipsync Studio** in both `#vm_tabs` and `#vm_modeSeg` (`web/index.html`).

@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.52 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.53 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -138,6 +138,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.53:** Updated the **Fine-Tuning & Finish** help text (`help_tuning_html` in `web/app.js`, DE & EN) to match the **Upscale & FX** tab and cover SeedVR2 upscaling, sharpening, and film grain.
 * **v1.52:** Added consistent icons to all VideoMaker tabs (`web/video_module.js`) and moved **Morph & Transform** after **Lipsync Studio** (`web/index.html`).
 * **v1.51:** Fixed `.frame-box-label` wrapping for VideoMaker's Start Frame label (`web/style.css`) and wired Gallery's **DiscordGIF** button (`web/gallery_module.js`, `web/gif_module.js`) to open the **AI GIF** tab with the selected image loaded.
 * **v1.50:** `sendImageToVideoMaker` (`web/video_module.js`) now populates both the **Quick Clip** and **Long Clip** first-frame slots simultaneously when sending an image to VideoMaker.
