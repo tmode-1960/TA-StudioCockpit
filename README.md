@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.47 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.48 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -138,6 +138,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.48:** Fixed `sendImageToVideoMaker` in `web/video_module.js` so images sent from Gallery, Image Studio, or DiscordGIF render immediately in the **Quick Clip** first-frame (and **Lipsync** portrait) dropzone.
 * **v1.47:** Switched `app.ico`, `web/favicon.ico`, `web/logo.png`, and `assets/branding/logo_tA.png` to the original connected 3D glassmorphic **`tA` squircle logo**.
 * **v1.46:** Replaced the placeholder palette emoji and legacy icon with the new sharp 3D glassmorphic **`tA` App Logo** (`app.ico`, `web/favicon.ico`, `web/logo.png`, `web/index.html`, `web/style.css`, bundled in `StudioCockpit.spec`).
 * **v1.44:** Added optional **BExplains RefPacks / MiniMax H3 RefPacks** support in **VideoMaker** (opt-in, reuses existing H3 models without extra AI downloads; Quick Clip & Long Clip UI + `/api/video/refpacks/*` endpoints).

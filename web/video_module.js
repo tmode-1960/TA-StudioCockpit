@@ -5347,14 +5347,20 @@ async function renderMorphClip() {
       if (mode === "lipsync") {
         if (typeof switchTab === "function") switchTab("lipsync");
         state.lipsync.portrait_image = data.url;
-        const prev = vmGetEl("lipsyncPortraitPreview");
-        if (prev) { prev.src = data.url; prev.style.display = "block"; }
+        const lsPortraitDrop = vmGetEl("lipsyncPortraitDrop");
+        if (lsPortraitDrop) {
+          lsPortraitDrop.classList.add("has-image");
+          lsPortraitDrop.innerHTML = `<img src="${escapeHtml(data.url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLipsyncFrame('portrait')">×</button>`;
+        }
         if (typeof updateLipsyncSegmentBadge === "function") updateLipsyncSegmentBadge();
       } else {
         if (typeof switchTab === "function") switchTab("quick");
         state.quickClip.first_frame = data.url;
-        const prev = vmGetEl("quickFirstPreview");
-        if (prev) { prev.src = data.url; prev.style.display = "block"; }
+        const qFirstDrop = vmGetEl("quickFirstFrameDrop");
+        if (qFirstDrop) {
+          qFirstDrop.classList.add("has-image");
+          qFirstDrop.innerHTML = `<img src="${escapeHtml(data.url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetQuickFrame('first')">×</button>`;
+        }
         if (typeof autoMatchResolutionAspect === "function") autoMatchResolutionAspect(data.url);
       }
       if (typeof saveUiState === "function") saveUiState();

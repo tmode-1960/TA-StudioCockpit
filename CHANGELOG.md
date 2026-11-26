@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.48] – 2026-11-26
+### VideoMaker / Gallery Fix
+- **Send Image to VideoMaker Preview:** Fixed `sendImageToVideoMaker` in `web/video_module.js` targeting non-existent `quickFirstPreview`/`lipsyncPortraitPreview` IDs instead of `vm_quickFirstFrameDrop`/`vm_lipsyncPortraitDrop`, so images sent from Gallery, Image Studio, or DiscordGIF now render immediately in the Quick Clip first-frame (and Lipsync portrait) dropzone.
+
 ## [v1.47] – 2026-11-26
 ### Branding & UI
 - **Original Glassmorphic `tA` Logo:** Switched `app.ico`, `web/favicon.ico`, `web/logo.png`, and `assets/branding/logo_tA.png` to the original connected 3D glassmorphic `tA` squircle design.
