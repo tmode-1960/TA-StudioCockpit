@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.56 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.57 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -139,6 +139,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.57:** Rebuilt the distribution package with the updated **`studio-cockpit`** skill (`video adopt-audio`, `video adopt` upload fallback, and corrected `first_frame` / `audio_file` `/api/video/uploads/...` URL docs).
 * **v1.56:** Added the unified **`studio-cockpit`** Antigravity skill (`.agents/skills/studio-cockpit/`) covering **Image Studio**, **VideoMaker**, **MusicMaker**, and **DiscordGIF** (including cross-module pipelines), and bundled it into `dist\tA-Studio-Cockpit\antigravity\skills\` and the release ZIP (`build_dist.bat`).
 * **v1.55:** Bundled the `music-maker` Antigravity skill into `dist\tA-Studio-Cockpit\antigravity\skills\music-maker` and the release ZIP (`build_dist.bat`), with setup instructions in `README.md` for standalone `.exe` users.
 * **v1.54:** Switching to the **History** tab in **MusicMaker** (`web/music/app.js`) now automatically refreshes the song list (`loadHistory()`), and added the `.agents/skills/music-maker/` skill + CLI client for direct `/api/music/*` integration.

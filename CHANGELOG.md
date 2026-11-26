@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.57] – 2026-11-26
+### Antigravity Skill Packaging (`studio-cockpit`)
+- **Updated Bundled `studio-cockpit` Skill:** Included the `video adopt-audio` command, `/api/video/upload_image` fallback in `video adopt`, and corrected `first_frame` / `audio_file` `/api/video/uploads/...` URL documentation in the release build (`dist\tA-Studio-Cockpit\antigravity\skills\studio-cockpit` and release `.zip`).
+
 ## [v1.56] – 2026-11-26
 ### Unified Antigravity Integration (`studio-cockpit` Skill)
 - **All-in-One Studio Skill & CLI:** Added `.agents/skills/studio-cockpit/SKILL.md` and `.agents/skills/studio-cockpit/scripts/cockpit_client.py` to control **Image Studio**, **VideoMaker**, **MusicMaker**, and **DiscordGIF** directly via `/api/*` (including cross-module workflows such as Image → VideoMaker Quick Clip / AI GIF + MusicMaker soundtrack).
