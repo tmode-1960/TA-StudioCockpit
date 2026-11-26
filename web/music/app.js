@@ -3727,6 +3727,8 @@ function showTab(name) {
   });
   if (name === "player") {
     ensurePlayerTabLoaded();
+  } else if (name === "history") {
+    loadHistory();
   }
 }
 

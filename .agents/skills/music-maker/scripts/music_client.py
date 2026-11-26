@@ -24,8 +24,9 @@ def _request(base_url: str, path: str, method: str = "GET", payload: dict | None
         headers["Content-Type"] = "application/json; charset=utf-8"
 
     req = urllib.request.Request(url, data=data, headers=headers, method=method)
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with opener.open(req, timeout=30) as resp:
             raw = resp.read().decode("utf-8")
             return json.loads(raw) if raw else {}
     except urllib.error.HTTPError as exc:

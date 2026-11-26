@@ -2,6 +2,11 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.54] – 2026-11-26
+### MusicMaker & Antigravity Integration
+- **History Tab Auto-Refresh:** Switching to the **History** tab in `web/music/app.js` (`showTab`) now calls `loadHistory()` so songs rendered externally via `/api/music/render` appear immediately without a page reload.
+- **MusicMaker Antigravity Skill:** Added `.agents/skills/music-maker/SKILL.md` and `.agents/skills/music-maker/scripts/music_client.py` to send song briefs, drafts, lyrics, and render jobs directly to Studio Cockpit's `/api/music/*` API.
+
 ## [v1.53] – 2026-11-26
 ### Image Studio UI
 - **Upscale & FX Help Text:** Updated `help_tuning_html` (DE & EN) in `web/app.js` to reference **Upscale & FX** instead of **Upscale** and to mention SeedVR2 upscaling, sharpening, and film grain.
