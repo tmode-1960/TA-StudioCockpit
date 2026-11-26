@@ -1648,7 +1648,7 @@
       if (!item || item.media_type === "video") return;
       closeLightbox();
       if (typeof window.sendImageToVideoMaker === "function") {
-        await window.sendImageToVideoMaker(item.path || item.url, "quick");
+        await window.sendImageToVideoMaker(item.url || item.path, "quick");
       }
     });
 

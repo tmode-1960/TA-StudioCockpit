@@ -5344,8 +5344,11 @@ async function renderMorphClip() {
       }
 
       const mode = targetMode || "quick";
+      const targetTab = mode === "lipsync" ? "lipsync" : "quick";
+      const tabBtn = document.querySelector(`#vm_tabs button[data-tab="${targetTab}"]`);
+      if (tabBtn) tabBtn.click();
+
       if (mode === "lipsync") {
-        if (typeof switchTab === "function") switchTab("lipsync");
         state.lipsync.portrait_image = data.url;
         const lsPortraitDrop = vmGetEl("lipsyncPortraitDrop");
         if (lsPortraitDrop) {
@@ -5354,7 +5357,6 @@ async function renderMorphClip() {
         }
         if (typeof updateLipsyncSegmentBadge === "function") updateLipsyncSegmentBadge();
       } else {
-        if (typeof switchTab === "function") switchTab("quick");
         state.quickClip.first_frame = data.url;
         const qFirstDrop = vmGetEl("quickFirstFrameDrop");
         if (qFirstDrop) {

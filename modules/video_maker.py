@@ -856,10 +856,20 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
         if os.path.isfile(url_or_path) and any(_is_path_within(b, url_or_path) for b in allowed_bases):
             src_path = os.path.realpath(url_or_path)
         else:
-            # Resolve /output/... or /api/gallery/file?... or /view?...
+            # Resolve /output/... or /api/gallery/media?... or /view?...
             parsed_ref = urllib.parse.urlparse(url_or_path)
             qs = urllib.parse.parse_qs(parsed_ref.query)
-            if "path" in qs:
+            if "root" in qs and "path" in qs:
+                try:
+                    from modules import gallery_indexer
+                    idx = gallery_indexer._get_indexer(qs["root"][0])
+                    if idx is not None:
+                        cand_gal = idx.resolve_safe_path(qs["path"][0])
+                        if cand_gal and os.path.isfile(cand_gal):
+                            src_path = cand_gal
+                except Exception:
+                    pass
+            elif "path" in qs:
                 cand_q = qs["path"][0]
                 if os.path.isfile(cand_q) and any(_is_path_within(b, cand_q) for b in allowed_bases):
                     src_path = os.path.realpath(cand_q)
@@ -877,6 +887,13 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
                         if _is_path_within(base, cand) and os.path.isfile(cand):
                             src_path = cand
                             break
+            if not src_path and not parsed_ref.scheme and not url_or_path.startswith("/"):
+                rel_clean = url_or_path.lstrip("/\\")
+                for base in allowed_bases:
+                    cand = os.path.normpath(os.path.join(base, rel_clean))
+                    if _is_path_within(base, cand) and os.path.isfile(cand):
+                        src_path = cand
+                        break
         if not src_path or not os.path.isfile(src_path):
             _send_json(handler, {"error": "Source image not found on disk"}, status=404)
             return True
