@@ -153,8 +153,10 @@ def main() -> None:
     sub_vid.add_parser("status", help="GET /api/video/status")
     sub_vid.add_parser("job", help="GET /api/video/jobs/active")
     sub_vid.add_parser("media", help="GET /api/video/media")
-    p_adopt = sub_vid.add_parser("adopt", help="POST /api/video/adopt_studio_image")
+    p_adopt = sub_vid.add_parser("adopt", help="Adopt Studio image URL or local path into VideoMaker uploads")
     p_adopt.add_argument("image_url", help="Studio image URL (e.g. /output/...) or path")
+    p_adopt_audio = sub_vid.add_parser("adopt-audio", help="Upload MusicMaker URL or local audio file into VideoMaker uploads")
+    p_adopt_audio.add_argument("audio_ref", help="MusicMaker URL (e.g. /api/music/view?...) or local audio file path")
     for vcmd in ("quick", "long", "scene"):
         pv = sub_vid.add_parser(vcmd, help=f"POST /api/video/render_{vcmd}")
         _add_payload_args(pv)
@@ -237,6 +239,19 @@ def main() -> None:
                     b64 = base64.b64encode(raw).decode("ascii")
                     fname = os.path.basename(urllib.parse.urlparse(ref).path) or f"frame_{int(time.time())}.png"
                     out = _request(base_url, "/api/video/upload_image", method="POST", payload={"image_base64": b64, "filename": fname})
+        elif args.cmd == "adopt-audio":
+            ref = args.audio_ref
+            if os.path.isfile(ref):
+                with open(ref, "rb") as fh:
+                    b64 = base64.b64encode(fh.read()).decode("ascii")
+                fname = os.path.basename(ref)
+            else:
+                raw = _fetch_bytes(base_url, ref, timeout=60.0)
+                b64 = base64.b64encode(raw).decode("ascii")
+                parsed_ref = urllib.parse.urlparse(ref)
+                qs = urllib.parse.parse_qs(parsed_ref.query)
+                fname = os.path.basename((qs.get("filename") or [""])[0] or parsed_ref.path) or f"audio_{int(time.time())}.flac"
+            out = _request(base_url, "/api/video/upload_audio", method="POST", payload={"audio_base64": b64, "filename": fname})
         elif args.cmd in ("quick", "long", "scene"):
             ep = {"quick": "render_quick", "long": "render_long_clip", "scene": "render_scene"}[args.cmd]
             out = _request(base_url, f"/api/video/{ep}", method="POST", payload=_load_payload(args), timeout=args.timeout)
