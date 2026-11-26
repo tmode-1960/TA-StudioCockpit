@@ -1626,18 +1626,13 @@
         const resp = await fetch(item.url);
         const blob = await resp.blob();
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
           closeLightbox();
-          if (typeof window.switchStudioModule === "function") {
+          if (typeof window.sendImageToDiscordGif === "function") {
+            await window.sendImageToDiscordGif(e.target.result);
+          } else if (typeof window.switchStudioModule === "function") {
             window.switchStudioModule("gif");
           }
-          setTimeout(() => {
-            const gifImg = $("gifAiSourcePreview");
-            if (gifImg) {
-              gifImg.src = e.target.result;
-              gifImg.style.display = "block";
-            }
-          }, 120);
         };
         reader.readAsDataURL(blob);
       } catch (_) {}

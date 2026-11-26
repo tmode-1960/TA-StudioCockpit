@@ -4683,10 +4683,17 @@ input[type="range"] {
   font-weight: 600;
   color: var(--mute);
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 6px;
+  gap: 4px 6px;
   min-height: 24px;
+
+}
+
+.studio-layout-video .frame-box-label:has(> div) > span:first-child {
+
+  flex: 1 1 100%;
 
 }
 

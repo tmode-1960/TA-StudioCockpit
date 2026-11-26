@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.50 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.51 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -138,6 +138,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.51:** Fixed `.frame-box-label` wrapping for VideoMaker's Start Frame label (`web/style.css`) and wired Gallery's **DiscordGIF** button (`web/gallery_module.js`, `web/gif_module.js`) to open the **AI GIF** tab with the selected image loaded.
 * **v1.50:** `sendImageToVideoMaker` (`web/video_module.js`) now populates both the **Quick Clip** and **Long Clip** first-frame slots simultaneously when sending an image to VideoMaker.
 * **v1.49:** Fixed `sendImageToVideoMaker` not switching to the **Quick Clip** tab (`#vm_tabs button[data-tab="quick"]`) and updated `/api/video/adopt_studio_image` + Gallery Lightbox (`web/gallery_module.js`, `modules/video_maker.py`) to resolve `/api/gallery/media?root=...&path=...` and relative gallery paths.
 * **v1.48:** Fixed `sendImageToVideoMaker` in `web/video_module.js` so images sent from Gallery, Image Studio, or DiscordGIF render immediately in the **Quick Clip** first-frame (and **Lipsync** portrait) dropzone.

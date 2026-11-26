@@ -2,6 +2,11 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.51] – 2026-11-26
+### UI & Gallery Fixes
+- **Long Clip Start Frame Label Layout:** Allowed `.studio-layout-video .frame-box-label` in `web/style.css` to wrap cleanly so the Start Frame label sits on its own line above the `Image→Prompt` / `H3 Image` buttons instead of squeezing into 4 narrow lines.
+- **Gallery → DiscordGIF AI GIF Tab:** Added `window.sendImageToDiscordGif` in `web/gif_module.js` and wired `btnGalLbGif` in `web/gallery_module.js` to initialize DiscordGIF, switch directly to the **AI GIF** tab, and load the image into the AI-GIF dropzone.
+
 ## [v1.50] – 2026-11-26
 ### VideoMaker
 - **Quick Clip & Long Clip First Frame Sync:** Sending an image to VideoMaker (`sendImageToVideoMaker` in `web/video_module.js`) now populates both **Quick Clip** (`vm_quickFirstFrameDrop`) and **Long Clip** (`vm_longFirstFrameDrop`) first-frame slots simultaneously while opening the Quick Clip tab.

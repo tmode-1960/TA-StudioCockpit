@@ -966,6 +966,17 @@
       } catch (_) {}
     });
 
+    window.sendImageToDiscordGif = async function (dataUrl) {
+      if (!dataUrl) return;
+      if (typeof window.switchStudioModule === "function") {
+        window.switchStudioModule("gif");
+      }
+      await initGifModule();
+      switchGifSource("ai");
+      setAiSourceImage(dataUrl, "", "adopted_label");
+      notify(gt("msg_adopted"), "success");
+    };
+
     $("btnSendToDiscordGif")?.addEventListener("click", async () => {
       const mainImg = $("mainPreview");
       const cmpImg = $("compareAfterImg");
@@ -980,11 +991,7 @@
         const blob = await resp.blob();
         const reader = new FileReader();
         reader.onload = async (e) => {
-          switchStudioModule("gif");
-          await initGifModule();
-          switchGifSource("ai");
-          setAiSourceImage(e.target.result, "", "adopted_label");
-          notify(gt("msg_adopted"), "success");
+          await window.sendImageToDiscordGif(e.target.result);
         };
         reader.readAsDataURL(blob);
       } catch (_) {
