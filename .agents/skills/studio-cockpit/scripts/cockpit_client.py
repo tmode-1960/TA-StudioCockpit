@@ -224,7 +224,19 @@ def main() -> None:
         elif args.cmd == "media":
             out = _request(base_url, "/api/video/media")
         elif args.cmd == "adopt":
-            out = _request(base_url, "/api/video/adopt_studio_image", method="POST", payload={"image_url": args.image_url})
+            ref = args.image_url
+            if os.path.isfile(ref):
+                with open(ref, "rb") as fh:
+                    b64 = base64.b64encode(fh.read()).decode("ascii")
+                out = _request(base_url, "/api/video/upload_image", method="POST", payload={"image_base64": b64, "filename": os.path.basename(ref)})
+            else:
+                try:
+                    out = _request(base_url, "/api/video/adopt_studio_image", method="POST", payload={"url": ref})
+                except SystemExit:
+                    raw = _fetch_bytes(base_url, ref)
+                    b64 = base64.b64encode(raw).decode("ascii")
+                    fname = os.path.basename(urllib.parse.urlparse(ref).path) or f"frame_{int(time.time())}.png"
+                    out = _request(base_url, "/api/video/upload_image", method="POST", payload={"image_base64": b64, "filename": fname})
         elif args.cmd in ("quick", "long", "scene"):
             ep = {"quick": "render_quick", "long": "render_long_clip", "scene": "render_scene"}[args.cmd]
             out = _request(base_url, f"/api/video/{ep}", method="POST", payload=_load_payload(args), timeout=args.timeout)
