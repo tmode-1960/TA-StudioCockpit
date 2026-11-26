@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.59] – 2026-11-26
+### Auto-Updater PowerShell Replacement
+- **Replace Batch Updater with Silent PowerShell:** Replaced `cmd /c apply_update.bat` (`tasklist | find`) in `modules/updater.py` with a hidden PowerShell script (`apply_update.ps1` using `Wait-Process`, `Stop-Process`, `Copy-Item`, and `Start-Process`) launched with `DEVNULL` stdio and `SW_HIDE` so Windows 11 Terminal never pops up or hangs on `find`.
+
 ## [v1.58] – 2026-11-26
 ### Auto-Updater Fixes
 - **Clean Process Exit on Update:** Fixed `_request_app_exit()` in `server.py` so the HTTP server and Python process always shut down (`httpd.shutdown()` + `os._exit(0)`) after destroying the WebView window, preventing `apply_update.bat` from hanging while waiting for the PID to exit.

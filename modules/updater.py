@@ -196,13 +196,17 @@ def check_for_updates(force: bool = False) -> dict:
     return payload
 
 
-def _sanitize_cli_args_for_batch(argv: list[str]) -> str:
-    """Return safely quoted CLI arguments for batch relaunch, stripping unsafe shell characters."""
-    safe_args = [
+def _ps_quote(val: str) -> str:
+    """Wrap a string safely in PowerShell single quotes."""
+    return "'" + str(val).replace("'", "''") + "'"
+
+
+def _sanitize_cli_args_for_ps(argv: list[str]) -> list[str]:
+    """Return safely filtered CLI arguments for PowerShell Start-Process."""
+    return [
         a for a in argv
         if isinstance(a, str) and re.fullmatch(r"[A-Za-z0-9_.:/\\=-]+", a)
     ]
-    return " ".join(f'"{a}"' for a in safe_args)
 
 
 def _set_install_state(**kwargs) -> None:
@@ -309,46 +313,54 @@ def _run_install_worker(info: dict) -> None:
         app_exe = os.path.abspath(sys.executable)
         app_dir = os.path.dirname(app_exe)
         pid = os.getpid()
-        cli_args = _sanitize_cli_args_for_batch(sys.argv[1:])
+        cli_args = _sanitize_cli_args_for_ps(sys.argv[1:])
+        arg_list_line = (
+            f"$argList = @({', '.join(_ps_quote(a) for a in cli_args)})\r\n"
+            "$startParams = @{ FilePath = $exe; WorkingDirectory = $dst; ArgumentList = $argList }"
+            if cli_args
+            else "$startParams = @{ FilePath = $exe; WorkingDirectory = $dst }"
+        )
 
-        bat_path = os.path.join(staging_dir, "apply_update.bat")
+        ps_path = os.path.join(staging_dir, "apply_update.ps1")
         # Wait for current PID to exit, copy updated files (preserving data/config.json), relaunch, cleanup
-        bat_lines = [
-            "@echo off",
-            "setlocal enabledelayedexpansion",
-            "chcp 65001 >nul",
-            f"set \"PID={pid}\"",
-            f"set \"SRC={payload_dir}\"",
-            f"set \"DST={app_dir}\"",
-            f"set \"EXE={app_exe}\"",
-            f"set \"STAGING={staging_dir}\"",
-            "for /L %%i in (1,1,10) do (",
-            "    tasklist /FI \"PID eq %PID%\" /NH 2>nul | find \"%PID%\" >nul",
-            "    if errorlevel 1 goto :do_copy",
-            "    timeout /t 1 /nobreak >nul",
-            ")",
-            "taskkill /F /PID %PID% /T >nul 2>&1",
-            "timeout /t 1 /nobreak >nul",
-            ":do_copy",
-            "timeout /t 1 /nobreak >nul",
-            "for /L %%r in (1,1,8) do (",
-            "    copy /y \"%SRC%\\StudioCockpit.exe\" \"%EXE%\" >nul 2>&1",
-            "    if not errorlevel 1 goto :copied_exe",
-            "    timeout /t 1 /nobreak >nul",
-            ")",
-            ":copied_exe",
-            "if exist \"%SRC%\\README.md\" copy /y \"%SRC%\\README.md\" \"%DST%\\README.md\" >nul 2>&1",
-            "if exist \"%SRC%\\data\\config.example.json\" (",
-            "    if not exist \"%DST%\\data\" mkdir \"%DST%\\data\" >nul 2>&1",
-            "    copy /y \"%SRC%\\data\\config.example.json\" \"%DST%\\data\\config.example.json\" >nul 2>&1",
-            ")",
-            f"start \"\" \"%EXE%\" {cli_args}".strip(),
-            "timeout /t 2 /nobreak >nul",
-            "rmdir /s /q \"%STAGING%\" >nul 2>&1",
-            "exit /b 0",
-        ]
-        with open(bat_path, "w", encoding="utf-8", newline="\r\n") as bfh:
-            bfh.write("\r\n".join(bat_lines) + "\r\n")
+        ps_script = (
+            "$ErrorActionPreference = 'SilentlyContinue'\r\n"
+            f"$targetPid = {pid}\r\n"
+            f"$src = {_ps_quote(payload_dir)}\r\n"
+            f"$dst = {_ps_quote(app_dir)}\r\n"
+            f"$exe = {_ps_quote(app_exe)}\r\n"
+            f"$staging = {_ps_quote(staging_dir)}\r\n"
+            "Wait-Process -Id $targetPid -Timeout 10 -ErrorAction SilentlyContinue\r\n"
+            "Stop-Process -Id $targetPid -Force -ErrorAction SilentlyContinue\r\n"
+            "Start-Sleep -Milliseconds 500\r\n"
+            "$srcExe = Join-Path $src 'StudioCockpit.exe'\r\n"
+            "for ($r = 0; $r -lt 10; $r++) {\r\n"
+            "    try {\r\n"
+            "        Copy-Item -LiteralPath $srcExe -Destination $exe -Force -ErrorAction Stop\r\n"
+            "        break\r\n"
+            "    } catch {\r\n"
+            "        Start-Sleep -Milliseconds 700\r\n"
+            "    }\r\n"
+            "}\r\n"
+            "$srcReadme = Join-Path $src 'README.md'\r\n"
+            "if (Test-Path -LiteralPath $srcReadme) {\r\n"
+            "    Copy-Item -LiteralPath $srcReadme -Destination (Join-Path $dst 'README.md') -Force -ErrorAction SilentlyContinue\r\n"
+            "}\r\n"
+            "$srcCfgEx = Join-Path $src 'data\\config.example.json'\r\n"
+            "if (Test-Path -LiteralPath $srcCfgEx) {\r\n"
+            "    $dstData = Join-Path $dst 'data'\r\n"
+            "    if (-not (Test-Path -LiteralPath $dstData)) {\r\n"
+            "        New-Item -ItemType Directory -Path $dstData -Force | Out-Null\r\n"
+            "    }\r\n"
+            "    Copy-Item -LiteralPath $srcCfgEx -Destination (Join-Path $dstData 'config.example.json') -Force -ErrorAction SilentlyContinue\r\n"
+            "}\r\n"
+            f"{arg_list_line}\r\n"
+            "Start-Process @startParams\r\n"
+            "Start-Sleep -Seconds 2\r\n"
+            "Remove-Item -LiteralPath $staging -Recurse -Force -ErrorAction SilentlyContinue\r\n"
+        )
+        with open(ps_path, "w", encoding="utf-8-sig", newline="") as pfh:
+            pfh.write(ps_script)
 
         creation_flags = (
             getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
@@ -358,7 +370,20 @@ def _run_install_worker(info: dict) -> None:
         startupinfo.dwFlags |= getattr(subprocess, "STARTF_USESHOWWINDOW", 0)
         startupinfo.wShowWindow = 0  # SW_HIDE
         subprocess.Popen(
-            ["cmd", "/c", bat_path],
+            [
+                "powershell.exe",
+                "-NoProfile",
+                "-NonInteractive",
+                "-WindowStyle",
+                "Hidden",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                ps_path,
+            ],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
             close_fds=True,
             creationflags=creation_flags,
             startupinfo=startupinfo,
