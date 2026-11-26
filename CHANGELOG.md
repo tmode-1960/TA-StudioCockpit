@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.47] – 2026-11-26
+### Branding & UI
+- **Original Glassmorphic `tA` Logo:** Switched `app.ico`, `web/favicon.ico`, `web/logo.png`, and `assets/branding/logo_tA.png` to the original connected 3D glassmorphic `tA` squircle design.
+
 ## [v1.46] – 2026-11-25
 ### Branding & UI
 - **New `tA` App Icon & Header Logo:** Replaced the placeholder palette emoji and legacy icon with a sharp, 3D glassmorphic `tA` squircle logo across `app.ico`, `web/favicon.ico`, `web/logo.png`, and the top navigation bar (`web/index.html`, `web/style.css`), and bundled `web/logo.png` in `StudioCockpit.spec` for the standalone `.exe`.
