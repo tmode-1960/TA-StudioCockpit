@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.50] – 2026-11-26
+### VideoMaker
+- **Quick Clip & Long Clip First Frame Sync:** Sending an image to VideoMaker (`sendImageToVideoMaker` in `web/video_module.js`) now populates both **Quick Clip** (`vm_quickFirstFrameDrop`) and **Long Clip** (`vm_longFirstFrameDrop`) first-frame slots simultaneously while opening the Quick Clip tab.
+
 ## [v1.49] – 2026-11-26
 ### VideoMaker / Gallery Fix
 - **Auto-Switch to Quick Clip & Gallery Media Resolution:** Fixed `sendImageToVideoMaker` in `web/video_module.js` calling a non-existent `switchTab()` instead of clicking `#vm_tabs button[data-tab="quick"]`, switched Gallery's VideoMaker button (`web/gallery_module.js`) to pass `item.url || item.path`, and updated `/api/video/adopt_studio_image` in `modules/video_maker.py` to resolve `/api/gallery/media?root=...&path=...` and relative paths via `gallery_indexer`.

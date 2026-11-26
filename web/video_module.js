@@ -5348,21 +5348,22 @@ async function renderMorphClip() {
       const tabBtn = document.querySelector(`#vm_tabs button[data-tab="${targetTab}"]`);
       if (tabBtn) tabBtn.click();
 
+      const setFrameDropzone = (dropId, url, resetCall) => {
+        const drop = vmGetEl(dropId);
+        if (!drop) return;
+        drop.classList.add("has-image");
+        drop.innerHTML = `<img src="${escapeHtml(url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); ${resetCall}">×</button>`;
+      };
+
       if (mode === "lipsync") {
         state.lipsync.portrait_image = data.url;
-        const lsPortraitDrop = vmGetEl("lipsyncPortraitDrop");
-        if (lsPortraitDrop) {
-          lsPortraitDrop.classList.add("has-image");
-          lsPortraitDrop.innerHTML = `<img src="${escapeHtml(data.url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetLipsyncFrame('portrait')">×</button>`;
-        }
+        setFrameDropzone("lipsyncPortraitDrop", data.url, "resetLipsyncFrame('portrait')");
         if (typeof updateLipsyncSegmentBadge === "function") updateLipsyncSegmentBadge();
       } else {
         state.quickClip.first_frame = data.url;
-        const qFirstDrop = vmGetEl("quickFirstFrameDrop");
-        if (qFirstDrop) {
-          qFirstDrop.classList.add("has-image");
-          qFirstDrop.innerHTML = `<img src="${escapeHtml(data.url)}"><button class="btn-remove-frame" onclick="event.stopPropagation(); resetQuickFrame('first')">×</button>`;
-        }
+        setFrameDropzone("quickFirstFrameDrop", data.url, "resetQuickFrame('first')");
+        state.longClip.first_frame = data.url;
+        setFrameDropzone("longFirstFrameDrop", data.url, "resetLongFrame('first')");
         if (typeof autoMatchResolutionAspect === "function") autoMatchResolutionAspect(data.url);
       }
       if (typeof saveUiState === "function") saveUiState();
