@@ -2,6 +2,11 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.60] – 2026-11-26
+### Auto-Updater PyInstaller Relaunch Fix
+- **Strip Inherited PyInstaller Environment on Relaunch:** Cleared `_MEIPASS*` and `_PYI_*` environment variables both in `subprocess.Popen(..., env=clean_env)` and inside `apply_update.ps1` in `modules/updater.py` so the newly launched `StudioCockpit.exe` unpacks its own temporary `_MEI` directory instead of failing with `Failed to load Python DLL`.
+- **Suppress Update-Time Fetch Toasts Immediately:** Set `window.__studioUpdating = true` in `web/app.js` as soon as the user clicks **Install now** (clearing it only on an actual start error).
+
 ## [v1.59] – 2026-11-26
 ### Auto-Updater PowerShell Replacement
 - **Replace Batch Updater with Silent PowerShell:** Replaced `cmd /c apply_update.bat` (`tasklist | find`) in `modules/updater.py` with a hidden PowerShell script (`apply_update.ps1` using `Wait-Process`, `Stop-Process`, `Copy-Item`, and `Start-Process`) launched with `DEVNULL` stdio and `SW_HIDE` so Windows 11 Terminal never pops up or hangs on `find`.

@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.59 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.60 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -139,6 +139,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.60:** Fixed PyInstaller `--onefile` auto-update relaunch (`Failed to load Python DLL`) by stripping inherited `_MEIPASS*` / `_PYI_*` environment variables in `modules/updater.py`, and suppressed transient `"Failed to fetch"` toasts as soon as update installation begins (`web/app.js`).
 * **v1.59:** Replaced the Windows batch auto-updater (`cmd /c` + `tasklist | find`) in `modules/updater.py` with a silent PowerShell script (`Wait-Process`, `Copy-Item`, `Start-Process`) so Windows Terminal never pops up or hangs during updates.
 * **v1.58:** Fixed the Windows auto-updater (`server.py`, `modules/updater.py`, `web/app.js`) to cleanly terminate the app process after closing the WebView window, run `apply_update.bat` silently without opening a visible terminal window (with a `taskkill` fallback), and suppress transient `"Failed to fetch"` error toasts during restart.
 * **v1.57:** Rebuilt the distribution package with the updated **`studio-cockpit`** skill (`video adopt-audio`, `video adopt` upload fallback, and corrected `first_frame` / `audio_file` `/api/video/uploads/...` URL docs).

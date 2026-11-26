@@ -8369,6 +8369,7 @@
     }
     if (btnInstall) {
       btnInstall.addEventListener("click", async () => {
+        window.__studioUpdating = true;
         btnInstall.disabled = true;
         if (btnDismiss) btnDismiss.disabled = true;
         if (elProgressWrap) elProgressWrap.style.display = "";
@@ -8385,6 +8386,7 @@
           pollTimer = setInterval(pollInstallStatus, 400);
           pollInstallStatus();
         } catch (err) {
+          window.__studioUpdating = false;
           btnInstall.disabled = false;
           if (btnDismiss) btnDismiss.disabled = false;
           if (elProgressWrap) elProgressWrap.style.display = "none";

@@ -355,6 +355,8 @@ def _run_install_worker(info: dict) -> None:
             "    Copy-Item -LiteralPath $srcCfgEx -Destination (Join-Path $dstData 'config.example.json') -Force -ErrorAction SilentlyContinue\r\n"
             "}\r\n"
             f"{arg_list_line}\r\n"
+            "Remove-Item Env:_MEIPASS* -ErrorAction SilentlyContinue\r\n"
+            "Remove-Item Env:_PYI_* -ErrorAction SilentlyContinue\r\n"
             "Start-Process @startParams\r\n"
             "Start-Sleep -Seconds 2\r\n"
             "Remove-Item -LiteralPath $staging -Recurse -Force -ErrorAction SilentlyContinue\r\n"
@@ -362,6 +364,10 @@ def _run_install_worker(info: dict) -> None:
         with open(ps_path, "w", encoding="utf-8-sig", newline="") as pfh:
             pfh.write(ps_script)
 
+        clean_env = {
+            k: v for k, v in os.environ.items()
+            if not k.upper().startswith(("_MEIPASS", "_PYI_"))
+        }
         creation_flags = (
             getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
             | getattr(subprocess, "CREATE_NO_WINDOW", 0)
@@ -381,6 +387,7 @@ def _run_install_worker(info: dict) -> None:
                 "-File",
                 ps_path,
             ],
+            env=clean_env,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
