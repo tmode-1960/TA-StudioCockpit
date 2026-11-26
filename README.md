@@ -149,6 +149,10 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 * **v1.51:** Fixed `.frame-box-label` wrapping for VideoMaker's Start Frame label (`web/style.css`) and wired Gallery's **DiscordGIF** button (`web/gallery_module.js`, `web/gif_module.js`) to open the **AI GIF** tab with the selected image loaded.
 * **v1.50:** `sendImageToVideoMaker` (`web/video_module.js`) now populates both the **Quick Clip** and **Long Clip** first-frame slots simultaneously when sending an image to VideoMaker.
 * **v1.49:** Fixed `sendImageToVideoMaker` not switching to the **Quick Clip** tab (`#vm_tabs button[data-tab="quick"]`) and updated `/api/video/adopt_studio_image` + Gallery Lightbox (`web/gallery_module.js`, `modules/video_maker.py`) to resolve `/api/gallery/media?root=...&path=...` and relative gallery paths.
+
+<details>
+<summary>Older releases (v1.21 – v1.48)</summary>
+
 * **v1.48:** Fixed `sendImageToVideoMaker` in `web/video_module.js` so images sent from Gallery, Image Studio, or DiscordGIF render immediately in the **Quick Clip** first-frame (and **Lipsync** portrait) dropzone.
 * **v1.47:** Switched `app.ico`, `web/favicon.ico`, `web/logo.png`, and `assets/branding/logo_tA.png` to the original connected 3D glassmorphic **`tA` squircle logo**.
 * **v1.46:** Replaced the placeholder palette emoji and legacy icon with the new sharp 3D glassmorphic **`tA` App Logo** (`app.ico`, `web/favicon.ico`, `web/logo.png`, `web/index.html`, `web/style.css`, bundled in `StudioCockpit.spec`).
@@ -169,6 +173,8 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 * **v1.30:** Resolved wired text nodes and `UnetLoaderGGUF` in gallery metadata.
 * **v1.23–v1.29:** Persisted active studio module, explicit permanent delete buttons, gallery shortcuts modal, themed delete confirmation modal, user-only custom folders in sidebar, selectable Lightbox prompt text, LLM/I2I sidecar prompt extraction, and auto-contrast text overlays.
 * **v1.21–v1.22:** Security hardening (path traversal, Zip-Slip, command/filter injection, `Host`/`Origin` validation, `ALLOWED_CONFIG_KEYS` whitelist, download caps) and repository cleanup.
+
+</details>
 
 👉 Full history: [CHANGELOG.md](CHANGELOG.md)
 

@@ -48,6 +48,9 @@ All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 ### VideoMaker / Gallery Fix
 - **Auto-Switch to Quick Clip & Gallery Media Resolution:** Fixed `sendImageToVideoMaker` in `web/video_module.js` calling a non-existent `switchTab()` instead of clicking `#vm_tabs button[data-tab="quick"]`, switched Gallery's VideoMaker button (`web/gallery_module.js`) to pass `item.url || item.path`, and updated `/api/video/adopt_studio_image` in `modules/video_maker.py` to resolve `/api/gallery/media?root=...&path=...` and relative paths via `gallery_indexer`.
 
+<details>
+<summary>Older releases (v1.10 – v1.48)</summary>
+
 ## [v1.48] – 2026-11-26
 ### VideoMaker / Gallery Fix
 - **Send Image to VideoMaker Preview:** Fixed `sendImageToVideoMaker` in `web/video_module.js` targeting non-existent `quickFirstPreview`/`lipsyncPortraitPreview` IDs instead of `vm_quickFirstFrameDrop`/`vm_lipsyncPortraitDrop`, so images sent from Gallery, Image Studio, or DiscordGIF now render immediately in the Quick Clip first-frame (and Lipsync portrait) dropzone.
@@ -210,3 +213,5 @@ All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
 ## [v1.10]
 - Fixed MusicMaker DE/EN localization and studio sync.
+
+</details>
