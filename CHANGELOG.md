@@ -2,6 +2,12 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.58] – 2026-11-26
+### Auto-Updater Fixes
+- **Clean Process Exit on Update:** Fixed `_request_app_exit()` in `server.py` so the HTTP server and Python process always shut down (`httpd.shutdown()` + `os._exit(0)`) after destroying the WebView window, preventing `apply_update.bat` from hanging while waiting for the PID to exit.
+- **Silent Windows Update Launcher & Fallback:** Updated `modules/updater.py` to launch `apply_update.bat` hidden (`CREATE_NO_WINDOW` + `SW_HIDE`, without `DETACHED_PROCESS`) so no Windows Terminal window pops up, and added a `taskkill /F /PID ... /T` fallback after 10 seconds.
+- **Suppress Restart Fetch Toasts:** Set `window.__studioUpdating = true` in `web/app.js` when the updater enters `restarting` state so transient `"Failed to fetch"` error toasts are suppressed during server shutdown.
+
 ## [v1.57] – 2026-11-26
 ### Antigravity Skill Packaging (`studio-cockpit`)
 - **Updated Bundled `studio-cockpit` Skill:** Included the `video adopt-audio` command, `/api/video/upload_image` fallback in `video adopt`, and corrected `first_frame` / `audio_file` `/api/video/uploads/...` URL documentation in the release build (`dist\tA-Studio-Cockpit\antigravity\skills\studio-cockpit` and release `.zip`).

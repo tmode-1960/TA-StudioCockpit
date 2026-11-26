@@ -322,14 +322,16 @@ def _run_install_worker(info: dict) -> None:
             f"set \"DST={app_dir}\"",
             f"set \"EXE={app_exe}\"",
             f"set \"STAGING={staging_dir}\"",
-            "for /L %%i in (1,1,25) do (",
-            "    tasklist /FI \"PID eq %PID%\" 2>nul | find /I \"%PID%\" >nul",
+            "for /L %%i in (1,1,10) do (",
+            "    tasklist /FI \"PID eq %PID%\" /NH 2>nul | find \"%PID%\" >nul",
             "    if errorlevel 1 goto :do_copy",
             "    timeout /t 1 /nobreak >nul",
             ")",
+            "taskkill /F /PID %PID% /T >nul 2>&1",
+            "timeout /t 1 /nobreak >nul",
             ":do_copy",
             "timeout /t 1 /nobreak >nul",
-            "for /L %%r in (1,1,5) do (",
+            "for /L %%r in (1,1,8) do (",
             "    copy /y \"%SRC%\\StudioCockpit.exe\" \"%EXE%\" >nul 2>&1",
             "    if not errorlevel 1 goto :copied_exe",
             "    timeout /t 1 /nobreak >nul",
@@ -350,13 +352,16 @@ def _run_install_worker(info: dict) -> None:
 
         creation_flags = (
             getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
-            | getattr(subprocess, "DETACHED_PROCESS", 0)
             | getattr(subprocess, "CREATE_NO_WINDOW", 0)
         )
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= getattr(subprocess, "STARTF_USESHOWWINDOW", 0)
+        startupinfo.wShowWindow = 0  # SW_HIDE
         subprocess.Popen(
             ["cmd", "/c", bat_path],
             close_fds=True,
             creationflags=creation_flags,
+            startupinfo=startupinfo,
         )
 
         _set_install_state(

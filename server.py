@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.57"
+APP_VERSION = "1.58"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -5031,11 +5031,12 @@ def main():
                 import webview
                 if webview.windows:
                     webview.windows[0].destroy()
-                    return
+                    time.sleep(0.15)
         except Exception:
             pass
         try:
-            httpd.shutdown()
+            threading.Thread(target=httpd.shutdown, daemon=True).start()
+            time.sleep(0.15)
         except Exception:
             pass
         os._exit(0)

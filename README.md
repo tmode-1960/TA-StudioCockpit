@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.57 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.58 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -139,6 +139,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.58:** Fixed the Windows auto-updater (`server.py`, `modules/updater.py`, `web/app.js`) to cleanly terminate the app process after closing the WebView window, run `apply_update.bat` silently without opening a visible terminal window (with a `taskkill` fallback), and suppress transient `"Failed to fetch"` error toasts during restart.
 * **v1.57:** Rebuilt the distribution package with the updated **`studio-cockpit`** skill (`video adopt-audio`, `video adopt` upload fallback, and corrected `first_frame` / `audio_file` `/api/video/uploads/...` URL docs).
 * **v1.56:** Added the unified **`studio-cockpit`** Antigravity skill (`.agents/skills/studio-cockpit/`) covering **Image Studio**, **VideoMaker**, **MusicMaker**, and **DiscordGIF** (including cross-module pipelines), and bundled it into `dist\tA-Studio-Cockpit\antigravity\skills\` and the release ZIP (`build_dist.bat`).
 * **v1.55:** Bundled the `music-maker` Antigravity skill into `dist\tA-Studio-Cockpit\antigravity\skills\music-maker` and the release ZIP (`build_dist.bat`), with setup instructions in `README.md` for standalone `.exe` users.

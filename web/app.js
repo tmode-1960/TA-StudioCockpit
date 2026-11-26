@@ -5937,6 +5937,7 @@
 
   // Toast notifications helper
   function showToast(message, type = "info", duration = 4000) {
+    if (window.__studioUpdating && type === "error") return;
     if (!toastContainer) return;
     const toast = document.createElement("div");
     toast.className = `toast-msg ${type}`;
@@ -8331,6 +8332,7 @@
         if (elProgressText) elProgressText.textContent = st.message || t("update_installing", "Installiere…");
 
         if (st.status === "restarting") {
+          window.__studioUpdating = true;
           if (pollTimer) {
             clearInterval(pollTimer);
             pollTimer = null;
