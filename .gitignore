@@ -28,3 +28,6 @@ ta_model_choices.json
 ta_model_presets.json
 ta_sampler_presets.json
 ta_smart_llm_models.json
+
+# Lokale Antigravity Workspace-Regeln (nicht im oeffentlichen Repo)
+.agents/rules/
