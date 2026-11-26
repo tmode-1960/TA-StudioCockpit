@@ -1,9 +1,0 @@
-{
-  "gif_dir": "",
-  "paste_mode": "file",
-  "auto_send": false,
-  "tenor_api_key": "",
-  "comfyui_url": "http://127.0.0.1:8188",
-  "comfyui_dir": "",
-  "ai_workflow": "minimax_h3"
-}

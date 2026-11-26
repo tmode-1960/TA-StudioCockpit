@@ -9,6 +9,7 @@ dist/
 
 # Nutzerspezifische Konfigurations- und Cache-Dateien – nicht durch Updates ueberschreiben
 data/config.json
+data/gif_config.json
 data/webview/
 data/gallery_cache/
 data/loras_cache.json
