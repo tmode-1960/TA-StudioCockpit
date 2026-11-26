@@ -3,19 +3,11 @@
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
 ## [v1.60] – 2026-11-26
-### Auto-Updater PyInstaller Relaunch Fix
-- **Strip Inherited PyInstaller Environment on Relaunch:** Cleared `_MEIPASS*` and `_PYI_*` environment variables both in `subprocess.Popen(..., env=clean_env)` and inside `apply_update.ps1` in `modules/updater.py` so the newly launched `StudioCockpit.exe` unpacks its own temporary `_MEI` directory instead of failing with `Failed to load Python DLL`.
-- **Suppress Update-Time Fetch Toasts Immediately:** Set `window.__studioUpdating = true` in `web/app.js` as soon as the user clicks **Install now** (clearing it only on an actual start error).
-
-## [v1.59] – 2026-11-26
-### Auto-Updater PowerShell Replacement
-- **Replace Batch Updater with Silent PowerShell:** Replaced `cmd /c apply_update.bat` (`tasklist | find`) in `modules/updater.py` with a hidden PowerShell script (`apply_update.ps1` using `Wait-Process`, `Stop-Process`, `Copy-Item`, and `Start-Process`) launched with `DEVNULL` stdio and `SW_HIDE` so Windows 11 Terminal never pops up or hangs on `find`.
-
-## [v1.58] – 2026-11-26
-### Auto-Updater Fixes
-- **Clean Process Exit on Update:** Fixed `_request_app_exit()` in `server.py` so the HTTP server and Python process always shut down (`httpd.shutdown()` + `os._exit(0)`) after destroying the WebView window, preventing `apply_update.bat` from hanging while waiting for the PID to exit.
-- **Silent Windows Update Launcher & Fallback:** Updated `modules/updater.py` to launch `apply_update.bat` hidden (`CREATE_NO_WINDOW` + `SW_HIDE`, without `DETACHED_PROCESS`) so no Windows Terminal window pops up, and added a `taskkill /F /PID ... /T` fallback after 10 seconds.
-- **Suppress Restart Fetch Toasts:** Set `window.__studioUpdating = true` in `web/app.js` when the updater enters `restarting` state so transient `"Failed to fetch"` error toasts are suppressed during server shutdown.
+### Windows Auto-Updater Fixes
+- **Clean Process Exit on Update:** Fixed `_request_app_exit()` in `server.py` so the HTTP server and Python process always shut down (`httpd.shutdown()` + `os._exit(0)`) after destroying the WebView window.
+- **Silent PowerShell Updater:** Replaced `cmd /c apply_update.bat` (`tasklist | find`) in `modules/updater.py` with a hidden PowerShell script (`apply_update.ps1` using `Wait-Process`, `Stop-Process`, `Copy-Item`, and `Start-Process`) launched with `DEVNULL` stdio and `SW_HIDE` so Windows 11 Terminal never pops up or hangs.
+- **Clean PyInstaller Relaunch:** Stripped inherited `_MEIPASS*` and `_PYI_*` environment variables both in `subprocess.Popen` and inside `apply_update.ps1` so the updated `StudioCockpit.exe` unpacks its own temporary `_MEI` directory instead of failing with `Failed to load Python DLL`.
+- **Suppress Restart Fetch Toasts:** Set `window.__studioUpdating = true` in `web/app.js` as soon as the user clicks **Install now** so transient `"Failed to fetch"` error toasts are suppressed during server shutdown.
 
 ## [v1.57] – 2026-11-26
 ### Antigravity Skill Packaging (`studio-cockpit`)
