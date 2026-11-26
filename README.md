@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.55 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.56 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -78,7 +78,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 * **5 Tabs:** **Lyrics & Sheet**, **Mastering & Refine**, **Player**, **Results**, and **History**.
 * **Optional RVC Setup:** Configure a custom voice models directory (or use the Applio default) in MusicMaker settings; includes a reference voice-recording guide (`Stimmaufnahme-Vorlage-RVC.pdf`).
-* **Antigravity Skill (`.exe` & Repo):** Repo users get the `music-maker` skill automatically from `.agents/skills/music-maker/`. Standalone `.exe` / release-ZIP users can copy `antigravity\skills\music-maker` into `%USERPROFILE%\.gemini\config\skills\music-maker` (requires Python 3 and a running Studio Cockpit on port `8095`) to send prompts, drafts, lyrics, and render jobs directly from Antigravity.
+* **Antigravity Skills (`.exe` & Repo):** Repo users get both `studio-cockpit` (all 4 modules + cross-module pipelines) and `music-maker` automatically from `.agents/skills/`. Standalone `.exe` / release-ZIP users can copy `antigravity\skills\*` into `%USERPROFILE%\.gemini\config\skills\` (requires Python 3 and a running Studio Cockpit on port `8095`) to control Image Studio, VideoMaker, MusicMaker, and DiscordGIF directly from Antigravity.
 
 </details>
 
@@ -139,6 +139,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.56:** Added the unified **`studio-cockpit`** Antigravity skill (`.agents/skills/studio-cockpit/`) covering **Image Studio**, **VideoMaker**, **MusicMaker**, and **DiscordGIF** (including cross-module pipelines), and bundled it into `dist\tA-Studio-Cockpit\antigravity\skills\` and the release ZIP (`build_dist.bat`).
 * **v1.55:** Bundled the `music-maker` Antigravity skill into `dist\tA-Studio-Cockpit\antigravity\skills\music-maker` and the release ZIP (`build_dist.bat`), with setup instructions in `README.md` for standalone `.exe` users.
 * **v1.54:** Switching to the **History** tab in **MusicMaker** (`web/music/app.js`) now automatically refreshes the song list (`loadHistory()`), and added the `.agents/skills/music-maker/` skill + CLI client for direct `/api/music/*` integration.
 * **v1.53:** Updated the **Fine-Tuning & Finish** help text (`help_tuning_html` in `web/app.js`, DE & EN) to match the **Upscale & FX** tab and cover SeedVR2 upscaling, sharpening, and film grain.

@@ -2,6 +2,11 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.56] – 2026-11-26
+### Unified Antigravity Integration (`studio-cockpit` Skill)
+- **All-in-One Studio Skill & CLI:** Added `.agents/skills/studio-cockpit/SKILL.md` and `.agents/skills/studio-cockpit/scripts/cockpit_client.py` to control **Image Studio**, **VideoMaker**, **MusicMaker**, and **DiscordGIF** directly via `/api/*` (including cross-module workflows such as Image → VideoMaker Quick Clip / AI GIF + MusicMaker soundtrack).
+- **Release Packaging:** Updated `build_dist.bat` and `README.md` to bundle both `studio-cockpit` and `music-maker` skills into `antigravity\skills\` in the distribution folder and release `.zip`.
+
 ## [v1.55] – 2026-11-26
 ### Release Packaging & Documentation
 - **Bundled Antigravity MusicMaker Skill:** Updated `build_dist.bat` to include `.agents/skills/music-maker/` under `antigravity\skills\music-maker` in both `dist\tA-Studio-Cockpit\` and the release `.zip`, and documented the one-step global install (`%USERPROFILE%\.gemini\config\skills\music-maker`) for `.exe` users in `README.md`.
