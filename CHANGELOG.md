@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.55] – 2026-11-26
+### Release Packaging & Documentation
+- **Bundled Antigravity MusicMaker Skill:** Updated `build_dist.bat` to include `.agents/skills/music-maker/` under `antigravity\skills\music-maker` in both `dist\tA-Studio-Cockpit\` and the release `.zip`, and documented the one-step global install (`%USERPROFILE%\.gemini\config\skills\music-maker`) for `.exe` users in `README.md`.
+
 ## [v1.54] – 2026-11-26
 ### MusicMaker & Antigravity Integration
 - **History Tab Auto-Refresh:** Switching to the **History** tab in `web/music/app.js` (`showTab`) now calls `loadHistory()` so songs rendered externally via `/api/music/render` appear immediately without a page reload.

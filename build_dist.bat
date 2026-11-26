@@ -69,6 +69,9 @@ if not exist "dist\tA-Studio-Cockpit\data\config.json" (
     if exist "data\config.json" copy /y "data\config.json" "dist\tA-Studio-Cockpit\data\config.json" >nul
 )
 if exist "README.md" copy /y "README.md" "dist\tA-Studio-Cockpit\README.md" >nul
+if exist ".agents\skills\music-maker" (
+    xcopy /e /i /y ".agents\skills\music-maker" "dist\tA-Studio-Cockpit\antigravity\skills\music-maker" >nul
+)
 
 rem Sauberes ZIP fuer andere Nutzer ohne lokale config.json / webview-Cache
 set "ZIP_STAGE=build\zip_stage\tA-Studio-Cockpit"
@@ -77,6 +80,9 @@ mkdir "%ZIP_STAGE%\data"
 copy /y "dist\tA-Studio-Cockpit\StudioCockpit.exe" "%ZIP_STAGE%\StudioCockpit.exe" >nul
 if exist "dist\tA-Studio-Cockpit\README.md" copy /y "dist\tA-Studio-Cockpit\README.md" "%ZIP_STAGE%\README.md" >nul
 if exist "data\config.example.json" copy /y "data\config.example.json" "%ZIP_STAGE%\data\config.example.json" >nul
+if exist ".agents\skills\music-maker" (
+    xcopy /e /i /y ".agents\skills\music-maker" "%ZIP_STAGE%\antigravity\skills\music-maker" >nul
+)
 
 set "VERSIONED_EXE=dist\tA-Studio-Cockpit\StudioCockpit_v%APP_VER%.exe"
 copy /y "dist\tA-Studio-Cockpit\StudioCockpit.exe" "%VERSIONED_EXE%" >nul
