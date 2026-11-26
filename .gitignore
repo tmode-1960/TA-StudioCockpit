@@ -20,6 +20,7 @@ video_maker/config.json.bak
 video_maker/uploads/
 backups/
 extern_resources/
+assets/branding/
 
 # ta-comfyui-nodes-pack Konfigurationsdateien
 ta_discord_link.json
