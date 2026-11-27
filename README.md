@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.69 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.70 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -139,6 +139,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.70:** Stacked the Gallery Lightbox **Filmstrip** and **Full View** buttons vertically and anchored `.gal-lb-hud-right` with `margin-left: auto` (`web/style.css`) so **`✕ Vollbild schließen` / `✕ Exit Full View`** stays consistently at the top-right in Pure View.
 * **v1.69:** Added labeled DE/EN **Filmstrip** and **Full View / Pure View** buttons in the Gallery Lightbox with a clearly visible **`✕ Vollbild schließen` / `✕ Exit Full View`** state (`web/index.html`, `web/style.css`, `web/gallery_module.js`), plus a configurable **Close Confirmation** dialog (`confirm_close`, enabled by default) in Settings and `server.py` (`on_closing`).
 * **v1.68:** Fixed the Gallery Lightbox left navigation button (`.gal-lb-prev`) hit area in `web/style.css` by adding `z-index: 6` to `.gal-lb-nav` so `.gal-lb-canvas` no longer overlaps it.
 * **v1.67:** Suppressed transient `Failed to fetch` / disconnect error toasts during the auto-updater restart (`web/app.js`, `web/video_module.js`), keeping the progress/restarting state visible while `window.__studioUpdating` is active.

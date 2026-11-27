@@ -2,6 +2,11 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.70] – 2026-11-27
+### Gallery Lightbox HUD Alignment
+- **Stacked Right HUD Controls:** Arranged the **Filmstrip** and **Full View** buttons vertically (`.gal-lb-hud-right { flex-direction: column; align-items: stretch; }`) and aligned `.gal-lb-stage-hud` to `flex-start` (`web/style.css`).
+- **Consistent Top-Right Exit Button:** Added `margin-left: auto` to `.gal-lb-hud-right` so **`✕ Vollbild schließen` / `✕ Exit Full View`** remains anchored at the top-right in Pure View when the left zoom bar is hidden.
+
 ## [v1.69] – 2026-11-27
 ### Gallery Pure View Buttons & Window Close Confirmation
 - **Labeled Gallery Lightbox Controls:** Added localized DE/EN labels to the **Filmstrip** (`🎞️ Filmstrip`) and **Full View / Pure View** (`👁️ Vollbild` / `👁️ Full View`) HUD buttons (`web/index.html`, `web/gallery_module.js`, `web/style.css`).
