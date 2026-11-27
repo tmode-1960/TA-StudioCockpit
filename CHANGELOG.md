@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.71] – 2026-11-27
+### Collapsible Prompt Controller Delimiter
+- **Collapsible Delimiter Field:** Added `.card.collapsible-partial` with the standard header chevron (`▾`) to `#cardPromptController` (`web/index.html`, `web/style.css`, `web/app.js`) so the **Delimiter** field is collapsed by default while keeping **Controller Mode** visible, and can be expanded/collapsed by clicking the card header.
+
 ## [v1.70] – 2026-11-27
 ### Gallery Lightbox HUD Alignment
 - **Stacked Right HUD Controls:** Arranged the **Filmstrip** and **Full View** buttons vertically (`.gal-lb-hud-right { flex-direction: column; align-items: stretch; }`) and aligned `.gal-lb-stage-hud` to `flex-start` (`web/style.css`).

@@ -498,6 +498,7 @@
       settings_extra_models_ph: "z. B. D:\\AI\\Models",
       settings_extra_models_hint: "Optional: Ordner auf einer anderen Festplatte (mit Unterordnern wie checkpoints, loras, unet, vae). Wird beim Start über '⚡ ComfyUI starten' separat per --extra-model-paths-config übergeben, ohne deine bestehende extra_model_paths.yaml zu überschreiben.",
       settings_confirm_close: "Sicherheitsabfrage beim Schließen des Cockpits anzeigen",
+      card_pc_delimiter_toggle_title: "Delimiter ein-/ausklappen",
       btn_browse: "📁 Durchsuchen",
       toast_launch_missing: "Bitte trage zuerst deine ComfyUI-Startdatei (z. B. run_nvidia_gpu.bat) ein und speichere.",
       toast_launch_error: "Fehler beim Starten von ComfyUI: ",
@@ -1119,6 +1120,7 @@
       settings_extra_models_ph: "e.g. D:\\AI\\Models",
       settings_extra_models_hint: "Optional: Folder on another drive (with subfolders like checkpoints, loras, unet, vae). Passed separately via --extra-model-paths-config when clicking '⚡ Launch ComfyUI' without overwriting any existing extra_model_paths.yaml.",
       settings_confirm_close: "Show confirmation dialog when closing Cockpit",
+      card_pc_delimiter_toggle_title: "Toggle Delimiter field",
       btn_browse: "📁 Browse",
       toast_launch_missing: "Please enter your ComfyUI launch file (e.g. run_nvidia_gpu.bat) first and save.",
       toast_launch_error: "Error launching ComfyUI: ",
@@ -8351,8 +8353,8 @@
     }
   }
 
-  // Collapsible cards support (e.g. LoRA Stack, Feintuning)
-  document.querySelectorAll(".card.collapsible .card-header").forEach(hdr => {
+  // Collapsible cards support (e.g. LoRA Stack, Feintuning, Prompt Controller Delimiter)
+  document.querySelectorAll(".card.collapsible .card-header, .card.collapsible-partial .card-header").forEach(hdr => {
     hdr.addEventListener("click", (e) => {
       if (e.target.closest("button") || e.target.closest("select") || e.target.closest("input")) return;
       const card = hdr.closest(".card");
