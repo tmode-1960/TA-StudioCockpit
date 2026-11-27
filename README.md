@@ -118,7 +118,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
    Use `python server.py --browser` to open in your default web browser instead of the desktop window.
 
 ### Required External Backends & ComfyUI Nodes
-* **ComfyUI (`http://127.0.0.1:8188`):** Required backend for **Image Studio**, **VideoMaker**, and **MusicMaker**.
+* **ComfyUI (`http://127.0.0.1:8188`):** Required backend for **Image Studio**, **VideoMaker**, **MusicMaker**, and **DiscordGIF** (AI Image-to-GIF; local GIF library, Tenor search, and Quick-Paste work standalone).
 * **Image Studio Core Nodes ([TA-ComfyUI-Nodes-Pack](https://github.com/tmode-1960/TA-ComfyUI-Nodes-Pack)):** **Required** for image generation in **Image Studio** (`TA-FLEXMOD-LLM` & `TA-*` nodes in ComfyUI `custom_nodes`).
 * **Module-Specific ComfyUI Nodes:** Required only when using those modules — e.g., MiniMax H3 / Wan 2.2 / VHS / Eclipse (for **VideoMaker**), `SeedVR2` / background-removal (for **Upscale & FX** / **BG-Remover**), or `YuE2` (for **MusicMaker**).
 
