@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.64] – 2026-11-27
+### VideoMaker Models Folder Browser Fix
+- **Fixed `/api/video/browse_folder`:** Implemented the missing `POST /api/video/browse_folder` endpoint in `modules/video_maker.py` (`_pick_folder_dialog`) so clicking **Browse / Durchsuchen** in VideoMaker's Models modal opens the native folder picker (supporting `pywebview`, Windows PowerShell `FolderBrowserDialog` in `--browser` mode, and `tkinter` fallback) and returns `path` + `free_space_gb` for custom model/LoRA drives and folders.
+
 ## [v1.62] – 2026-11-27
 ### Inline Card Help (`Prompt Controller` & `LLM`)
 - **Inline Card Help (`Prompt Controller` & `LLM`):** Added `?` help toggle buttons and localized DE/EN `.card-help-box` explanations (`helpPromptController`, `helpLLM`) to `#cardPromptController` and `#cardLLM` in `web/index.html` and `web/app.js`.

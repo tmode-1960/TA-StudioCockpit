@@ -987,7 +987,14 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
             _send_json(handler, {"ok": True, "path": target})
         except Exception as ex:
             _send_json(handler, {"ok": False, "error": str(ex)}, status=500)
-        return
+        return True
+
+    elif path == "/api/video/browse_folder":
+        initial = str(body.get("initial_dir", "") or "").strip()
+        selected = _pick_folder_dialog(initial)
+        free_gb = get_disk_free_gb(selected) if selected else 0.0
+        _send_json(handler, {"ok": True, "path": selected, "free_space_gb": free_gb})
+        return True
 
     elif path == "/api/video/models/download":
         if download_state["is_downloading"]:
@@ -1789,6 +1796,73 @@ def handle_post(handler, path: str, parsed, post_body: bytes | None) -> bool:
         return
 
     return False
+
+def _pick_folder_dialog(initial: str = "") -> str:
+    """Open a native folder selection dialog (pywebview, PowerShell WinForms, or tkinter)."""
+    initial_dir = ""
+    if initial:
+        if os.path.isdir(initial):
+            initial_dir = initial
+        else:
+            parent = os.path.dirname(initial)
+            if parent and os.path.isdir(parent):
+                initial_dir = parent
+
+    # 1. Try pywebview native folder dialog when running in desktop window
+    try:
+        import webview  # type: ignore
+        if getattr(webview, "windows", None):
+            dialog_type = getattr(getattr(webview, "FileDialog", None), "FOLDER", None) or getattr(webview, "FOLDER_DIALOG", 20)
+            kwargs = {"directory": initial_dir} if initial_dir else {}
+            res = webview.windows[0].create_file_dialog(dialog_type, **kwargs)
+            if res and len(res) > 0:
+                return os.path.normpath(str(res[0]))
+            return ""
+    except Exception:
+        pass
+
+    # 2. Fallback on Windows (--browser mode): PowerShell WinForms FolderBrowserDialog
+    if sys.platform == "win32":
+        env = os.environ.copy()
+        env["TA_DIALOG_INIT"] = initial_dir if (initial_dir and os.path.isdir(initial_dir)) else ""
+        ps_script = (
+            "[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms') | Out-Null; "
+            "$d = New-Object System.Windows.Forms.FolderBrowserDialog; "
+            "$d.Description = 'Ordner auswählen'; "
+            "$d.ShowNewFolderButton = $true; "
+            "if ($env:TA_DIALOG_INIT -and (Test-Path -LiteralPath $env:TA_DIALOG_INIT)) { $d.SelectedPath = $env:TA_DIALOG_INIT } "
+            "$top = New-Object System.Windows.Forms.Form; $top.TopMost = $true; "
+            "if ($d.ShowDialog($top) -eq 'OK') { Write-Output $d.SelectedPath }"
+        )
+        try:
+            out = subprocess.check_output(
+                ["powershell", "-NoProfile", "-STA", "-Command", ps_script],
+                text=True,
+                env=env,
+                creationflags=NO_WINDOW_FLAG,
+            ).strip()
+            if out and os.path.isdir(out):
+                return os.path.normpath(out)
+            return ""
+        except Exception:
+            pass
+
+    # 3. Cross-platform tkinter fallback
+    try:
+        import tkinter as tk
+        from tkinter import filedialog
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes("-topmost", True)
+        kwargs = {"title": "Ordner auswählen"}
+        if initial_dir:
+            kwargs["initialdir"] = initial_dir
+        selected = filedialog.askdirectory(**kwargs) or ""
+        root.destroy()
+        return os.path.normpath(selected) if selected else ""
+    except Exception:
+        return ""
+
 
 def _get_upload_search_dirs() -> List[str]:
     """Return current and legacy tA-VideoMaker upload directories."""

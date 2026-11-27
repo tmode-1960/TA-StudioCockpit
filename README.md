@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.62 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.64 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -139,6 +139,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.64:** Fixed the **Browse / Durchsuchen** button in VideoMaker's Models modal by implementing `POST /api/video/browse_folder` in `modules/video_maker.py` (`_pick_folder_dialog` with `pywebview`, PowerShell `FolderBrowserDialog`, and `tkinter` fallbacks) so users can select custom model/LoRA folders on any drive.
 * **v1.62:** Added inline `?` help toggle buttons and localized DE/EN help boxes (`helpPromptController`, `helpLLM`) to **Prompt Controller** and **LLM (Local / Cloud) – T2I & I2I** (`web/index.html`, `web/app.js`).
 * **v1.61:** Fixed per-provider LLM availability checks in `web/app.js` (`checkLLMStatus`, `updateLLMModelBadge`), added automatic fallback to an available model, marked unreachable provider models as `offline` in the dropdown (`web/style.css`), and blocked generation with a clear toast if the selected LLM provider is offline.
 * **v1.60:** Fixed the Windows auto-updater (`server.py`, `modules/updater.py`, `web/app.js`) to cleanly terminate the app process, run a silent PowerShell update script without opening Windows Terminal, strip inherited PyInstaller `_MEIPASS*`/`_PYI_*` variables on relaunch, and suppress transient `"Failed to fetch"` toasts during restart.
