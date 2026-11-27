@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.68] – 2026-11-27
+### Gallery Lightbox Previous Button Fix
+- **Fixed Left Navigation Button Hit Area (`.gal-lb-nav`):** Added `z-index: 6` to `.gal-lb-nav` in `web/style.css` so `.gal-lb-prev` (`‹`) renders and receives pointer events above `.gal-lb-canvas` (`will-change: transform`) across its entire button area instead of only at the far left edge.
+
 ## [v1.67] – 2026-11-27
 ### Clean Auto-Updater Disconnect Handling
 - **Suppress `Failed to fetch` During Update Restart:** Updated the `Install now` click handler in `web/app.js` so connection-reset / disconnect errors (`Failed to fetch`, `NetworkError`, `Load failed`) during `/api/update/install` keep `window.__studioUpdating = true`, show a calm restarting status, and never flash a red `Failed to fetch` toast.
