@@ -8359,12 +8359,18 @@
     }
   }
 
-  // Collapsible cards support (e.g. LoRA Stack, Feintuning, Prompt Controller Delimiter)
-  document.querySelectorAll(".card.collapsible .card-header, .card.collapsible-partial .card-header").forEach(hdr => {
+  // Collapsible cards & fields support (e.g. LoRA Stack, Feintuning, Prompt Controller Delimiter)
+  document.querySelectorAll(".card.collapsible .card-header").forEach(hdr => {
     hdr.addEventListener("click", (e) => {
       if (e.target.closest("button") || e.target.closest("select") || e.target.closest("input")) return;
       const card = hdr.closest(".card");
       if (card) card.classList.toggle("collapsed");
+    });
+  });
+  document.querySelectorAll(".field-collapsible .field-collapsible-toggle").forEach(lbl => {
+    lbl.addEventListener("click", () => {
+      const grp = lbl.closest(".field-collapsible");
+      if (grp) grp.classList.toggle("collapsed");
     });
   });
 

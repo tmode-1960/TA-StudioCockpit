@@ -841,25 +841,40 @@ body.is-resizing-cols {
   gap: 10px;
   transition: all .2s ease;
 }
-.card.collapsible .card-header,
-.card.collapsible-partial .card-header {
+.card.collapsible .card-header {
   cursor: pointer;
   user-select: none;
 }
-.card.collapsible .card-header::after,
-.card.collapsible-partial .card-header::after {
+.card.collapsible .card-header::after {
   content: "▾";
   font-size: 15px;
   color: var(--mute);
   margin-left: 8px;
   transition: transform .2s ease;
 }
-.card.collapsible.collapsed .card-header::after,
-.card.collapsible-partial.collapsed .card-header::after {
+.card.collapsible.collapsed .card-header::after {
   transform: rotate(-90deg);
 }
-.card.collapsible.collapsed > *:not(.card-header),
-.card.collapsible-partial.collapsed .collapsible-partial-target {
+.card.collapsible.collapsed > *:not(.card-header) {
+  display: none !important;
+}
+.field-collapsible-toggle {
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.field-collapsible-arrow {
+  font-size: 15px;
+  line-height: 1;
+  color: var(--mute);
+  transition: transform .2s ease;
+}
+.field-collapsible.collapsed .field-collapsible-arrow {
+  transform: rotate(-90deg);
+}
+.field-collapsible.collapsed .field-collapsible-body {
   display: none !important;
 }
 .card-header {

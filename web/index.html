@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v1.72 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.73 (FLEXMOD Edition)</title>
   <link rel="icon" type="image/png" href="/logo.png?v=1.45">
   <link rel="icon" href="/favicon.ico?v=1.45">
   <script>
@@ -1082,10 +1082,10 @@
       </div>
 
       <!-- Prompt Controller Card (TAPromptController) -->
-      <section class="card collapsible-partial collapsed" id="cardPromptController">
-        <div class="card-header" title="Delimiter ein-/ausklappen" data-i18n-title="card_pc_delimiter_toggle_title">
+      <section class="card" id="cardPromptController">
+        <div class="card-header">
           <span class="card-title"><span class="icon">🎛️</span> <span data-i18n="card_prompt_controller">Prompt-Controller</span></span>
-          <div style="display:flex; gap:6px; align-items:center;" onclick="event.stopPropagation();">
+          <div style="display:flex; gap:6px; align-items:center;">
             <span class="value-badge" id="promptControllerBadge">Manual Only</span>
             <button type="button" class="card-help-btn" data-help-target="helpPromptController" title="Hilfe zu diesem Bereich ein-/ausblenden" data-i18n-title="help_btn_title" aria-expanded="false" aria-controls="helpPromptController">?</button>
           </div>
@@ -1103,11 +1103,12 @@
             <option value="Clear / Empty" data-i18n="opt_mode_clear">Clear / Empty (Prompt leeren)</option>
           </select>
         </div>
-        <div class="field-group collapsible-partial-target" style="margin-top: 6px;">
-          <div class="field-label">
+        <div class="field-group field-collapsible collapsed" id="pcDelimiterGroup" style="margin-top: 6px;">
+          <div class="field-label field-collapsible-toggle" title="Delimiter ein-/ausklappen" data-i18n-title="card_pc_delimiter_toggle_title">
             <span data-i18n="lbl_delimiter">Trennzeichen (delimiter)</span>
+            <span class="field-collapsible-arrow" aria-hidden="true">▾</span>
           </div>
-          <input type="text" id="inpDelimiter" value=", " style="font-family: monospace; font-size: 13px; padding: 6px 10px;">
+          <input type="text" id="inpDelimiter" class="field-collapsible-body" value=", " style="font-family: monospace; font-size: 13px; padding: 6px 10px;">
         </div>
       </section>
 
@@ -3182,7 +3183,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=1.72"></script>
+  <script src="/app.js?v=1.73"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=5"></script>
   <script src="/video_module.js?v=1.00"></script>

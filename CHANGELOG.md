@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.73] – 2026-11-27
+### Delimiter Label Collapse Arrow
+- **Inline Collapse Arrow on Delimiter Label:** Moved the collapse/expand arrow (`▾`) from the Prompt Controller card header directly onto the **Delimiter** label (`.field-collapsible` in `web/index.html`, `web/style.css`, `web/app.js`), collapsed by default so clicking the label toggles `#inpDelimiter`.
+
 ## [v1.72] – 2026-11-27
 ### Themed App Close Confirmation Modal
 - **Themed In-App Close Dialog:** Replaced the native Windows `MessageBoxW` close confirmation with a themed HTML modal (`#confirmAppCloseModal` in `web/index.html`, `web/app.js`) that matches the active Cockpit theme and UI language (`DE`/`EN`), triggered by `on_closing()` in `server.py` and confirmed via `POST /api/app/confirm_close`.
