@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.71 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.72 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -139,6 +139,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.72:** Replaced the native Windows close confirmation dialog with a themed in-app modal (`#confirmAppCloseModal` in `web/index.html`, `web/app.js`, `POST /api/app/confirm_close` in `server.py`) matching the active Cockpit theme and DE/EN UI language.
 * **v1.71:** Made the **Prompt Controller** **Delimiter** field collapsible via the standard header chevron (`▾`, collapsed by default while keeping **Controller Mode** visible) in `web/index.html`, `web/style.css`, and `web/app.js`.
 * **v1.70:** Stacked the Gallery Lightbox **Filmstrip** and **Full View** buttons vertically and anchored `.gal-lb-hud-right` with `margin-left: auto` (`web/style.css`) so **`✕ Vollbild schließen` / `✕ Exit Full View`** stays consistently at the top-right in Pure View.
 * **v1.69:** Added labeled DE/EN **Filmstrip** and **Full View / Pure View** buttons in the Gallery Lightbox with a clearly visible **`✕ Vollbild schließen` / `✕ Exit Full View`** state (`web/index.html`, `web/style.css`, `web/gallery_module.js`), plus a configurable **Close Confirmation** dialog (`confirm_close`, enabled by default) in Settings and `server.py` (`on_closing`).

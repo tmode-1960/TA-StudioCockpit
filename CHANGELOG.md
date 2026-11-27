@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.72] – 2026-11-27
+### Themed App Close Confirmation Modal
+- **Themed In-App Close Dialog:** Replaced the native Windows `MessageBoxW` close confirmation with a themed HTML modal (`#confirmAppCloseModal` in `web/index.html`, `web/app.js`) that matches the active Cockpit theme and UI language (`DE`/`EN`), triggered by `on_closing()` in `server.py` and confirmed via `POST /api/app/confirm_close`.
+
 ## [v1.71] – 2026-11-27
 ### Collapsible Prompt Controller Delimiter
 - **Collapsible Delimiter Field:** Added `.card.collapsible-partial` with the standard header chevron (`▾`) to `#cardPromptController` (`web/index.html`, `web/style.css`, `web/app.js`) so the **Delimiter** field is collapsed by default while keeping **Controller Mode** visible, and can be expanded/collapsed by clicking the card header.

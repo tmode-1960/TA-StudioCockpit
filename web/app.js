@@ -498,6 +498,9 @@
       settings_extra_models_ph: "z. B. D:\\AI\\Models",
       settings_extra_models_hint: "Optional: Ordner auf einer anderen Festplatte (mit Unterordnern wie checkpoints, loras, unet, vae). Wird beim Start über '⚡ ComfyUI starten' separat per --extra-model-paths-config übergeben, ohne deine bestehende extra_model_paths.yaml zu überschreiben.",
       settings_confirm_close: "Sicherheitsabfrage beim Schließen des Cockpits anzeigen",
+      app_close_modal_title: "Cockpit schließen?",
+      app_close_modal_desc: "Möchtest du thomo.ART StudioCockpit wirklich schließen?",
+      app_close_confirm_btn: "Schließen",
       card_pc_delimiter_toggle_title: "Delimiter ein-/ausklappen",
       btn_browse: "📁 Durchsuchen",
       toast_launch_missing: "Bitte trage zuerst deine ComfyUI-Startdatei (z. B. run_nvidia_gpu.bat) ein und speichere.",
@@ -1120,6 +1123,9 @@
       settings_extra_models_ph: "e.g. D:\\AI\\Models",
       settings_extra_models_hint: "Optional: Folder on another drive (with subfolders like checkpoints, loras, unet, vae). Passed separately via --extra-model-paths-config when clicking '⚡ Launch ComfyUI' without overwriting any existing extra_model_paths.yaml.",
       settings_confirm_close: "Show confirmation dialog when closing Cockpit",
+      app_close_modal_title: "Close Cockpit?",
+      app_close_modal_desc: "Do you really want to close thomo.ART StudioCockpit?",
+      app_close_confirm_btn: "Close",
       card_pc_delimiter_toggle_title: "Toggle Delimiter field",
       btn_browse: "📁 Browse",
       toast_launch_missing: "Please enter your ComfyUI launch file (e.g. run_nvidia_gpu.bat) first and save.",
@@ -8361,6 +8367,41 @@
       if (card) card.classList.toggle("collapsed");
     });
   });
+
+  // App Close Confirmation Modal (triggered from pywebview on_closing)
+  const confirmAppCloseModal = document.getElementById("confirmAppCloseModal");
+  const btnCloseAppCloseModal = document.getElementById("btnCloseAppCloseModal");
+  const btnCancelAppClose = document.getElementById("btnCancelAppClose");
+  const btnConfirmAppClose = document.getElementById("btnConfirmAppClose");
+
+  function hideAppCloseModal() {
+    if (confirmAppCloseModal) confirmAppCloseModal.style.display = "none";
+  }
+
+  window.__requestCloseConfirm = () => {
+    if (!confirmAppCloseModal) return false;
+    confirmAppCloseModal.style.display = "flex";
+    btnCancelAppClose?.focus();
+    return true;
+  };
+
+  btnCloseAppCloseModal?.addEventListener("click", hideAppCloseModal);
+  btnCancelAppClose?.addEventListener("click", hideAppCloseModal);
+  confirmAppCloseModal?.addEventListener("click", (e) => {
+    if (e.target === confirmAppCloseModal) hideAppCloseModal();
+  });
+  btnConfirmAppClose?.addEventListener("click", () => {
+    window.__studioUpdating = true;
+    hideAppCloseModal();
+    fetch("/api/app/confirm_close", { method: "POST" }).catch(() => {});
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && confirmAppCloseModal && confirmAppCloseModal.style.display === "flex") {
+      e.preventDefault();
+      e.stopPropagation();
+      hideAppCloseModal();
+    }
+  }, true);
 
   // Inline card help (?) toggle support
   document.querySelectorAll(".card-help-btn").forEach(btn => {

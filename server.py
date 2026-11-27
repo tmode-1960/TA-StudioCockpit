@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.71"
+APP_VERSION = "1.72"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -1317,6 +1317,12 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             return
         elif path == "/api/free_vram":
             self.handle_free_vram()
+            return
+        elif path == "/api/app/confirm_close":
+            self.send_json({"ok": True})
+            cb = getattr(self.server, "_confirm_close_cb", None)
+            if callable(cb):
+                threading.Timer(0.05, cb).start()
             return
         elif path == "/api/delete_image":
             self.handle_delete_image(post_body)
@@ -5073,16 +5079,9 @@ def run_native_window(url: str, server: socketserver.TCPServer) -> bool:
             if not getattr(window, "_studio_force_exit", False):
                 try:
                     cfg_close = load_config()
-                    if cfg_close.get("confirm_close", True) and hasattr(ctypes, "windll"):
-                        lang_close = str(cfg_close.get("language") or "en").lower()
-                        prompt_txt = (
-                            "Möchtest du thomo.ART StudioCockpit wirklich schließen?"
-                            if lang_close == "de"
-                            else "Do you really want to close thomo.ART StudioCockpit?"
-                        )
-                        # MB_YESNO (0x4) | MB_ICONQUESTION (0x20) | MB_DEFBUTTON2 (0x100) | MB_TOPMOST (0x40000)
-                        res = ctypes.windll.user32.MessageBoxW(0, prompt_txt, "thomo.ART StudioCockpit", 0x40124)
-                        if res != 6:  # IDYES
+                    if cfg_close.get("confirm_close", True):
+                        shown = window.evaluate_js("window.__requestCloseConfirm ? window.__requestCloseConfirm() : false")
+                        if shown:
                             return False
                 except Exception:
                     pass
@@ -5183,6 +5182,7 @@ def main():
             pass
         os._exit(0)
 
+    httpd._confirm_close_cb = _request_app_exit
     updater.init_module(APP_VERSION, DATA_ROOT, _request_app_exit)
 
     display_host = "127.0.0.1" if BIND_HOST in ("", "0.0.0.0", "::") else BIND_HOST

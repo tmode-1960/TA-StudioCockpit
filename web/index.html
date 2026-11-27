@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v1.71 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.72 (FLEXMOD Edition)</title>
   <link rel="icon" type="image/png" href="/logo.png?v=1.45">
   <link rel="icon" href="/favicon.ico?v=1.45">
   <script>
@@ -2796,6 +2796,28 @@
     </div>
   </div>
 
+  <!-- App Close Confirmation Modal -->
+  <div class="modal-overlay" id="confirmAppCloseModal" style="display:none; z-index: 12000;">
+    <div class="modal-card" style="width: 420px;">
+      <div class="modal-header">
+        <h3 style="display: flex; align-items: center; gap: 8px;">
+          <span style="color: var(--accent);">⏻</span>
+          <span data-i18n="app_close_modal_title">Cockpit schließen?</span>
+        </h3>
+        <button class="modal-close" id="btnCloseAppCloseModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--text); font-size: 13px; line-height: 1.5; margin: 0;" data-i18n="app_close_modal_desc">
+          Möchtest du thomo.ART StudioCockpit wirklich schließen?
+        </p>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 12px 18px; border-top: 1px solid var(--line); background: var(--panel2);">
+        <button type="button" class="btn-action" id="btnCancelAppClose" style="padding: 7px 14px; font-size: 13px;" data-i18n="btn_cancel">Abbrechen</button>
+        <button type="button" class="btn-action" id="btnConfirmAppClose" style="background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; padding: 7px 16px; font-size: 13px;" data-i18n="app_close_confirm_btn">Schließen</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Missing Custom Nodes Modal -->
   <div class="modal-overlay" id="missingNodesModal" style="display:none;">
     <div class="modal-card" style="width: 580px; max-width: 94vw;">
@@ -3160,7 +3182,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=1.71"></script>
+  <script src="/app.js?v=1.72"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=5"></script>
   <script src="/video_module.js?v=1.00"></script>
