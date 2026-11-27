@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.65 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.66 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -139,6 +139,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.66:** Added a pre-flight VAE check in `/api/generate` (`server.py`) verifying `vae_name` and `/models/vae` availability for the active `TAModelPreset`, plus a clear error translation for `'NoneType' object has no attribute 'decode'` when a preset's VAE is missing or invalid.
 * **v1.65:** Added an optional **Extra Models & LoRAs Folder** (`extra_models_dir`) with **Browse / Durchsuchen** in ComfyUI Settings (`web/index.html`, `web/app.js`, `server.py`), generating a separate `data/studio_extra_model_paths.yaml` passed via `--extra-model-paths-config` on launch (supporting Windows & WSL paths without overwriting existing `extra_model_paths.yaml` files).
 * **v1.64:** Fixed the **Browse / Durchsuchen** button in VideoMaker's Models modal by implementing `POST /api/video/browse_folder` in `modules/video_maker.py` (`_pick_folder_dialog` with `pywebview`, PowerShell `FolderBrowserDialog`, and `tkinter` fallbacks) so users can select custom model/LoRA folders on any drive.
 * **v1.62:** Added inline `?` help toggle buttons and localized DE/EN help boxes (`helpPromptController`, `helpLLM`) to **Prompt Controller** and **LLM (Local / Cloud) – T2I & I2I** (`web/index.html`, `web/app.js`).

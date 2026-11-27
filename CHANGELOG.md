@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.66] – 2026-11-27
+### Pre-Flight VAE Check & Error Handling
+- **Pre-Flight VAE Check & Clear Error Message:** Added a pre-generation check in `server.py` (`/api/generate`) verifying that the active `TAModelPreset` has a configured `vae_name` and that the VAE file exists in ComfyUI's `/models/vae`, plus a clear translation for `'NoneType' object has no attribute 'decode'` in `watch_job` so missing/invalid VAEs no longer surface as a cryptic Python error.
+
 ## [v1.65] – 2026-11-27
 ### Extra Models & LoRAs Folder Setting
 - **Optional Extra Models & LoRAs Folder (`extra_models_dir`):** Added an optional **Extra Models & LoRAs Folder** input with **Browse / Durchsuchen** in the ComfyUI Settings section (`web/index.html`, `web/app.js`, `server.py`).

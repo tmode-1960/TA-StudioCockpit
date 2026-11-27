@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.65"
+APP_VERSION = "1.66"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -2498,8 +2498,18 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                         n["widgets_values_named"]["sage_mode"] = s_mode
                         n["widgets_values_named"]["kitchen_enable"] = k_en
 
+            comfy_url_base = COMFY_URL.rstrip("/")
+            matched_p = None
+            m_list = []
+            try:
+                m_data = self._fetch_comfy_json(f"{comfy_url_base}/ta_model_presets/list", timeout=2.5)
+                m_list = m_data if isinstance(m_data, list) else (m_data.get("presets", []) if isinstance(m_data, dict) else [])
+                target_name = str(params.get("model_preset", "")).strip().lower()
+                matched_p = next((p for p in m_list if isinstance(p, dict) and str(p.get("name", "")).strip().lower() == target_name), None)
+            except Exception:
+                pass
+
             if "krea" in str(params.get("model_preset", "")).lower():
-                comfy_url_base = COMFY_URL.rstrip("/")
                 comfy_ok, nodes_ok, _ = self._check_krea2_support(comfy_url_base)
                 if comfy_ok is False:
                     self.send_json({
@@ -2513,29 +2523,49 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                     return
                 # Verify the active Krea2 preset itself has clip_type == 'krea2' and a valid clip_name_1
                 try:
-                    m_data = self._fetch_comfy_json(f"{comfy_url_base}/ta_model_presets/list", timeout=2.5)
-                    m_list = m_data if isinstance(m_data, list) else (m_data.get("presets", []) if isinstance(m_data, dict) else [])
-                    target_name = str(params.get("model_preset", "")).strip().lower()
-                    matched_p = next((p for p in m_list if isinstance(p, dict) and str(p.get("name", "")).strip().lower() == target_name), None)
-                    if matched_p is None:
+                    if m_list and matched_p is None:
                         self.send_json({
                             "error": f"Model-Preset '{params.get('model_preset')}' existiert in ComfyUI nicht. Bitte im Model Preset Editor anlegen."
                         }, status=400)
                         return
-                    if matched_p.get("clip_type") != "krea2":
-                        matched_p["clip_type"] = "krea2"
-                        self._post_comfy_json(f"{comfy_url_base}/ta_model_presets/save", {"presets": m_list})
-                    c1 = str(matched_p.get("clip_name_1", "")).lower()
-                    if not c1:
-                        self.send_json({
-                            "error": f"Im Preset '{matched_p.get('name')}' fehlt der Text-Encoder (clip_name_1). Bitte im Model Preset Editor einen Qwen3-VL Text-Encoder wählen."
-                        }, status=400)
-                        return
-                    if "qwen_3_4b" in c1 or "qwen3_4b" in c1:
-                        self.send_json({
-                            "error": f"Im Preset '{matched_p.get('name')}' ist '{matched_p.get('clip_name_1')}' (Z-Image) gewählt – Krea2 benötigt einen Qwen3-VL Text-Encoder (z. B. qwen3vl_4b)."
-                        }, status=400)
-                        return
+                    if matched_p is not None:
+                        if matched_p.get("clip_type") != "krea2":
+                            matched_p["clip_type"] = "krea2"
+                            self._post_comfy_json(f"{comfy_url_base}/ta_model_presets/save", {"presets": m_list})
+                        c1 = str(matched_p.get("clip_name_1", "")).lower()
+                        if not c1:
+                            self.send_json({
+                                "error": f"Im Preset '{matched_p.get('name')}' fehlt der Text-Encoder (clip_name_1). Bitte im Model Preset Editor einen Qwen3-VL Text-Encoder wählen."
+                            }, status=400)
+                            return
+                        if "qwen_3_4b" in c1 or "qwen3_4b" in c1:
+                            self.send_json({
+                                "error": f"Im Preset '{matched_p.get('name')}' ist '{matched_p.get('clip_name_1')}' (Z-Image) gewählt – Krea2 benötigt einen Qwen3-VL Text-Encoder (z. B. qwen3vl_4b)."
+                            }, status=400)
+                            return
+                except Exception:
+                    pass
+
+            if matched_p is not None:
+                vae_name = str(matched_p.get("vae_name") or "").strip()
+                if not vae_name:
+                    self.send_json({
+                        "error": f"Im Model-Preset '{matched_p.get('name')}' ist kein VAE (vae_name) konfiguriert. Bitte im Model Preset Editor einen VAE auswählen."
+                    }, status=400)
+                    return
+                try:
+                    vae_files = self._fetch_comfy_json(f"{comfy_url_base}/models/vae", timeout=2.0)
+                    if isinstance(vae_files, list) and vae_files:
+                        norm_vaes = {str(v).strip().lower().replace("\\", "/") for v in vae_files if isinstance(v, str)}
+                        norm_target = vae_name.lower().replace("\\", "/")
+                        vae_found = (norm_target in norm_vaes) or (
+                            "/" not in norm_target and any(v.split("/")[-1] == norm_target for v in norm_vaes)
+                        )
+                        if not vae_found:
+                            self.send_json({
+                                "error": f"VAE-Datei '{vae_name}' für Preset '{matched_p.get('name')}' nicht in ComfyUI ('models/vae/') gefunden. Bitte herunterladen oder im Model Preset Editor anpassen."
+                            }, status=400)
+                            return
                 except Exception:
                     pass
 
@@ -2640,12 +2670,22 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
 
                             elif m_type == "execution_error" and (m_pid == pid or not m_pid):
                                 err_msg = m_data.get("exception_message") or "Fehler in ComfyUI"
+                                node_type = str(m_data.get("node_type") or "").strip()
                                 if "'nonetype' object has no attribute 'lower'" in err_msg.lower():
                                     sel_model = params.get("model_preset", "FLUX1-DEV-FP8")
                                     err_msg = (
                                         f"Basis-Modell nicht gefunden! Für das Preset '{sel_model}' fehlt die Modelldatei "
                                         f"(z.B. 'flux/flux1-dev-fp8.safetensors') im ComfyUI-Ordner 'models/diffusion_models/' bzw. 'models/unet/'."
                                     )
+                                elif "'nonetype' object has no attribute 'decode'" in err_msg.lower():
+                                    sel_model = params.get("model_preset", "")
+                                    if not node_type or "vae" in node_type.lower():
+                                        err_msg = (
+                                            f"VAE konnte nicht geladen werden! Für das Preset '{sel_model}' fehlt vermutlich die VAE-Datei "
+                                            f"im ComfyUI-Ordner 'models/vae/' oder im Model Preset Editor ist kein gültiger VAE gewählt."
+                                        )
+                                    else:
+                                        err_msg = f"Fehler in Node '{node_type}': {err_msg}"
                                 with ACTIVE_JOBS_LOCK:
                                     if pid in ACTIVE_JOBS:
                                         ACTIVE_JOBS[pid]["status"] = "error"
