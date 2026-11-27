@@ -1006,6 +1006,7 @@ function localizeErrorMessage(msg) {
 }
 
 function showToast(message, type = "info", durationMs = 4500) {
+  if (window.__studioUpdating && type === "error") return;
   message = localizeErrorMessage(message);
   const container = vmGetEl("toastContainer");
   if (!container) return;

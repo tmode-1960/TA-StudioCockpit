@@ -8548,11 +8548,22 @@
           pollTimer = setInterval(pollInstallStatus, 400);
           pollInstallStatus();
         } catch (err) {
+          const msg = String((err && err.message) || err || "");
+          const isDisconnect = /failed to fetch|networkerror|load failed|network request failed/i.test(msg);
+          if (isDisconnect) {
+            // Server likely closed or is restarting for the update — keep __studioUpdating = true
+            // and suppress any error toast, while polling status in case the server is still up.
+            if (elProgressText) elProgressText.textContent = t("update_restarting", "Update wird installiert – App startet neu…");
+            if (!pollTimer) {
+              pollTimer = setInterval(pollInstallStatus, 400);
+            }
+            return;
+          }
           window.__studioUpdating = false;
           btnInstall.disabled = false;
           if (btnDismiss) btnDismiss.disabled = false;
           if (elProgressWrap) elProgressWrap.style.display = "none";
-          showToast(err.message || t("toast_update_failed", "Update fehlgeschlagen."), "error", 5000);
+          showToast(msg || t("toast_update_failed", "Update fehlgeschlagen."), "error", 5000);
         }
       });
     }
