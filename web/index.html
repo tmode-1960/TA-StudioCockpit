@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v1.61 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.62 (FLEXMOD Edition)</title>
   <link rel="icon" type="image/png" href="/logo.png?v=1.45">
   <link rel="icon" href="/favicon.ico?v=1.45">
   <script>
@@ -1085,8 +1085,12 @@
       <section class="card" id="cardPromptController">
         <div class="card-header">
           <span class="card-title"><span class="icon">🎛️</span> <span data-i18n="card_prompt_controller">Prompt-Controller</span></span>
-          <span class="value-badge" id="promptControllerBadge">Manual Only</span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span class="value-badge" id="promptControllerBadge">Manual Only</span>
+            <button type="button" class="card-help-btn" data-help-target="helpPromptController" title="Hilfe zu diesem Bereich ein-/ausblenden" data-i18n-title="help_btn_title" aria-expanded="false" aria-controls="helpPromptController">?</button>
+          </div>
         </div>
+        <div class="card-help-box" id="helpPromptController" hidden data-i18n-html="help_prompt_controller_html"></div>
         <div class="field-group">
           <div class="field-label">
             <span data-i18n="lbl_controller_mode">Controller-Modus (mode)</span>
@@ -1111,8 +1115,12 @@
       <section class="card" id="cardLLM">
         <div class="card-header">
           <span class="card-title"><span class="icon">🧠</span> <span data-i18n="card_llm">LLM (LM Studio / Ollama) – T2I & I2I</span></span>
-          <span class="value-badge" id="llmStatusBadge" data-i18n="badge_llm_off">Aus (Manuell)</span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span class="value-badge" id="llmStatusBadge" data-i18n="badge_llm_off">Aus (Manuell)</span>
+            <button type="button" class="card-help-btn" data-help-target="helpLLM" title="Hilfe zu diesem Bereich ein-/ausblenden" data-i18n-title="help_btn_title" aria-expanded="false" aria-controls="helpLLM">?</button>
+          </div>
         </div>
+        <div class="card-help-box" id="helpLLM" hidden data-i18n-html="help_llm_html"></div>
 
         <!-- Mode Selector Pills -->
         <div class="pills-group" id="llmModePills" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px;">
@@ -3140,7 +3148,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=1.61"></script>
+  <script src="/app.js?v=1.62"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=5"></script>
   <script src="/video_module.js?v=1.00"></script>

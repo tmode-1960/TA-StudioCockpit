@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.62] – 2026-11-27
+### Inline Card Help (`Prompt Controller` & `LLM`)
+- **Inline Card Help (`Prompt Controller` & `LLM`):** Added `?` help toggle buttons and localized DE/EN `.card-help-box` explanations (`helpPromptController`, `helpLLM`) to `#cardPromptController` and `#cardLLM` in `web/index.html` and `web/app.js`.
+
 ## [v1.61] – 2026-11-27
 ### LLM Provider Status & Selection Fixes
 - **Per-Provider LLM Status Check:** Updated `checkLLMStatus()` and `updateLLMModelBadge()` in `web/app.js` so the status badge validates the *currently selected model's provider* (`LM Studio`, `Ollama`, or specific cloud provider like `Gemini`) instead of showing `Online` whenever any unrelated provider is reachable.
