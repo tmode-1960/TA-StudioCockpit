@@ -2,6 +2,11 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.65] – 2026-11-27
+### Extra Models & LoRAs Folder Setting
+- **Optional Extra Models & LoRAs Folder (`extra_models_dir`):** Added an optional **Extra Models & LoRAs Folder** input with **Browse / Durchsuchen** in the ComfyUI Settings section (`web/index.html`, `web/app.js`, `server.py`).
+- **Safe Non-Destructive ComfyUI Config:** When configured, `handle_launch_comfy` in `server.py` generates a separate `data/studio_extra_model_paths.yaml` (translating Windows/WSL UNC paths to `/mnt/<drive>/...` or `/...` for WSL launches) and passes it via `--extra-model-paths-config` without touching or overwriting any existing user `extra_model_paths.yaml`.
+
 ## [v1.64] – 2026-11-27
 ### VideoMaker Models Folder Browser Fix
 - **Fixed `/api/video/browse_folder`:** Implemented the missing `POST /api/video/browse_folder` endpoint in `modules/video_maker.py` (`_pick_folder_dialog`) so clicking **Browse / Durchsuchen** in VideoMaker's Models modal opens the native folder picker (supporting `pywebview`, Windows PowerShell `FolderBrowserDialog` in `--browser` mode, and `tkinter` fallback) and returns `path` + `free_space_gb` for custom model/LoRA drives and folders.

@@ -494,6 +494,9 @@
       settings_launch_cmd: "ComfyUI Start-Befehl / Skript (WSL oder Windows .bat)",
       settings_launch_placeholder: "z. B. C:\\ComfyUI\\run_nvidia_gpu.bat",
       settings_launch_hint: "Hinweis: Trage hier den Pfad zu deiner eigenen Windows-.bat (z. B. run_nvidia_gpu.bat) oder deinem Start-Skript ein – wird beim Klick auf '⚡ ComfyUI starten' geöffnet.",
+      settings_extra_models_dir: "Zusätzlicher Modelle- & LoRA-Ordner (optional)",
+      settings_extra_models_ph: "z. B. D:\\AI\\Models",
+      settings_extra_models_hint: "Optional: Ordner auf einer anderen Festplatte (mit Unterordnern wie checkpoints, loras, unet, vae). Wird beim Start über '⚡ ComfyUI starten' separat per --extra-model-paths-config übergeben, ohne deine bestehende extra_model_paths.yaml zu überschreiben.",
       btn_browse: "📁 Durchsuchen",
       toast_launch_missing: "Bitte trage zuerst deine ComfyUI-Startdatei (z. B. run_nvidia_gpu.bat) ein und speichere.",
       toast_launch_error: "Fehler beim Starten von ComfyUI: ",
@@ -1111,6 +1114,9 @@
       settings_launch_cmd: "ComfyUI Launch Command / Script (WSL or Windows .bat)",
       settings_launch_placeholder: "e.g. C:\\ComfyUI\\run_nvidia_gpu.bat",
       settings_launch_hint: "Note: Enter the path to your own Windows .bat (e.g. run_nvidia_gpu.bat) or launch script here – opened when clicking '⚡ Launch ComfyUI'.",
+      settings_extra_models_dir: "Extra Models & LoRAs Folder (optional)",
+      settings_extra_models_ph: "e.g. D:\\AI\\Models",
+      settings_extra_models_hint: "Optional: Folder on another drive (with subfolders like checkpoints, loras, unet, vae). Passed separately via --extra-model-paths-config when clicking '⚡ Launch ComfyUI' without overwriting any existing extra_model_paths.yaml.",
       btn_browse: "📁 Browse",
       toast_launch_missing: "Please enter your ComfyUI launch file (e.g. run_nvidia_gpu.bat) first and save.",
       toast_launch_error: "Error launching ComfyUI: ",
@@ -3286,6 +3292,8 @@
   let pendingLaunchAfterSettings = false;
   const inpComfyLaunchCmd = document.getElementById("inpComfyLaunchCmd");
   const btnBrowseLaunchCmd = document.getElementById("btnBrowseLaunchCmd");
+  const inpExtraModelsDir = document.getElementById("inpExtraModelsDir");
+  const btnBrowseExtraModelsDir = document.getElementById("btnBrowseExtraModelsDir");
   const btnReloadApp = document.getElementById("btnReloadApp");
   const btnSettings = document.getElementById("btnSettings");
   const settingsModal = document.getElementById("settingsModal");
@@ -7234,6 +7242,7 @@
     attachBrowseButton(btnBrowseVideoOutputDir, inpVideoOutputDir, "/api/browse_folder");
     attachBrowseButton(btnBrowseMusicOutputDir, inpMusicOutputDir, "/api/browse_folder");
     attachBrowseButton(btnBrowseLaunchCmd, inpComfyLaunchCmd, "/api/browse_file");
+    attachBrowseButton(btnBrowseExtraModelsDir, inpExtraModelsDir, "/api/browse_folder");
     attachBrowseButton(btnBrowseMissingNodesDir, inpMissingNodesComfyDir, "/api/browse_folder");
     if (btnInstallMissingNodes) {
       btnInstallMissingNodes.addEventListener("click", async () => {
@@ -7623,6 +7632,7 @@
         lms_url: inpLmsUrl ? inpLmsUrl.value.trim().replace(/\/+$/, "") : "",
         ollama_url: inpOllamaUrl ? inpOllamaUrl.value.trim().replace(/\/+$/, "") : "",
         comfy_launch_cmd: inpComfyLaunchCmd ? inpComfyLaunchCmd.value.trim() : "",
+        extra_models_dir: inpExtraModelsDir ? inpExtraModelsDir.value.trim() : "",
         language: chosenLang,
         theme_base: selThemeBase ? selThemeBase.value : currentThemeBase,
         theme_accent: selThemeAccent ? selThemeAccent.value : currentThemeAccent,
@@ -8227,6 +8237,7 @@
         if (inpOllamaUrl) inpOllamaUrl.value = cfg.ollama_url || "http://127.0.0.1:11434";
         if (cfg.cloud_api_keys_status) applyCloudKeyStatusToInputs(cfg.cloud_api_keys_status);
         if (inpComfyLaunchCmd) inpComfyLaunchCmd.value = cfg.comfy_launch_cmd || "";
+        if (inpExtraModelsDir) inpExtraModelsDir.value = cfg.extra_models_dir || "";
         if (cfg.app_version && brandVersion) brandVersion.textContent = `v${cfg.app_version}`;
         if (cfg.workflow_version && brandWf) brandWf.textContent = `WF ${cfg.workflow_version}`;
         if (cfg.language === "de" || cfg.language === "en") {
