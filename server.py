@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.73"
+APP_VERSION = "1.74"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -5080,9 +5080,13 @@ def run_native_window(url: str, server: socketserver.TCPServer) -> bool:
                 try:
                     cfg_close = load_config()
                     if cfg_close.get("confirm_close", True):
-                        shown = window.evaluate_js("window.__requestCloseConfirm ? window.__requestCloseConfirm() : false")
-                        if shown:
-                            return False
+                        def _open_close_modal():
+                            try:
+                                window.evaluate_js("window.__requestCloseConfirm && window.__requestCloseConfirm()")
+                            except Exception:
+                                pass
+                        threading.Timer(0.01, _open_close_modal).start()
+                        return False
                 except Exception:
                     pass
             with save_timer_lock:

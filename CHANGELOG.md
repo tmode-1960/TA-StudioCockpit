@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.74] – 2026-11-27
+### Close Confirmation Modal UI Freeze Fix
+- **Non-Blocking `on_closing()` Dispatch:** Dispatched `window.evaluate_js("window.__requestCloseConfirm ...")` via `threading.Timer(0.01, ...)` in `server.py` so `on_closing()` returns `False` immediately without deadlocking the WinForms/WebView2 UI thread, keeping the themed close confirmation modal responsive.
+
 ## [v1.73] – 2026-11-27
 ### Delimiter Label Collapse Arrow
 - **Inline Collapse Arrow on Delimiter Label:** Moved the collapse/expand arrow (`▾`) from the Prompt Controller card header directly onto the **Delimiter** label (`.field-collapsible` in `web/index.html`, `web/style.css`, `web/app.js`), collapsed by default so clicking the label toggles `#inpDelimiter`.

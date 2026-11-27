@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.73 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.74 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -139,6 +139,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.74:** Fixed a WinForms/WebView2 UI thread deadlock in `on_closing()` (`server.py`) by dispatching `window.__requestCloseConfirm()` asynchronously via `threading.Timer` so the themed close confirmation modal remains fully clickable.
 * **v1.73:** Moved the collapse/expand arrow (`▾`) from the Prompt Controller card header directly onto the **Delimiter** label (`.field-collapsible` in `web/index.html`, `web/style.css`, `web/app.js`), collapsed by default.
 * **v1.72:** Replaced the native Windows close confirmation dialog with a themed in-app modal (`#confirmAppCloseModal` in `web/index.html`, `web/app.js`, `POST /api/app/confirm_close` in `server.py`) matching the active Cockpit theme and DE/EN UI language.
 * **v1.71:** Made the **Prompt Controller** **Delimiter** field collapsible via the standard header chevron (`▾`, collapsed by default while keeping **Controller Mode** visible) in `web/index.html`, `web/style.css`, and `web/app.js`.
