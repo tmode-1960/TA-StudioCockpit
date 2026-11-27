@@ -337,6 +337,8 @@
       badge_llm_checking: "Prüfe...",
       badge_llm_online: "Online",
       badge_llm_offline: "⚠️ Kein LLM aktiv!",
+      badge_llm_provider_offline: "⚠️ {provider} offline!",
+      toast_llm_provider_offline: "Der gewählte LLM-Provider ({provider}) ist offline. Bitte Server starten, ein verfügbares Modell wählen oder LLM auf Aus stellen.",
       badge_llm_title_click: "Klicken, um Status von LM Studio / Ollama / Cloud-LLMs neu zu prüfen",
       llm_unavailable_title: "Weder lokaler LLM-Server (LM Studio / Ollama) noch Cloud-API-Key aktiv",
       lbl_i2i_ref: "I2I Referenzbild",
@@ -950,6 +952,8 @@
       badge_llm_checking: "Checking...",
       badge_llm_online: "Online",
       badge_llm_offline: "⚠️ No LLM active!",
+      badge_llm_provider_offline: "⚠️ {provider} offline!",
+      toast_llm_provider_offline: "The selected LLM provider ({provider}) is offline. Please start the server, choose an available model, or turn LLM off.",
       badge_llm_title_click: "Click to re-check LM Studio / Ollama / Cloud LLM status",
       llm_unavailable_title: "Neither local LLM server (LM Studio / Ollama) nor cloud API key active",
       lbl_i2i_ref: "I2I Reference Image",
@@ -4482,6 +4486,104 @@
   let currentLLMMode = "off"; // "off", "t2i", "i2i"
   let currentI2IImageFilename = "";
   let llmModelsByMode = { t2i: "", i2i: "" };
+  let hasLLMStatusChecked = false;
+  let lastLLMStatus = { lm_studio: false, ollama: false, cloud: false, cloud_providers: [], reachable: false };
+
+  function getLLMModelProviderInfo(modelName) {
+    const low = String(modelName || "").trim().toLowerCase();
+    if (low.startsWith("lmstudio/")) return { key: "lm_studio", label: "LM Studio" };
+    if (low.startsWith("ollama/")) return { key: "ollama", label: "Ollama" };
+    if (low.startsWith("gemini/")) return { key: "cloud:Gemini", label: "Gemini" };
+    if (low.startsWith("openai/")) return { key: "cloud:OpenAI", label: "OpenAI" };
+    if (low.startsWith("openrouter/")) return { key: "cloud:OpenRouter", label: "OpenRouter" };
+    if (low.startsWith("groq/")) return { key: "cloud:Groq", label: "Groq" };
+    if (
+      low.startsWith("anthropic/") || low.startsWith("claude/") ||
+      low.startsWith("deepseek/") || low.startsWith("mistral/") ||
+      low.startsWith("xai/") || low.startsWith("cloud/")
+    ) {
+      return { key: "cloud", label: "Cloud" };
+    }
+    return { key: "any", label: "LLM" };
+  }
+
+  function isLLMModelAvailable(modelName, status = lastLLMStatus) {
+    if (!status) return false;
+    const { key } = getLLMModelProviderInfo(modelName);
+    if (key === "lm_studio") return Boolean(status.lm_studio);
+    if (key === "ollama") return Boolean(status.ollama);
+    if (key.startsWith("cloud:")) {
+      const provider = key.slice(6);
+      if (Array.isArray(status.cloud_providers)) {
+        return status.cloud_providers.includes(provider);
+      }
+      return Boolean(status.cloud);
+    }
+    if (key === "cloud") return Boolean(status.cloud);
+    return Boolean(status.lm_studio || status.ollama || status.cloud);
+  }
+
+  function findBestAvailableLLMModel(mode = currentLLMMode, status = lastLLMStatus) {
+    if (!selLLMModel || !selLLMModel.options.length) return "";
+    const availableOpts = Array.from(selLLMModel.options).filter(o => isLLMModelAvailable(o.value, status));
+    if (availableOpts.length === 0) return "";
+    if (mode === "i2i") {
+      const visionOpt = availableOpts.find(o => isVisionModel(o.value));
+      return visionOpt ? visionOpt.value : availableOpts[0].value;
+    }
+    const textOpt = availableOpts.find(o => !isVisionModel(o.value));
+    return textOpt ? textOpt.value : availableOpts[0].value;
+  }
+
+  function updateLLMModelBadge(status = lastLLMStatus) {
+    if (!llmModelBadge) return;
+    if (!hasLLMStatusChecked) {
+      if (currentLLMMode === "t2i") {
+        llmModelBadge.textContent = t("badge_llm_text_model", "Text-Modell");
+        llmModelBadge.style.color = "var(--accent)";
+      } else if (currentLLMMode === "i2i") {
+        llmModelBadge.textContent = t("badge_llm_vision_model", "Vision-Modell");
+        llmModelBadge.style.color = "var(--accent2)";
+      } else {
+        llmModelBadge.textContent = t("badge_llm_ready_inactive", "Bereit (Inaktiv)");
+        llmModelBadge.style.color = "";
+      }
+      return;
+    }
+
+    const reachable = Boolean(status && status.reachable);
+    const selectedModel = selLLMModel ? selLLMModel.value : "";
+    const modelAvail = isLLMModelAvailable(selectedModel, status);
+    const { label: providerLabel } = getLLMModelProviderInfo(selectedModel);
+
+    if (currentLLMMode === "off") {
+      if (!reachable) {
+        llmModelBadge.textContent = t("badge_llm_offline", "⚠️ Kein LLM aktiv!");
+        llmModelBadge.style.color = "var(--danger)";
+      } else if (!modelAvail && selectedModel) {
+        llmModelBadge.textContent = t("badge_llm_provider_offline", "⚠️ {provider} offline!").replace("{provider}", providerLabel);
+        llmModelBadge.style.color = "var(--danger)";
+      } else {
+        llmModelBadge.textContent = t("badge_llm_ready_inactive", "Bereit (Inaktiv)");
+        llmModelBadge.style.color = "";
+      }
+      return;
+    }
+
+    if (modelAvail) {
+      const typeName = (currentLLMMode === "i2i")
+        ? t("badge_llm_vision_model", "Vision-Modell")
+        : t("badge_llm_text_model", "Text-Modell");
+      llmModelBadge.textContent = `● ${typeName} (${t("badge_llm_online", "Online")})`;
+      llmModelBadge.style.color = "#4ade80";
+    } else if (reachable && selectedModel) {
+      llmModelBadge.textContent = t("badge_llm_provider_offline", "⚠️ {provider} offline!").replace("{provider}", providerLabel);
+      llmModelBadge.style.color = "var(--danger)";
+    } else {
+      llmModelBadge.textContent = t("badge_llm_offline", "⚠️ Kein LLM aktiv!");
+      llmModelBadge.style.color = "var(--danger)";
+    }
+  }
 
   function updateLLMModeUI(mode = currentLLMMode) {
     if (llmModePills) {
@@ -4543,21 +4645,29 @@
       if (mode === "t2i" || mode === "i2i") {
         const remembered = llmModelsByMode[mode];
         const hasRemembered = remembered && Array.from(selLLMModel.options).some(o => o.value === remembered);
-        if (hasRemembered) {
+        if (hasRemembered && (!hasLLMStatusChecked || isLLMModelAvailable(remembered, lastLLMStatus))) {
           selLLMModel.value = remembered;
-        } else if (!remembered) {
-          if (mode === "i2i") {
-            const visionOpt = Array.from(selLLMModel.options).find(o => isVisionModel(o.value));
-            selLLMModel.value = visionOpt ? visionOpt.value : selLLMModel.options[0].value;
-          } else {
-            const textOpt = Array.from(selLLMModel.options).find(o => !isVisionModel(o.value));
-            selLLMModel.value = textOpt ? textOpt.value : selLLMModel.options[0].value;
+        } else {
+          const bestAvail = hasLLMStatusChecked ? findBestAvailableLLMModel(mode, lastLLMStatus) : "";
+          if (bestAvail) {
+            selLLMModel.value = bestAvail;
+          } else if (hasRemembered) {
+            selLLMModel.value = remembered;
+          } else if (!remembered) {
+            if (mode === "i2i") {
+              const visionOpt = Array.from(selLLMModel.options).find(o => isVisionModel(o.value));
+              selLLMModel.value = visionOpt ? visionOpt.value : selLLMModel.options[0].value;
+            } else {
+              const textOpt = Array.from(selLLMModel.options).find(o => !isVisionModel(o.value));
+              selLLMModel.value = textOpt ? textOpt.value : selLLMModel.options[0].value;
+            }
           }
           llmModelsByMode[mode] = selLLMModel.value;
         }
       }
     }
     updateLLMSourceBadge();
+    updateLLMModelBadge();
     // Live-check if LLM server is actually running
     checkLLMStatus();
     // Auto-adjust Prompt Controller mode when LLM is switched
@@ -4817,6 +4927,12 @@
       const item = document.createElement("button");
       item.type = "button";
       item.className = "llm-combo-item";
+      const avail = !hasLLMStatusChecked || isLLMModelAvailable(opt.value, lastLLMStatus);
+      if (!avail) {
+        item.classList.add("is-offline");
+        const { label: providerLabel } = getLLMModelProviderInfo(opt.value);
+        item.title = t("badge_llm_provider_offline", "⚠️ {provider} offline!").replace("{provider}", providerLabel);
+      }
       if (opt.value === selLLMModel.value) {
         item.classList.add("is-selected");
         llmModelHighlightIdx = idx;
@@ -4824,7 +4940,15 @@
       item.setAttribute("role", "option");
       item.setAttribute("aria-selected", opt.value === selLLMModel.value ? "true" : "false");
       item.dataset.value = opt.value;
-      item.textContent = opt.textContent;
+      const lblSpan = document.createElement("span");
+      lblSpan.textContent = opt.textContent;
+      item.appendChild(lblSpan);
+      if (!avail) {
+        const tag = document.createElement("span");
+        tag.className = "llm-combo-offline-tag";
+        tag.textContent = "offline";
+        item.appendChild(tag);
+      }
       item.addEventListener("click", () => {
         selLLMModel.value = opt.value;
         selLLMModel.dispatchEvent(new Event("change"));
@@ -4942,10 +5066,15 @@
           } else if (data.models.length > 0) {
             selLLMModel.value = data.models[0];
           }
+          if (hasLLMStatusChecked && !isLLMModelAvailable(selLLMModel.value, lastLLMStatus)) {
+            const bestAvail = findBestAvailableLLMModel(currentLLMMode, lastLLMStatus);
+            if (bestAvail) selLLMModel.value = bestAvail;
+          }
           if ((currentLLMMode === "t2i" || currentLLMMode === "i2i") && !llmModelsByMode[currentLLMMode] && selLLMModel.value) {
             llmModelsByMode[currentLLMMode] = selLLMModel.value;
           }
           updateLLMSourceBadge();
+          updateLLMModelBadge();
         }
       }
     } catch (e) {
@@ -5446,6 +5575,7 @@
         llmModelsByMode[currentLLMMode] = selLLMModel.value;
       }
       updateLLMSourceBadge();
+      updateLLMModelBadge();
       saveState();
     });
   }
@@ -5485,6 +5615,22 @@
         5000
       );
       return;
+    }
+
+    if (currentLLMMode !== "off" && selLLMModel && selLLMModel.value) {
+      await checkLLMStatus();
+      if (!isLLMModelAvailable(selLLMModel.value, lastLLMStatus)) {
+        const { label: providerLabel } = getLLMModelProviderInfo(selLLMModel.value);
+        showToast(
+          t(
+            "toast_llm_provider_offline",
+            "Der gewählte LLM-Provider ({provider}) ist offline. Bitte Server starten, ein verfügbares Modell wählen oder LLM auf Aus stellen."
+          ).replace("{provider}", providerLabel),
+          "error",
+          5000
+        );
+        return;
+      }
     }
 
     isGenerating = true;
@@ -6824,41 +6970,42 @@
     }
   }
 
-  // Live-check LLM Server status (LM Studio on 1234 / Ollama on 11434)
+  // Live-check LLM Server status (LM Studio on 1234 / Ollama on 11434 / Cloud)
   async function checkLLMStatus() {
     try {
       const res = await fetch("/api/check_llm");
       if (res.ok) {
         const data = await res.json();
+        const firstCheck = !hasLLMStatusChecked;
+        hasLLMStatusChecked = true;
+        lastLLMStatus = data;
         const reachable = Boolean(data.reachable);
         updateLLMModeAvailability(reachable);
-        if (!llmModelBadge) return;
-        if (currentLLMMode === "off") {
-          if (reachable) {
-            llmModelBadge.textContent = t("badge_llm_ready_inactive", "Bereit (Inaktiv)");
-            llmModelBadge.style.color = "";
-          } else {
-            llmModelBadge.textContent = t("badge_llm_offline", "⚠️ lms server offline!");
-            llmModelBadge.style.color = "var(--danger)";
+
+        // On initial check or while LLM is off, auto-switch away from an offline model if another provider is available
+        if (reachable && selLLMModel && selLLMModel.options.length > 0 && !isLLMModelAvailable(selLLMModel.value, data)) {
+          if (firstCheck || currentLLMMode === "off") {
+            const bestAvail = findBestAvailableLLMModel(currentLLMMode, data);
+            if (bestAvail && bestAvail !== selLLMModel.value) {
+              selLLMModel.value = bestAvail;
+              if (currentLLMMode === "t2i" || currentLLMMode === "i2i") {
+                llmModelsByMode[currentLLMMode] = bestAvail;
+              }
+              updateLLMSourceBadge();
+            }
           }
-          return;
         }
-        if (reachable) {
-          const typeName = (currentLLMMode === "i2i")
-            ? t("badge_llm_vision_model", "Vision-Modell")
-            : t("badge_llm_text_model", "Text-Modell");
-          llmModelBadge.textContent = `● ${typeName} (${t("badge_llm_online", "Online")})`;
-          llmModelBadge.style.color = "#4ade80"; // Bright green
-        } else {
-          llmModelBadge.textContent = t("badge_llm_offline", "⚠️ lms server offline!");
-          llmModelBadge.style.color = "var(--danger)";
+
+        updateLLMModelBadge(data);
+        if (llmModelMenu && llmModelMenu.style.display !== "none") {
+          renderLLMModelList();
         }
       }
     } catch (e) {
+      hasLLMStatusChecked = true;
+      lastLLMStatus = { lm_studio: false, ollama: false, cloud: false, cloud_providers: [], reachable: false };
       updateLLMModeAvailability(false);
-      if (!llmModelBadge) return;
-      llmModelBadge.textContent = t("badge_llm_offline", "⚠️ lms server offline!");
-      llmModelBadge.style.color = "var(--danger)";
+      updateLLMModelBadge(lastLLMStatus);
     }
   }
 

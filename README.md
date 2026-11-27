@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.60 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.61 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -139,6 +139,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.61:** Fixed per-provider LLM availability checks in `web/app.js` (`checkLLMStatus`, `updateLLMModelBadge`), added automatic fallback to an available model, marked unreachable provider models as `offline` in the dropdown (`web/style.css`), and blocked generation with a clear toast if the selected LLM provider is offline.
 * **v1.60:** Fixed the Windows auto-updater (`server.py`, `modules/updater.py`, `web/app.js`) to cleanly terminate the app process, run a silent PowerShell update script without opening Windows Terminal, strip inherited PyInstaller `_MEIPASS*`/`_PYI_*` variables on relaunch, and suppress transient `"Failed to fetch"` toasts during restart.
 * **v1.57:** Rebuilt the distribution package with the updated **`studio-cockpit`** skill (`video adopt-audio`, `video adopt` upload fallback, and corrected `first_frame` / `audio_file` `/api/video/uploads/...` URL docs).
 * **v1.56:** Added the unified **`studio-cockpit`** Antigravity skill (`.agents/skills/studio-cockpit/`) covering **Image Studio**, **VideoMaker**, **MusicMaker**, and **DiscordGIF** (including cross-module pipelines), and bundled it into `dist\tA-Studio-Cockpit\antigravity\skills\` and the release ZIP (`build_dist.bat`).

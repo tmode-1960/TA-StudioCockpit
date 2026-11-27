@@ -2,6 +2,12 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.61] – 2026-11-27
+### LLM Provider Status & Selection Fixes
+- **Per-Provider LLM Status Check:** Updated `checkLLMStatus()` and `updateLLMModelBadge()` in `web/app.js` so the status badge validates the *currently selected model's provider* (`LM Studio`, `Ollama`, or specific cloud provider like `Gemini`) instead of showing `Online` whenever any unrelated provider is reachable.
+- **Automatic Fallback & Offline Tagging:** Added automatic fallback to an available model (`findBestAvailableLLMModel`) when switching to `T2I`/`I2I` or on initial/inactive checks, and marked unreachable provider models with an `offline` badge in the model dropdown (`web/app.js`, `web/style.css`).
+- **Pre-Generation Offline Guard:** `startGeneration()` now re-checks `/api/check_llm` when LLM mode is active and blocks submission with a clear error toast if the selected model's provider is offline.
+
 ## [v1.60] – 2026-11-26
 ### Windows Auto-Updater Fixes
 - **Clean Process Exit on Update:** Fixed `_request_app_exit()` in `server.py` so the HTTP server and Python process always shut down (`httpd.shutdown()` + `os._exit(0)`) after destroying the WebView window.

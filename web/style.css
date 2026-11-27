@@ -3313,6 +3313,16 @@ input[type="range"] {
   color: var(--accent2);
   font-weight: 600;
 }
+.llm-combo-item.is-offline {
+  opacity: 0.55;
+}
+.llm-combo-item .llm-combo-offline-tag {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--danger);
+  font-weight: 600;
+  flex-shrink: 0;
+}
 .llm-combo-empty {
   padding: 12px 10px;
   text-align: center;
