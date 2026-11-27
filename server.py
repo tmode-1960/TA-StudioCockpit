@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.68"
+APP_VERSION = "1.69"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -198,6 +198,7 @@ def load_config() -> dict:
         "lms_url": LMS_URL,
         "ollama_url": OLLAMA_URL,
         "language": "en",
+        "confirm_close": True,
     }
     if os.path.isfile(CONFIG_PATH):
         try:
@@ -339,7 +340,7 @@ def sanitize_config_for_client(cfg: dict) -> dict:
 ALLOWED_CONFIG_KEYS = {
     "comfy_url", "comfy_launch_cmd", "extra_models_dir", "output_dir", "video_output_dir", "music_output_dir",
     "lms_url", "ollama_url",
-    "language", "theme_base", "theme_accent", "theme_custom_accent",
+    "language", "theme_base", "theme_accent", "theme_custom_accent", "confirm_close",
     "custom_res_presets", "ui_state", "comfy_dir", "last_i2i_dir", "window",
     "llm_provider", "ollama_model", "gemini_model",
 }
@@ -5069,6 +5070,22 @@ def run_native_window(url: str, server: socketserver.TCPServer) -> bool:
                 _schedule_save()
 
         def on_closing():
+            if not getattr(window, "_studio_force_exit", False):
+                try:
+                    cfg_close = load_config()
+                    if cfg_close.get("confirm_close", True) and hasattr(ctypes, "windll"):
+                        lang_close = str(cfg_close.get("language") or "en").lower()
+                        prompt_txt = (
+                            "Möchtest du thomo.ART StudioCockpit wirklich schließen?"
+                            if lang_close == "de"
+                            else "Do you really want to close thomo.ART StudioCockpit?"
+                        )
+                        # MB_YESNO (0x4) | MB_ICONQUESTION (0x20) | MB_DEFBUTTON2 (0x100) | MB_TOPMOST (0x40000)
+                        res = ctypes.windll.user32.MessageBoxW(0, prompt_txt, "thomo.ART StudioCockpit", 0x40124)
+                        if res != 6:  # IDYES
+                            return False
+                except Exception:
+                    pass
             with save_timer_lock:
                 if save_timer[0] is not None:
                     save_timer[0].cancel()
@@ -5154,6 +5171,7 @@ def main():
             if "webview" in sys.modules:
                 import webview
                 if webview.windows:
+                    setattr(webview.windows[0], "_studio_force_exit", True)
                     webview.windows[0].destroy()
                     time.sleep(0.15)
         except Exception:

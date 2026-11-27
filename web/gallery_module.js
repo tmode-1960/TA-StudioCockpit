@@ -115,8 +115,12 @@
       lb_burn_title: "Endgültig löschen (Shift+X)",
       lb_delete_title: "Löschen",
       lb_zoom_fit_title: "Einpassen (0)",
+      lb_filmstrip_btn: "🎞️ Filmstrip",
       lb_filmstrip_title: "Filmstrip ein/aus (T)",
-      lb_pure_title: "Pure View (H)",
+      lb_pure_btn: "👁️ Vollbild",
+      lb_pure_title: "Vollbild / Pure View (H)",
+      lb_pure_exit_btn: "✕ Vollbild schließen",
+      lb_pure_exit_title: "Vollbild schließen (H / Esc)",
       lb_model_seed: "Modell / Seed",
       lb_tech_details: "Technik & LoRAs",
       lb_positive_prompt: "Positiver Prompt",
@@ -245,8 +249,12 @@
       lb_burn_title: "Delete permanently (Shift+X)",
       lb_delete_title: "Delete",
       lb_zoom_fit_title: "Fit to view (0)",
+      lb_filmstrip_btn: "🎞️ Filmstrip",
       lb_filmstrip_title: "Toggle Filmstrip (T)",
-      lb_pure_title: "Pure View (H)",
+      lb_pure_btn: "👁️ Full View",
+      lb_pure_title: "Full View / Pure View (H)",
+      lb_pure_exit_btn: "✕ Exit Full View",
+      lb_pure_exit_title: "Exit Full View (H / Esc)",
       lb_model_seed: "Model / Seed",
       lb_tech_details: "Tech & LoRAs",
       lb_positive_prompt: "Positive Prompt",
@@ -307,6 +315,7 @@
     });
 
     if ($("galLoadingText")) $("galLoadingText").textContent = gt("loading_text");
+    updateLbPureButton();
     updateBatchBar();
     renderBatchTargetFolders();
     renderRootsSelect();
@@ -1088,12 +1097,20 @@
     applyLbTransform();
   }
 
+  function updateLbPureButton() {
+    const btn = $("btnGalLbPure");
+    if (!btn) return;
+    btn.classList.toggle("active", state.lbPure);
+    btn.textContent = gt(state.lbPure ? "lb_pure_exit_btn" : "lb_pure_btn");
+    btn.title = gt(state.lbPure ? "lb_pure_exit_title" : "lb_pure_title");
+  }
+
   function toggleLbPure(forceVal = null) {
     const lb = $("galLightbox");
     if (!lb) return;
     state.lbPure = forceVal !== null ? !!forceVal : !state.lbPure;
     lb.classList.toggle("pure-view", state.lbPure);
-    $("btnGalLbPure")?.classList.toggle("active", state.lbPure);
+    updateLbPureButton();
   }
 
   function renderLbFilmstrip() {

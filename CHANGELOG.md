@@ -2,6 +2,12 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.69] – 2026-11-27
+### Gallery Pure View Buttons & Window Close Confirmation
+- **Labeled Gallery Lightbox Controls:** Added localized DE/EN labels to the **Filmstrip** (`🎞️ Filmstrip`) and **Full View / Pure View** (`👁️ Vollbild` / `👁️ Full View`) HUD buttons (`web/index.html`, `web/gallery_module.js`, `web/style.css`).
+- **Clear Exit Full View Button:** In active Pure View, the toggle button now clearly displays `✕ Vollbild schließen` / `✕ Exit Full View` at high visibility (`opacity: 0.92` instead of `0.35`) so users don't accidentally click the window close button. (`Esc` continues to exit Pure View first before closing the Lightbox.)
+- **Configurable Close Confirmation (`confirm_close`):** Added a localized confirmation dialog when closing the Cockpit window in `server.py` (`on_closing`, bypassed automatically during auto-updater restarts) and a **Show confirmation dialog when closing Cockpit** checkbox in Settings (`web/index.html`, `web/app.js`, enabled by default).
+
 ## [v1.68] – 2026-11-27
 ### Gallery Lightbox Previous Button Fix
 - **Fixed Left Navigation Button Hit Area (`.gal-lb-nav`):** Added `z-index: 6` to `.gal-lb-nav` in `web/style.css` so `.gal-lb-prev` (`‹`) renders and receives pointer events above `.gal-lb-canvas` (`will-change: transform`) across its entire button area instead of only at the far left edge.

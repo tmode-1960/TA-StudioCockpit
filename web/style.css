@@ -3908,11 +3908,15 @@ input[type="range"] {
   background: transparent;
   border: none;
   color: var(--text);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
-  padding: 4px 8px;
+  padding: 5px 10px;
   border-radius: 6px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
   transition: background .12s, color .12s;
 }
 .gal-lb-hud-btn:hover {
@@ -3987,11 +3991,23 @@ input[type="range"] {
   display: none !important;
 }
 .gal-lightbox.pure-view .gal-lb-hud-right {
-  opacity: 0.35;
-  transition: opacity .15s;
+  opacity: 0.92;
+  background: rgba(15, 17, 23, 0.88);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+  transition: opacity .15s, background .15s;
 }
 .gal-lightbox.pure-view .gal-lb-hud-right:hover {
   opacity: 1;
+}
+.gal-lightbox.pure-view #btnGalLbPure.active {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  padding: 6px 12px;
+  font-size: 12.5px;
+}
+.gal-lightbox.pure-view #btnGalLbPure.active:hover {
+  background: var(--accent);
 }
 .gal-lb-nav {
   position: absolute;

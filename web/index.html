@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v1.68 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.69 (FLEXMOD Edition)</title>
   <link rel="icon" type="image/png" href="/logo.png?v=1.45">
   <link rel="icon" href="/favicon.ico?v=1.45">
   <script>
@@ -2521,6 +2521,10 @@
               </select>
             </div>
           </div>
+          <label style="display:flex; align-items:center; gap:8px; margin-top:10px; font-size:12.5px; color:var(--text); cursor:pointer;">
+            <input type="checkbox" id="chkConfirmClose" checked>
+            <span data-i18n="settings_confirm_close">Sicherheitsabfrage beim Schließen des Cockpits anzeigen</span>
+          </label>
         </div>
 
         <!-- 2. ComfyUI -->
@@ -3050,8 +3054,8 @@
             <button type="button" class="gal-lb-hud-btn" id="btnGalLbZoomIn" title="Hineinzoomen (+)">+</button>
           </div>
           <div class="gal-lb-hud-right">
-            <button type="button" class="gal-lb-hud-btn" id="btnGalLbFilmstrip" title="Filmstrip ein/aus (T)" data-gal-i18n-title="lb_filmstrip_title">🎞️</button>
-            <button type="button" class="gal-lb-hud-btn" id="btnGalLbPure" title="Pure View (H)" data-gal-i18n-title="lb_pure_title">👁️</button>
+            <button type="button" class="gal-lb-hud-btn" id="btnGalLbFilmstrip" title="Filmstrip ein/aus (T)" data-gal-i18n="lb_filmstrip_btn" data-gal-i18n-title="lb_filmstrip_title">🎞️ Filmstrip</button>
+            <button type="button" class="gal-lb-hud-btn" id="btnGalLbPure" title="Vollbild / Pure View (H)" data-gal-i18n="lb_pure_btn" data-gal-i18n-title="lb_pure_title">👁️ Vollbild</button>
           </div>
         </div>
         <button type="button" class="gal-lb-nav gal-lb-prev" id="btnGalLbPrev" title="Vorheriges Bild (←)" data-gal-i18n-title="lb_prev_title">‹</button>
@@ -3156,7 +3160,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=1.68"></script>
+  <script src="/app.js?v=1.69"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=5"></script>
   <script src="/video_module.js?v=1.00"></script>
