@@ -179,7 +179,7 @@ class UpdaterTests(unittest.TestCase):
         self.assertEqual(code, 400)
         self.assertFalse(payload["ok"])
 
-    def test_run_install_worker_stages_and_writes_batch(self) -> None:
+    def test_run_install_worker_stages_and_writes_ps_script(self) -> None:
         zip_buf = io.BytesIO()
         with zipfile.ZipFile(zip_buf, "w") as zf:
             zf.writestr("tA-Studio-Cockpit/StudioCockpit.exe", b"NEW_EXE")
@@ -199,10 +199,10 @@ class UpdaterTests(unittest.TestCase):
         captured: dict = {}
 
         def _fake_popen(cmd, **_kwargs):
-            bat_path = cmd[2]
-            captured["bat_path"] = bat_path
-            with open(bat_path, "r", encoding="utf-8") as fh:
-                captured["bat_content"] = fh.read()
+            ps_path = cmd[cmd.index("-File") + 1]
+            captured["ps_path"] = ps_path
+            with open(ps_path, "r", encoding="utf-8-sig") as fh:
+                captured["ps_content"] = fh.read()
             return mock.MagicMock()
 
         with tempfile.TemporaryDirectory() as staging_parent:
@@ -221,9 +221,9 @@ class UpdaterTests(unittest.TestCase):
             state = updater.get_install_state()
             self.assertEqual(state["status"], "restarting")
             self.assertEqual(state["progress"], 100)
-            self.assertIn("apply_update.bat", captured.get("bat_path", ""))
-            self.assertIn("StudioCockpit.exe", captured.get("bat_content", ""))
-            self.assertIn("README.md", captured.get("bat_content", ""))
+            self.assertIn("apply_update.ps1", captured.get("ps_path", ""))
+            self.assertIn("StudioCockpit.exe", captured.get("ps_content", ""))
+            self.assertIn("README.md", captured.get("ps_content", ""))
 
 
 if __name__ == "__main__":
