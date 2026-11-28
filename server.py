@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.78"
+APP_VERSION = "1.79"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -1840,6 +1840,126 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
 
         return models_list, samplers_dict, warnings
 
+    @staticmethod
+    def _parse_extra_model_paths_yaml_text(yaml_text: str) -> list[dict]:
+        """Parse top-level sections with base_path and keys from ComfyUI extra_model_paths.yaml."""
+        sections: list[dict] = []
+        cur: dict | None = None
+        lines = yaml_text.splitlines()
+        for idx, raw_line in enumerate(lines):
+            stripped = raw_line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            indent = len(raw_line) - len(raw_line.lstrip(" \t"))
+            if indent == 0 and stripped.endswith(":"):
+                if cur is not None:
+                    sections.append(cur)
+                cur = {"name": stripped[:-1].strip(), "start_idx": idx, "end_idx": idx, "base_path": "", "keys": {}}
+            elif cur is not None and indent > 0 and ":" in stripped:
+                cur["end_idx"] = idx
+                k, v = stripped.split(":", 1)
+                k = k.strip()
+                v = v.strip().strip('"').strip("'")
+                if "#" in v and not v.startswith("/"):
+                    v = v.split("#", 1)[0].strip()
+                if k == "base_path":
+                    cur["base_path"] = v
+                else:
+                    cur["keys"][k] = v
+        if cur is not None:
+            sections.append(cur)
+        return sections
+
+    def _resolve_plato_target_dir(self, cfg: dict, paths: dict, target_subdir: str, ensure_yaml: bool = False) -> str:
+        """Resolve destination directory for a Plato's Key subdir (supports extra_model_paths.yaml on Windows & WSL)."""
+        comfy_root = paths.get("comfy_root", "")
+        is_wsl = bool(paths.get("is_wsl"))
+
+        # 1. Explicit StudioCockpit extra_models_dir
+        extra_dir = str(cfg.get("extra_models_dir", "")).strip()
+        if extra_dir:
+            if is_wsl:
+                wsl_extra = self._to_wsl_path(extra_dir).rstrip("/")
+                return f"{wsl_extra}/{target_subdir}"
+            base = extra_dir
+            nested = os.path.join(extra_dir, "models")
+            if os.path.isdir(nested) and not os.path.isdir(os.path.join(extra_dir, "checkpoints")):
+                base = nested
+            return os.path.normpath(os.path.join(base, target_subdir))
+
+        # 2. ComfyUI's own extra_model_paths.yaml (native Windows or WSL)
+        yaml_text = ""
+        yaml_exists = False
+        win_yaml_path = os.path.join(comfy_root, "extra_model_paths.yaml") if (comfy_root and not is_wsl) else ""
+        wsl_yaml_path = f"{comfy_root.rstrip('/')}/extra_model_paths.yaml" if (comfy_root and is_wsl and comfy_root.startswith("/")) else ""
+
+        if win_yaml_path and os.path.isfile(win_yaml_path):
+            yaml_exists = True
+            try:
+                with open(win_yaml_path, "r", encoding="utf-8") as f:
+                    yaml_text = f.read()
+            except Exception:
+                yaml_text = ""
+        elif wsl_yaml_path:
+            try:
+                import shlex
+                res = subprocess.run(
+                    ["wsl", "bash", "-c", f"test -f {shlex.quote(wsl_yaml_path)} && cat {shlex.quote(wsl_yaml_path)}"],
+                    capture_output=True, text=True, timeout=4, creationflags=_NO_WINDOW_FLAGS,
+                )
+                if res.returncode == 0 and res.stdout:
+                    yaml_exists = True
+                    yaml_text = res.stdout
+            except Exception:
+                pass
+
+        if yaml_exists and yaml_text:
+            sections = self._parse_extra_model_paths_yaml_text(yaml_text)
+            active_sec = next((s for s in sections if s.get("base_path") and target_subdir in s["keys"]), None)
+            if active_sec is None:
+                active_sec = next((s for s in sections if s.get("base_path")), None)
+            if active_sec is not None:
+                bp = active_sec["base_path"]
+                sub_val = active_sec["keys"].get(target_subdir, "").strip()
+                if not sub_val:
+                    sub_val = target_subdir
+                    if ensure_yaml:
+                        lines = yaml_text.splitlines()
+                        insert_at = active_sec["end_idx"] + 1
+                        lines.insert(insert_at, f"  {target_subdir}: {target_subdir}")
+                        new_yaml = "\n".join(lines) + ("\n" if yaml_text.endswith("\n") else "")
+                        if win_yaml_path:
+                            with open(win_yaml_path, "w", encoding="utf-8") as f:
+                                f.write(new_yaml)
+                        elif wsl_yaml_path:
+                            import shlex
+                            tmp_yaml = os.path.join(os.path.dirname(CONFIG_PATH), f"_emp_{os.getpid()}.tmp")
+                            try:
+                                with open(tmp_yaml, "w", encoding="utf-8", newline="\n") as f:
+                                    f.write(new_yaml)
+                                wsl_src = self._to_wsl_path(tmp_yaml)
+                                subprocess.run(
+                                    ["wsl", "bash", "-c", f"mv -f {shlex.quote(wsl_src)} {shlex.quote(wsl_yaml_path)}"],
+                                    capture_output=True, text=True, timeout=10, creationflags=_NO_WINDOW_FLAGS,
+                                )
+                            finally:
+                                if os.path.isfile(tmp_yaml):
+                                    try:
+                                        os.remove(tmp_yaml)
+                                    except Exception:
+                                        pass
+                # Take first line/path if multi-line; join with base_path
+                first_sub = sub_val.splitlines()[0].strip()
+                if is_wsl:
+                    bp_norm = self._to_wsl_path(bp).rstrip("/")
+                    return first_sub if first_sub.startswith("/") else f"{bp_norm}/{first_sub.lstrip('/')}"
+                return os.path.normpath(first_sub if os.path.isabs(first_sub) else os.path.join(bp, first_sub))
+
+        # 3. Default ComfyUI models/<target_subdir>
+        if is_wsl:
+            return f"{comfy_root.rstrip('/')}/models/{target_subdir}"
+        return os.path.normpath(os.path.join(comfy_root, "models", target_subdir)) if comfy_root else ""
+
     def handle_plato_keys(self):
         """Query ComfyUI for installed Plato's Keys custom nodes and available .safetensors keys."""
         cfg = load_config()
@@ -1884,20 +2004,25 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         nynxz_set = {k.replace("\\", "/") for k in nynxz_keys}
 
         wsl_found_ids: set[str] = set()
+        resolved_dirs = {
+            sub: self._resolve_plato_target_dir(cfg, paths, sub, ensure_yaml=False)
+            for sub in ("clip_projections", "plato_keys")
+        }
         if is_wsl and comfy_root.startswith("/"):
             try:
                 import shlex
                 checks = " && ".join(
-                    f'(test -f {shlex.quote(comfy_root.rstrip("/") + "/models/" + it["target_subdir"] + "/" + it["filename"].replace(chr(92), "/"))} && echo {shlex.quote(it["id"])} || true)'
-                    for it in PLATO_KEY_CATALOG
+                    f'(test -f {shlex.quote(resolved_dirs[it["target_subdir"]].rstrip("/") + "/" + it["filename"].replace(chr(92), "/"))} && echo {shlex.quote(it["id"])} || true)'
+                    for it in PLATO_KEY_CATALOG if resolved_dirs.get(it["target_subdir"])
                 )
-                chk = subprocess.run(
-                    ["wsl", "bash", "-c", checks],
-                    capture_output=True, text=True, timeout=4,
-                    creationflags=_NO_WINDOW_FLAGS,
-                )
-                if chk.returncode == 0 and chk.stdout:
-                    wsl_found_ids = {ln.strip() for ln in chk.stdout.splitlines() if ln.strip()}
+                if checks:
+                    chk = subprocess.run(
+                        ["wsl", "bash", "-c", checks],
+                        capture_output=True, text=True, timeout=4,
+                        creationflags=_NO_WINDOW_FLAGS,
+                    )
+                    if chk.returncode == 0 and chk.stdout:
+                        wsl_found_ids = {ln.strip() for ln in chk.stdout.splitlines() if ln.strip()}
             except Exception:
                 pass
 
@@ -1906,8 +2031,10 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             fn = item["filename"].replace("\\", "/")
             in_comfy = (fn in h3_set) if item["pack"] == "h3" else (fn in nynxz_set)
             on_disk = item["id"] in wsl_found_ids
-            if not on_disk and not is_wsl and comfy_root and os.path.isdir(comfy_root):
-                on_disk = os.path.isfile(os.path.join(comfy_root, "models", item["target_subdir"], *fn.split("/")))
+            if not on_disk and not is_wsl:
+                tdir = resolved_dirs.get(item["target_subdir"], "")
+                if tdir and os.path.isdir(tdir):
+                    on_disk = os.path.isfile(os.path.join(tdir, *fn.split("/")))
             catalog_out.append({
                 "id": item["id"],
                 "pack": item["pack"],
@@ -1978,16 +2105,16 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
 
         if is_wsl and comfy_root.startswith("/"):
             import posixpath
-            wsl_base = posixpath.normpath(posixpath.join(comfy_root.rstrip("/"), "models", item["target_subdir"]))
+            wsl_base = posixpath.normpath(self._resolve_plato_target_dir(cfg, paths, item["target_subdir"], ensure_yaml=True))
             wsl_dest = posixpath.normpath(posixpath.join(wsl_base, rel_fn))
             if not (wsl_dest == wsl_base or wsl_dest.startswith(wsl_base + "/")):
                 self.send_json({"error": "Ungültiger Zielpfad."}, status=400)
                 return
             dest_path = wsl_dest
-            win_tmp_dir = os.path.join(DATA_ROOT, "data")
+            win_tmp_dir = os.path.join(os.path.dirname(CONFIG_PATH))
             tmp_path = os.path.join(win_tmp_dir, f"_plato_dl_{os.getpid()}.tmp")
         else:
-            target_base = os.path.normpath(os.path.join(comfy_root, "models", item["target_subdir"]))
+            target_base = os.path.normpath(self._resolve_plato_target_dir(cfg, paths, item["target_subdir"], ensure_yaml=True))
             dest_path = os.path.normpath(os.path.join(target_base, *rel_fn.split("/")))
             if not _is_path_within(target_base, dest_path):
                 self.send_json({"error": "Ungültiger Zielpfad."}, status=400)
@@ -2024,14 +2151,7 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                                 PLATO_DOWNLOAD_JOB["downloaded_bytes"] = downloaded
                 if is_wsl and comfy_root.startswith("/"):
                     import posixpath, shlex
-                    wp = subprocess.run(
-                        ["wsl", "wslpath", "-u", tmp_path],
-                        capture_output=True, text=True, timeout=10,
-                        creationflags=_NO_WINDOW_FLAGS,
-                    )
-                    if wp.returncode != 0 or not wp.stdout.strip():
-                        raise RuntimeError(wp.stderr.strip() or "wslpath conversion failed")
-                    wsl_src = wp.stdout.strip()
+                    wsl_src = self._to_wsl_path(tmp_path)
                     wsl_dir = posixpath.dirname(dest_path)
                     mv_cmd = f"mkdir -p {shlex.quote(wsl_dir)} && mv -f {shlex.quote(wsl_src)} {shlex.quote(dest_path)}"
                     mv = subprocess.run(
@@ -4813,6 +4933,8 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             "  embeddings: embeddings",
             "  upscale_models: upscale_models",
             "  audio_encoders: audio_encoders",
+            "  clip_projections: clip_projections",
+            "  plato_keys: plato_keys",
             "",
         ]
         data_dir = os.path.dirname(CONFIG_PATH)

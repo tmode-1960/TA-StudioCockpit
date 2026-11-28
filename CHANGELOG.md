@@ -2,6 +2,11 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.79] – 2026-11-28
+### `extra_model_paths.yaml` Support & WSL Path Fix
+- **Fixed WSL Temp-Path Conversion (`server.py`):** Replaced `wsl wslpath -u` with `self._to_wsl_path(tmp_path)` in `handle_plato_key_download()` so Windows backslashes are never stripped by WSL shell argument parsing.
+- **`extra_model_paths.yaml` Integration (`server.py`):** Added `_resolve_plato_target_dir()` supporting `extra_models_dir` and ComfyUI's own `extra_model_paths.yaml` on both native Windows and WSL, automatically adding `clip_projections` / `plato_keys` entries if missing and including them in `studio_extra_model_paths.yaml`.
+
 ## [v1.78] – 2026-11-28
 ### WSL + Native Windows Support for Plato's Keys Downloader
 - **WSL Key Downloader & Disk Check (`server.py`):** Updated `handle_plato_keys()` and `handle_plato_key_download()` to support both native Windows ComfyUI directories and WSL Linux paths (via `wslpath -u` and `wsl bash -c`), fixing the false `NO_COMFY_DIR` error when ComfyUI runs in WSL.
