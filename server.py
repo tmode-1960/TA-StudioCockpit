@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.86"
+APP_VERSION = "1.87"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -5080,11 +5080,14 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         return (host_yaml, cli_yaml)
 
     def _stop_comfy_on_port(self, port: int, is_wsl: bool = False) -> None:
-        """Stoppt einen laufenden ComfyUI-Prozess auf dem konfigurierten Port."""
+        """Stoppt einen laufenden ComfyUI-Prozess auf dem konfigurierten Port (erst sanft, dann bei Bedarf hart)."""
         if sys.platform == "win32" and is_wsl:
             try:
                 subprocess.run(
-                    ["wsl", "bash", "-lc", f"fuser -k {port}/tcp >/dev/null 2>&1 || pkill -f 'main\\.py.*{port}' || pkill -f 'ComfyUI/main\\.py' || true"],
+                    [
+                        "wsl", "bash", "-lc",
+                        f"pkill -TERM -f 'ComfyUI/main\\.py' 2>/dev/null || pkill -TERM -f 'main\\.py.*{port}' 2>/dev/null || fuser -k -TERM {port}/tcp >/dev/null 2>&1 || true",
+                    ],
                     timeout=6,
                     capture_output=True,
                 )
@@ -5110,16 +5113,49 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                 pass
             for pid in pids:
                 try:
-                    subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], timeout=6, capture_output=True)
+                    subprocess.run(["taskkill", "/PID", str(pid)], timeout=4, capture_output=True)
                 except Exception:
                     pass
-        deadline = time.time() + 3.0
+            # Wait briefly for graceful exit before escalating to /T /F
+            grace_deadline = time.time() + 2.5
+            still_up = True
+            while time.time() < grace_deadline:
+                try:
+                    with socket.create_connection(("127.0.0.1", port), timeout=0.25):
+                        time.sleep(0.25)
+                except OSError:
+                    still_up = False
+                    break
+            if still_up:
+                for pid in pids:
+                    try:
+                        subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], timeout=6, capture_output=True)
+                    except Exception:
+                        pass
+
+        deadline = time.time() + 4.0
+        still_listening = True
         while time.time() < deadline:
             try:
                 with socket.create_connection(("127.0.0.1", port), timeout=0.3):
                     time.sleep(0.25)
             except OSError:
+                still_listening = False
                 break
+
+        if still_listening and sys.platform == "win32" and is_wsl:
+            try:
+                subprocess.run(
+                    ["wsl", "bash", "-lc", f"fuser -k -KILL {port}/tcp >/dev/null 2>&1 || true"],
+                    timeout=6,
+                    capture_output=True,
+                )
+                time.sleep(0.5)
+            except Exception:
+                pass
+
+        # Allow wrapper scripts (e.g. cei1-dev.sh / run_nvidia_gpu.bat) to finish cleanup before relaunch
+        time.sleep(1.5 if is_wsl else 0.8)
 
     def handle_restart_comfy(self, post_body: bytes = b""):
         cfg = load_config()
@@ -5134,20 +5170,28 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         parsed_comfy = urllib.parse.urlparse(COMFY_URL)
         port = parsed_comfy.port or (443 if parsed_comfy.scheme == "https" else 80)
 
+        # 1. Prefer in-place ComfyUI-Manager reboot if available (works cleanly on both Windows & WSL)
+        for mgr_path in ("/api/manager/reboot", "/manager/reboot"):
+            try:
+                req = urllib.request.Request(f"{COMFY_URL.rstrip('/')}{mgr_path}", method="GET")
+                with urllib.request.urlopen(req, timeout=4) as resp:
+                    if 200 <= resp.status < 300:
+                        self.send_json({"status": "launched", "method": "manager_reboot"})
+                        return
+            except urllib.error.HTTPError:
+                continue
+            except http.client.RemoteDisconnected:
+                # ComfyUI-Manager immediately execv'd and closed the connection
+                self.send_json({"status": "launched", "method": "manager_reboot"})
+                return
+            except Exception:
+                continue
+
         if not cmd:
-            # Fallback: ComfyUI-Manager reboot endpoint if available
-            for mgr_path in ("/api/manager/reboot", "/manager/reboot"):
-                try:
-                    req = urllib.request.Request(f"{COMFY_URL.rstrip('/')}{mgr_path}", method="GET")
-                    with urllib.request.urlopen(req, timeout=4) as resp:
-                        if 200 <= resp.status < 300:
-                            self.send_json({"status": "launched", "method": "manager_reboot"})
-                            return
-                except Exception:
-                    pass
             self.handle_launch_comfy(post_body)
             return
 
+        # 2. Fallback: gracefully stop ComfyUI on its port, then relaunch via configured command
         is_wsl = cmd.startswith("wsl") or "~/" in cmd or ".sh" in cmd
         self._stop_comfy_on_port(port, is_wsl=is_wsl)
         self.handle_launch_comfy(post_body)

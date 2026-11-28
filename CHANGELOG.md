@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.87] – 2026-11-28
+### Clean ComfyUI Restart (Windows Native & WSL)
+- **Prefer In-Place Reboot & Graceful Stop Fallback (`server.py`):** Updated `handle_restart_comfy()` and `_stop_comfy_on_port()` to try ComfyUI-Manager's in-place `/api/manager/reboot` endpoint first (works seamlessly on both Windows native and WSL without leaving dead terminal tabs), and otherwise send a graceful `SIGTERM` / `taskkill` with a settle delay before relaunching via `handle_launch_comfy()`.
+
 ## [v1.86] – 2026-11-28
 ### Restart ComfyUI Button & Themed Preset Confirm Modal
 - **Restart ComfyUI Button (`#btnRestartComfy`):** Added a **Restart ComfyUI** button next to **ComfyUI running** (`web/index.html`, `web/app.js`, `POST /api/restart_comfy` in `server.py`) that is visible and active while ComfyUI is running, shows a themed confirmation dialog, stops the running ComfyUI process on its port (Windows/WSL), and relaunches it.
