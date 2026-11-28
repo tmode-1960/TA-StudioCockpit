@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v1.79 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.80 (FLEXMOD Edition)</title>
   <link rel="icon" type="image/png" href="/logo.png?v=1.45">
   <link rel="icon" href="/favicon.ico?v=1.45">
   <script>
@@ -2608,6 +2608,10 @@
                 <button type="button" class="btn-action" id="btnDownloadPlatoKey" style="padding:7px 12px; font-size:12px; white-space:nowrap;">⬇️ Herunterladen</button>
               </div>
               <span id="platoDownloadStatus" style="font-size:11px; color:var(--mute); margin-top:3px; display:block;"></span>
+              <div id="platoRestartBanner" style="display:none; margin-top:8px; padding:10px 12px; border-radius:8px; border:1px solid rgba(245, 158, 11, 0.55); background:rgba(245, 158, 11, 0.12); align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                <span id="platoRestartText" style="font-size:12px; font-weight:600; color:#fbbf24;">⚠️ ComfyUI-Neustart erforderlich, damit der neue Key geladen wird.</span>
+                <button type="button" class="btn-action" id="btnRestartComfyFromPlato" style="padding:6px 12px; font-size:12px; font-weight:600; background:rgba(245, 158, 11, 0.22); border-color:rgba(245, 158, 11, 0.65); color:#fde68a; white-space:nowrap;">🔄 ComfyUI jetzt neu starten</button>
+              </div>
             </div>
           </div>
         </div>
@@ -2894,6 +2898,10 @@
             <div class="install-progress-bar" id="installNodesProgressBar"></div>
           </div>
           <div class="install-log-box" id="installNodesLog"></div>
+          <div id="nodesRestartBanner" style="display:none; margin-top:10px; padding:10px 12px; border-radius:8px; border:1px solid rgba(245, 158, 11, 0.55); background:rgba(245, 158, 11, 0.12); align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+            <span id="nodesRestartText" style="font-size:12px; font-weight:600; color:#fbbf24;">⚠️ ComfyUI-Neustart erforderlich, damit die neuen Nodes geladen werden.</span>
+            <button type="button" class="btn-action" id="btnRestartComfyFromNodes" style="padding:6px 12px; font-size:12px; font-weight:600; background:rgba(245, 158, 11, 0.22); border-color:rgba(245, 158, 11, 0.65); color:#fde68a; white-space:nowrap;">🔄 ComfyUI jetzt neu starten</button>
+          </div>
         </div>
       </div>
       <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 12px 18px; border-top: 1px solid var(--line); background: var(--panel2); flex-wrap: wrap;">
@@ -3224,7 +3232,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=1.79"></script>
+  <script src="/app.js?v=1.80"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=5"></script>
   <script src="/video_module.js?v=1.00"></script>

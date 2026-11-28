@@ -2,6 +2,11 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.80] – 2026-11-28
+### In-App ComfyUI Restart Banner & 1-Click Reboot
+- **ComfyUI Restart Endpoint (`server.py`):** Added `POST /api/comfy/restart` and `GET /api/comfy/restart_status` to trigger a ComfyUI reboot via ComfyUI-Manager (`/manager/reboot` / `/manager/restart`) and wait until ComfyUI is back online.
+- **Prominent Restart Banners (`web/index.html`, `web/app.js`):** Added amber warning banners (`#platoRestartBanner`, `#nodesRestartBanner`) with a 1-click **`🔄 ComfyUI jetzt neu starten`** button after key downloads and custom node installations, automatically refreshing presets and Plato's Keys once ComfyUI reconnects.
+
 ## [v1.79] – 2026-11-28
 ### `extra_model_paths.yaml` Support & WSL Path Fix
 - **Fixed WSL Temp-Path Conversion (`server.py`):** Replaced `wsl wslpath -u` with `self._to_wsl_path(tmp_path)` in `handle_plato_key_download()` so Windows backslashes are never stripped by WSL shell argument parsing.

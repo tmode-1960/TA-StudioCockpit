@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.79"
+APP_VERSION = "1.80"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -618,6 +618,13 @@ PLATO_DOWNLOAD_JOB: dict = {
     "filename": "",
     "downloaded_bytes": 0,
     "total_bytes": 0,
+    "error": "",
+}
+
+COMFY_RESTART_LOCK = threading.Lock()
+COMFY_RESTART_JOB: dict = {
+    "status": "idle",
+    "message": "",
     "error": "",
 }
 
@@ -1335,6 +1342,9 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         elif path == "/api/plato_keys/download_status":
             self.handle_plato_key_download_status()
             return
+        elif path == "/api/comfy/restart_status":
+            self.handle_comfy_restart_status()
+            return
         elif path == "/api/llm_models":
             self.handle_llm_models()
             return
@@ -1439,6 +1449,9 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             return
         elif path == "/api/launch_comfy":
             self.handle_launch_comfy(post_body)
+            return
+        elif path == "/api/comfy/restart":
+            self.handle_comfy_restart()
             return
         elif path == "/api/install_nodes":
             self.handle_install_nodes(post_body)
@@ -2060,6 +2073,82 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
     def handle_plato_key_download_status(self):
         with PLATO_DOWNLOAD_LOCK:
             self.send_json(dict(PLATO_DOWNLOAD_JOB))
+
+    def handle_comfy_restart_status(self):
+        with COMFY_RESTART_LOCK:
+            self.send_json(dict(COMFY_RESTART_JOB))
+
+    def handle_comfy_restart(self):
+        with COMFY_RESTART_LOCK:
+            if COMFY_RESTART_JOB.get("status") == "running":
+                self.send_json({"error": "ComfyUI-Neustart läuft bereits."}, status=409)
+                return
+            COMFY_RESTART_JOB.update({
+                "status": "running",
+                "message": "Sende Neustart-Signal an ComfyUI…",
+                "error": "",
+            })
+
+        cfg = load_config()
+        comfy_url = cfg.get("comfy_url", COMFY_URL).rstrip("/")
+
+        def _worker():
+            import http.client
+            rebooted = False
+            for ep in ("/manager/reboot", "/manager/restart"):
+                try:
+                    req = urllib.request.Request(f"{comfy_url}{ep}", data=b"{}", method="POST", headers={"Content-Type": "application/json"})
+                    with urllib.request.urlopen(req, timeout=5.0) as resp:
+                        if resp.status < 400:
+                            rebooted = True
+                            break
+                except (http.client.RemoteDisconnected, ConnectionResetError):
+                    rebooted = True
+                    break
+                except urllib.error.HTTPError as he:
+                    if he.code == 404:
+                        continue
+                except Exception:
+                    continue
+
+            if not rebooted:
+                with COMFY_RESTART_LOCK:
+                    COMFY_RESTART_JOB.update({
+                        "status": "error",
+                        "message": "",
+                        "error": "ComfyUI-Manager (/manager/reboot) nicht erreichbar. Bitte ComfyUI im Terminal manuell neu starten.",
+                    })
+                return
+
+            with COMFY_RESTART_LOCK:
+                COMFY_RESTART_JOB["message"] = "ComfyUI startet neu – warte auf Verbindung…"
+
+            time.sleep(3.0)
+            for _ in range(35):
+                time.sleep(1.0)
+                try:
+                    stats = self._fetch_comfy_json(f"{comfy_url}/system_stats", timeout=2.0)
+                    if isinstance(stats, dict):
+                        time.sleep(1.0)
+                        with COMFY_RESTART_LOCK:
+                            COMFY_RESTART_JOB.update({
+                                "status": "done",
+                                "message": "ComfyUI wurde erfolgreich neu gestartet!",
+                                "error": "",
+                            })
+                        return
+                except Exception:
+                    pass
+
+            with COMFY_RESTART_LOCK:
+                COMFY_RESTART_JOB.update({
+                    "status": "error",
+                    "message": "",
+                    "error": "Zeitüberschreitung beim Warten auf ComfyUI-Neustart. Bitte kurz warten oder Terminal prüfen.",
+                })
+
+        threading.Thread(target=_worker, daemon=True).start()
+        self.send_json({"ok": True, "status": "running"})
 
     def handle_plato_key_download(self, post_body: bytes | None):
         with PLATO_DOWNLOAD_LOCK:

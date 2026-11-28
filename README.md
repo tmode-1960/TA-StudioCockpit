@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.79 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.80 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -139,6 +139,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.80:** Added `POST /api/comfy/restart` (`server.py`) and prominent amber restart banners with a 1-click **`🔄 ComfyUI jetzt neu starten`** button (`web/index.html`, `web/app.js`) after Plato's Key downloads and custom node installations, auto-refreshing presets and keys once ComfyUI is back online.
 * **v1.79:** Fixed WSL temp-path conversion (`_to_wsl_path`) in `handle_plato_key_download()` and added `extra_model_paths.yaml` + `extra_models_dir` resolution/auto-registration for `clip_projections` and `plato_keys` on both native Windows and WSL (`server.py`).
 * **v1.78:** Added WSL Linux-path support (`wslpath -u` + `wsl bash`) to `handle_plato_keys()` and `handle_plato_key_download()` (`server.py`) so the Plato's Keys downloader works identically under both native Windows and WSL ComfyUI.
 * **v1.77:** Added 1-click optional node installation (`ComfyUI-H3-Text-Encoders`, `ComfyUI-PlatoKeys`) and a Hugging Face `.safetensors` key downloader (`POST /api/plato_keys/download`) in both the Model Preset card (`#cardModel`) and ComfyUI Settings (`server.py`, `web/index.html`, `web/app.js`).

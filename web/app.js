@@ -2127,6 +2127,12 @@
   const selPlatoCatalogKey = document.getElementById("selPlatoCatalogKey");
   const btnDownloadPlatoKey = document.getElementById("btnDownloadPlatoKey");
   const platoDownloadStatus = document.getElementById("platoDownloadStatus");
+  const platoRestartBanner = document.getElementById("platoRestartBanner");
+  const platoRestartText = document.getElementById("platoRestartText");
+  const btnRestartComfyFromPlato = document.getElementById("btnRestartComfyFromPlato");
+  const nodesRestartBanner = document.getElementById("nodesRestartBanner");
+  const nodesRestartText = document.getElementById("nodesRestartText");
+  const btnRestartComfyFromNodes = document.getElementById("btnRestartComfyFromNodes");
   let lastPlatoKeysMeta = { h3_installed: false, nynxz_installed: false, catalog: [], paths: {} };
 
   const selSamplerPreset = document.getElementById("selSamplerPreset");
@@ -7360,6 +7366,7 @@
                 if (btnRecheckMissingNodes) btnRecheckMissingNodes.disabled = false;
                 if (job.status === "done") {
                   btnInstallMissingNodes.style.display = "none";
+                  if (nodesRestartBanner) nodesRestartBanner.style.display = "flex";
                   if (missingNodesDesc) {
                     missingNodesDesc.textContent = t(
                       "missing_nodes_desc_done",
@@ -8295,6 +8302,7 @@
       </label>
     `).join("");
     if (installNodesProgressWrap) installNodesProgressWrap.style.display = "none";
+    if (nodesRestartBanner) nodesRestartBanner.style.display = "none";
     if (installNodesLog) installNodesLog.textContent = "";
     if (btnInstallMissingNodes) {
       btnInstallMissingNodes.style.display = "";
@@ -8327,11 +8335,68 @@
       }
     });
   }
+  async function triggerComfyRestartFromBanner(btnEl, textEl, bannerEl) {
+    if (!btnEl) return;
+    const origBtnText = btnEl.textContent;
+    btnEl.disabled = true;
+    btnEl.textContent = "⏳ Starte neu…";
+    if (textEl) textEl.textContent = "⏳ Sende Neustart-Signal an ComfyUI…";
+    try {
+      const res = await fetch("/api/comfy/restart", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        if (textEl) textEl.textContent = `✖ ${data.error || "Neustart fehlgeschlagen."}`;
+        btnEl.disabled = false;
+        btnEl.textContent = origBtnText;
+        return;
+      }
+      const poll = setInterval(async () => {
+        try {
+          const sr = await fetch("/api/comfy/restart_status");
+          const st = await sr.json();
+          if (st.status === "running") {
+            if (textEl && st.message) textEl.textContent = `⏳ ${st.message}`;
+          } else if (st.status === "done") {
+            clearInterval(poll);
+            btnEl.disabled = false;
+            btnEl.textContent = origBtnText;
+            if (bannerEl) bannerEl.style.display = "none";
+            showToast(st.message || "ComfyUI wurde neu gestartet!", "success");
+            checkComfyStatus();
+            refreshPresetsFromComfy();
+            refreshPlatoKeysFromComfy();
+          } else if (st.status === "error") {
+            clearInterval(poll);
+            btnEl.disabled = false;
+            btnEl.textContent = origBtnText;
+            if (textEl) textEl.textContent = `⚠️ ${st.error || "Bitte ComfyUI manuell neu starten."}`;
+          }
+        } catch (e) {}
+      }, 800);
+    } catch (e) {
+      if (textEl) textEl.textContent = "✖ Netzwerkfehler beim ComfyUI-Neustart.";
+      btnEl.disabled = false;
+      btnEl.textContent = origBtnText;
+    }
+  }
+
+  if (btnRestartComfyFromPlato) {
+    btnRestartComfyFromPlato.addEventListener("click", () =>
+      triggerComfyRestartFromBanner(btnRestartComfyFromPlato, platoRestartText, platoRestartBanner)
+    );
+  }
+  if (btnRestartComfyFromNodes) {
+    btnRestartComfyFromNodes.addEventListener("click", () =>
+      triggerComfyRestartFromBanner(btnRestartComfyFromNodes, nodesRestartText, nodesRestartBanner)
+    );
+  }
+
   if (btnDownloadPlatoKey && selPlatoCatalogKey) {
     btnDownloadPlatoKey.addEventListener("click", async () => {
       const keyId = selPlatoCatalogKey.value;
       if (!keyId) return;
       btnDownloadPlatoKey.disabled = true;
+      if (platoRestartBanner) platoRestartBanner.style.display = "none";
       if (platoDownloadStatus) platoDownloadStatus.textContent = "Starte Download…";
       try {
         const res = await fetch("/api/plato_keys/download", {
@@ -8356,7 +8421,9 @@
             } else if (st.status === "done") {
               clearInterval(poll);
               btnDownloadPlatoKey.disabled = false;
-              if (platoDownloadStatus) platoDownloadStatus.textContent = `✓ Gespeichert: ${st.filename} (ComfyUI ggf. neu laden)`;
+              if (platoDownloadStatus) platoDownloadStatus.textContent = `✓ Gespeichert: ${st.filename}`;
+              if (platoRestartText) platoRestartText.textContent = "⚠️ ComfyUI-Neustart erforderlich, damit der neue Key geladen wird.";
+              if (platoRestartBanner) platoRestartBanner.style.display = "flex";
               showToast(`Plato's Key '${st.filename}' heruntergeladen.`, "success");
               refreshPlatoKeysFromComfy();
             } else if (st.status === "error") {
