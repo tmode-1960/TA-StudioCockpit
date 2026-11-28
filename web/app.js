@@ -53,10 +53,10 @@
       restart_comfy_confirm_btn: "Neu starten",
       preset_confirm_title: "Preset-Bestätigung",
       btn_confirm_ok: "OK",
-      pe_model_hint: "Änderungen werden in ta_model_presets.json gespeichert.",
+      pe_model_hint: "Presets werden in ta_model_presets.json gespeichert · Bei neuen/umbenannten Presets ComfyUI neu starten",
       pe_add_model: "+ Preset hinzufügen",
       pe_save_all: "💾 Speichern",
-      pe_sampler_hint: "Änderungen gelten beim nächsten ComfyUI-Run sofort.",
+      pe_sampler_hint: "Presets werden in ta_sampler_presets.json gespeichert · Änderungen gelten beim nächsten ComfyUI-Run sofort",
       pe_add_sampler: "+ Sampler-Preset hinzufügen",
       pe_col_name: "Name",
       pe_col_steps: "Steps",
@@ -706,10 +706,10 @@
       restart_comfy_confirm_btn: "Restart",
       preset_confirm_title: "Confirm Action",
       btn_confirm_ok: "OK",
-      pe_model_hint: "Changes are saved to ta_model_presets.json.",
+      pe_model_hint: "Presets are saved to ta_model_presets.json · Restart ComfyUI for new or renamed presets",
       pe_add_model: "+ Add Preset",
       pe_save_all: "💾 Save",
-      pe_sampler_hint: "Changes take effect immediately on the next ComfyUI run.",
+      pe_sampler_hint: "Presets are saved to ta_sampler_presets.json · Changes take effect immediately on the next ComfyUI run",
       pe_add_sampler: "+ Add Sampler Preset",
       pe_col_name: "Name",
       pe_col_steps: "Steps",
@@ -7671,74 +7671,87 @@
     });
   }
 
-  // ComfyUI Restart Button Handler
-  if (btnRestartComfy) {
-    btnRestartComfy.addEventListener("click", async () => {
-      const confirmed = await showCockpitConfirm({
-        icon: "🔄",
-        title: t("restart_comfy_modal_title", "ComfyUI neu starten?"),
-        message: t("restart_comfy_modal_desc", "Möchtest du ComfyUI wirklich neu starten? Laufende Generierungen werden dadurch unterbrochen."),
-        confirmText: t("restart_comfy_confirm_btn", "Neu starten"),
-      });
-      if (!confirmed) return;
-
-      btnRestartComfy.disabled = true;
-      btnRestartComfy.textContent = t("btn_restart_comfy_restarting", "⏳ Neustart…");
-      try {
-        const launchCmdVal = inpComfyLaunchCmd ? inpComfyLaunchCmd.value.trim() : "";
-        const res = await fetch("/api/restart_comfy", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ comfy_launch_cmd: launchCmdVal })
-        });
-        const data = await res.json();
-        if (data.status === "launched") {
-          if (btnLaunchComfy) {
-            btnLaunchComfy.classList.remove("is-online");
-            btnLaunchComfy.classList.add("is-offline");
-            btnLaunchComfy.textContent = t("btn_restart_comfy_restarting", "⏳ Neustart…");
-          }
-          let tries = 0;
-          let sawOffline = false;
-          const pollRestart = setInterval(async () => {
-            tries++;
-            try {
-              const s = await fetch("/api/status");
-              if (s.ok) {
-                const d = await s.json();
-                if (!d.online) sawOffline = true;
-                if (d.online && (sawOffline || tries >= 3)) {
-                  clearInterval(pollRestart);
-                  updateLaunchButtonState(true);
-                  checkComfyStatus();
-                  await refreshPresetsFromComfy();
-                  await loadLLMModelsFromComfy();
-                }
-              }
-            } catch (err) {}
-            if (tries > 60) {
-              clearInterval(pollRestart);
-              btnRestartComfy.disabled = false;
-              btnRestartComfy.textContent = t("btn_restart_comfy", "🔄 ComfyUI neu starten");
-            }
-          }, 2000);
-        } else {
-          if (data.code === "NO_LAUNCH_CMD") {
-            openSettingsModal({ focusLaunchCmd: true, launchAfterSave: false });
-            showToast(t("toast_launch_missing", "Bitte trage zuerst deine ComfyUI-Startdatei (z. B. run_nvidia_gpu.bat) ein und speichere."), "info", 6000);
-          } else {
-            showToast(t("toast_launch_error", "Fehler beim Starten von ComfyUI: ") + (data.error || t("err_unknown", "Unbekannter Fehler")), "error", 6000);
-          }
-          btnRestartComfy.disabled = false;
-          btnRestartComfy.textContent = t("btn_restart_comfy", "🔄 ComfyUI neu starten");
-        }
-      } catch (e) {
-        showToast(t("toast_network_error", "Netzwerkfehler: ") + e.message, "error", 5000);
-        btnRestartComfy.disabled = false;
-        btnRestartComfy.textContent = t("btn_restart_comfy", "🔄 ComfyUI neu starten");
-      }
+  // ComfyUI Restart Button Handler (shared between main bar & Preset Editors)
+  async function restartComfyWithConfirm(triggerBtn) {
+    const confirmed = await showCockpitConfirm({
+      icon: "🔄",
+      title: t("restart_comfy_modal_title", "ComfyUI neu starten?"),
+      message: t("restart_comfy_modal_desc", "Möchtest du ComfyUI wirklich neu starten? Laufende Generierungen werden dadurch unterbrochen."),
+      confirmText: t("restart_comfy_confirm_btn", "Neu starten"),
     });
+    if (!confirmed) return;
+
+    const restartBtns = [
+      btnRestartComfy,
+      document.getElementById("btnRestartComfyFromModelPreset"),
+      document.getElementById("btnRestartComfyFromSamplerPreset"),
+    ].filter(Boolean);
+    const setRestartBtnsBusy = (busy) => {
+      restartBtns.forEach((b) => {
+        b.disabled = busy;
+        b.textContent = busy
+          ? t("btn_restart_comfy_restarting", "⏳ Neustart…")
+          : t("btn_restart_comfy", "🔄 ComfyUI neu starten");
+      });
+    };
+
+    setRestartBtnsBusy(true);
+    try {
+      const launchCmdVal = inpComfyLaunchCmd ? inpComfyLaunchCmd.value.trim() : "";
+      const res = await fetch("/api/restart_comfy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ comfy_launch_cmd: launchCmdVal })
+      });
+      const data = await res.json();
+      if (data.status === "launched") {
+        if (btnLaunchComfy) {
+          btnLaunchComfy.classList.remove("is-online");
+          btnLaunchComfy.classList.add("is-offline");
+          btnLaunchComfy.textContent = t("btn_restart_comfy_restarting", "⏳ Neustart…");
+        }
+        let tries = 0;
+        let sawOffline = false;
+        const pollRestart = setInterval(async () => {
+          tries++;
+          try {
+            const s = await fetch("/api/status");
+            if (s.ok) {
+              const d = await s.json();
+              if (!d.online) sawOffline = true;
+              if (d.online && (sawOffline || tries >= 3)) {
+                clearInterval(pollRestart);
+                setRestartBtnsBusy(false);
+                updateLaunchButtonState(true);
+                checkComfyStatus();
+                await refreshPresetsFromComfy();
+                await loadLLMModelsFromComfy();
+              }
+            }
+          } catch (err) {}
+          if (tries > 60) {
+            clearInterval(pollRestart);
+            setRestartBtnsBusy(false);
+          }
+        }, 2000);
+      } else {
+        if (data.code === "NO_LAUNCH_CMD") {
+          openSettingsModal({ focusLaunchCmd: true, launchAfterSave: false });
+          showToast(t("toast_launch_missing", "Bitte trage zuerst deine ComfyUI-Startdatei (z. B. run_nvidia_gpu.bat) ein und speichere."), "info", 6000);
+        } else {
+          showToast(t("toast_launch_error", "Fehler beim Starten von ComfyUI: ") + (data.error || t("err_unknown", "Unbekannter Fehler")), "error", 6000);
+        }
+        setRestartBtnsBusy(false);
+      }
+    } catch (e) {
+      showToast(t("toast_network_error", "Netzwerkfehler: ") + e.message, "error", 5000);
+      setRestartBtnsBusy(false);
+    }
   }
+
+  btnRestartComfy?.addEventListener("click", () => restartComfyWithConfirm(btnRestartComfy));
+  document.getElementById("btnRestartComfyFromModelPreset")?.addEventListener("click", (e) => restartComfyWithConfirm(e.currentTarget));
+  document.getElementById("btnRestartComfyFromSamplerPreset")?.addEventListener("click", (e) => restartComfyWithConfirm(e.currentTarget));
 
   // 11. Settings & Preset Editors Management
   function getComfyUrl() {

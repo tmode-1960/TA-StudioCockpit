@@ -2,6 +2,11 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.93] – 2026-11-28
+### Preset Editor Save Hints & In-Editor ComfyUI Restart
+- **Explicit Save & Restart Hints (`web/index.html`, `web/app.js`):** Updated `pe_model_hint` and `pe_sampler_hint` (DE & EN) to state the target JSON files (`ta_model_presets.json` / `ta_sampler_presets.json`) and when a ComfyUI restart is needed.
+- **Restart ComfyUI in Both Preset Editors:** Added `🔄 ComfyUI neu starten` / `🔄 Restart ComfyUI` buttons (`#btnRestartComfyFromModelPreset`, `#btnRestartComfyFromSamplerPreset`) sharing `restartComfyWithConfirm()` with the main toolbar button.
+
 ## [v1.92] – 2026-11-28
 ### Preset Editor Scrolling & Card Layout Fix
 - **Prevent Card Squishing & Enable Scrolling (`web/style.css`):** Added `flex-shrink: 0` to `.pe-card` and `.pe-footer`, and `flex: 1 1 0; min-height: 0; overflow-y: auto;` to `.pe-scroll-list` so expanding a Model Preset card keeps all cards full-height and scrolls smoothly.
