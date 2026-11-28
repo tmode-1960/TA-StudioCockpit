@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.80"
+APP_VERSION = "1.81"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -1833,10 +1833,12 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             except Exception as exc:
                 warnings.append(f"Sampler-Preset '{s_name}' konnte nicht gespeichert werden: {exc}")
 
-        # Always ensure Krea2 presets use clip_type 'krea2' (required for 12-layer Qwen3-VL conditioning)
+        # Always ensure standard Krea2 presets (using Qwen3-VL) use clip_type 'krea2';
+        # leave custom/Plato's Keys donor encoders (e.g. Qwen 3.5 / Gemma with qwen_image) untouched.
         for m in models_list:
             if isinstance(m, dict) and "krea2" in str(m.get("name", "")).strip().lower():
-                if m.get("clip_type") != "krea2":
+                c1 = str(m.get("clip_name_1", "")).lower()
+                if (not c1 or "qwen3vl" in c1 or "qwen_3_vl" in c1) and m.get("clip_type") != "krea2":
                     m["clip_type"] = "krea2"
                     models_dirty = True
 
@@ -3051,7 +3053,8 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             except Exception:
                 pass
 
-            if "krea" in str(params.get("model_preset", "")).lower():
+            pk_val_pre = str(params.get("plato_key", "") or "").strip()
+            if "krea" in str(params.get("model_preset", "")).lower() and not pk_val_pre:
                 comfy_ok, nodes_ok, _ = self._check_krea2_support(comfy_url_base)
                 if comfy_ok is False:
                     self.send_json({
