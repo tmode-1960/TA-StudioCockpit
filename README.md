@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.93 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.94 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -139,6 +139,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.94:** Removed the redundant **Restart ComfyUI** button from the Sampler Preset Editor footer (`web/index.html`, `web/app.js`), keeping it only in the Model Preset Editor where new/renamed presets require a ComfyUI restart.
 * **v1.93:** Added explicit `ta_model_presets.json` / `ta_sampler_presets.json` save & restart hints and **🔄 Restart ComfyUI** buttons directly inside both native Preset Editors (`web/index.html`, `web/app.js`).
 * **v1.92:** Fixed `.pe-card` squishing and scrolling in the native Preset Editor (`web/style.css`) by adding `flex-shrink: 0` to `.pe-card`/`.pe-footer` and `flex: 1 1 0; min-height: 0` to `.pe-scroll-list`.
 * **v1.91:** Replaced the `iframe` Model & Sampler Preset Editors with native theme-aware StudioCockpit modals (`web/index.html`, `web/style.css`, `web/app.js`), and persisted deleted default presets (`deleted_default_model_presets`, `deleted_default_sampler_presets` in `server.py`) so deleted presets like `KROMOSS` stay deleted across restarts.

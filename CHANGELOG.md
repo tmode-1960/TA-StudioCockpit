@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.94] – 2026-11-28
+### Sampler Preset Editor Cleanup
+- **Removed Redundant Restart Button (`web/index.html`, `web/app.js`):** Removed `#btnRestartComfyFromSamplerPreset` from the Sampler Preset Editor footer since sampler preset changes apply immediately on the next run without restarting ComfyUI (keeping the restart button in the Model Preset Editor).
+
 ## [v1.93] – 2026-11-28
 ### Preset Editor Save Hints & In-Editor ComfyUI Restart
 - **Explicit Save & Restart Hints (`web/index.html`, `web/app.js`):** Updated `pe_model_hint` and `pe_sampler_hint` (DE & EN) to state the target JSON files (`ta_model_presets.json` / `ta_sampler_presets.json`) and when a ComfyUI restart is needed.

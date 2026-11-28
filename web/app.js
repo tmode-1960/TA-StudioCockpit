@@ -7684,7 +7684,6 @@
     const restartBtns = [
       btnRestartComfy,
       document.getElementById("btnRestartComfyFromModelPreset"),
-      document.getElementById("btnRestartComfyFromSamplerPreset"),
     ].filter(Boolean);
     const setRestartBtnsBusy = (busy) => {
       restartBtns.forEach((b) => {
@@ -7751,7 +7750,6 @@
 
   btnRestartComfy?.addEventListener("click", () => restartComfyWithConfirm(btnRestartComfy));
   document.getElementById("btnRestartComfyFromModelPreset")?.addEventListener("click", (e) => restartComfyWithConfirm(e.currentTarget));
-  document.getElementById("btnRestartComfyFromSamplerPreset")?.addEventListener("click", (e) => restartComfyWithConfirm(e.currentTarget));
 
   // 11. Settings & Preset Editors Management
   function getComfyUrl() {
