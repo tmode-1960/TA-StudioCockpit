@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.83] – 2026-11-28
+### PyInstaller Bundle Fix (`TA-FLEXMOD-LLM_v2.93.json`)
+- **Fixed `.exe` Workflow Bundle (`StudioCockpit.spec`):** Updated `datas` in `StudioCockpit.spec` from `TA-FLEXMOD-LLM_v2.92.json` to `TA-FLEXMOD-LLM_v2.93.json` so the standalone `.exe` bundles the active workflow.
+
 ## [v1.82] – 2026-11-28
 ### ComfyUI V3 `COMBO` Parsing Fix for Plato's Keys
 - **Fixed `plato_keys.Load` Key Discovery (`server.py`):** Added `_extract_combo_options()` to parse both ComfyUI V1 (`[[...], {...}]`) and ComfyUI V3 (`["COMBO", {"options": [...]}]`) `/object_info` schemas so `ComfyUI-PlatoKeys` keys appear in `#selPlatoKey`.

@@ -29,7 +29,7 @@ a = Analysis(
         ('web/favicon.ico', 'web'),
         ('web/logo.png', 'web'),
         ('web/music', 'web/music'),
-        ('workflows/TA-FLEXMOD-LLM_v2.92.json', 'workflows'),
+        ('workflows/TA-FLEXMOD-LLM_v2.93.json', 'workflows'),
         ('workflows/discord_gif/*.json', 'workflows/discord_gif'),
         ('workflows/music_maker/YuE2-Song.json', 'workflows/music_maker'),
         ('data/plenio_templates.json', 'data'),
