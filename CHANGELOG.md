@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.90] – 2026-11-28
+### Model Preset Help Updated for Plato's Key
+- **Localized Help (`help_model_html` DE/EN):** Added an explanation of **🔑 Plato's Key (Opt-in)** (VRAM-saving smaller text-encoder projection, downloading keys/nodes, and matching the model encoder) to the **Model Preset** `?` help box in `web/app.js`.
+
 ## [v1.89] – 2026-11-28
 ### Consistent Collapsible Arrows
 - **Unified Downward Arrows (`▾`):** Removed the `-90deg` rotation on `.card.collapsible.collapsed` and `.field-collapsible.collapsed` in `web/style.css` so all collapsible sections (LoRA Stack, Fine-Tuning & Finish, Plato's Key, Delimiter) consistently display the downward `▾` arrow.
