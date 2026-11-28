@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.87 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.88 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -139,6 +139,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.88:** Made the **🔑 Plato's Key (Opt-in)** subsection inside **Model Preset** collapsible with the standard `▾` arrow (`#platoKeyGroup` in `web/index.html`, `web/app.js`), collapsed by default.
 * **v1.87:** Improved `handle_restart_comfy()` and `_stop_comfy_on_port()` (`server.py`) for both Windows native and WSL: prefers ComfyUI-Manager's in-place `/api/manager/reboot` endpoint first and falls back to graceful `SIGTERM`/`taskkill` + settle delay before relaunching.
 * **v1.86:** Added a **Restart ComfyUI** button (`#btnRestartComfy`, `POST /api/restart_comfy` in `server.py`) active while ComfyUI is running with a themed confirmation dialog, and replaced the browser-native `confirm()` popup in the TA Model Preset Editor iframe with a centered, themed modal (`#cockpitConfirmModal` in `web/index.html`, `web/app.js`).
 * **v1.85:** Fixed `updateModelSelection()` (`web/app.js`) so model quick-pills only use fuzzy family matching when no exact pill match exists, preventing both `Krea2-Turbo` and `Krea2-Turbo (Qwen3.5-9B PK)` from highlighting at the same time.

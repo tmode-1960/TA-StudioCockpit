@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v1.87 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.88 (FLEXMOD Edition)</title>
   <link rel="icon" type="image/png" href="/logo.png?v=1.45">
   <link rel="icon" href="/favicon.ico?v=1.45">
   <script>
@@ -149,17 +149,22 @@
           <button class="pill-btn" data-model="Qwen-Image 2.1 Turbo">Qwen Turbo</button>
         </div>
         <!-- Optional Plato's Key (Opt-in) -->
-        <div class="field-group" style="margin-top: 8px;">
-          <div class="field-label" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2px;">
+        <div class="field-group field-collapsible collapsed" id="platoKeyGroup" style="margin-top: 8px;">
+          <div class="field-label field-collapsible-toggle" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2px; width: 100%;" title="Plato's Key ein-/ausklappen" data-i18n-title="plato_key_toggle_title">
             <span style="font-size:11px; opacity:0.85;">🔑 Plato's Key (Opt-in)</span>
-            <span class="value-badge" id="platoKeyBadge">Aus</span>
+            <span style="display:inline-flex; align-items:center; gap:8px;">
+              <span class="value-badge" id="platoKeyBadge">Aus</span>
+              <span class="field-collapsible-arrow" aria-hidden="true">▾</span>
+            </span>
           </div>
-          <select id="selPlatoKey" title="Optional: Kleineren Text-Encoder per Plato's Key auf das Zielmodell projizieren">
-            <option value="">Aus (Standard Text-Encoder)</option>
-          </select>
-          <div id="platoKeyActions" style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
-            <button type="button" class="btn-action" id="btnInstallPlatoNodes" style="display:none; font-size:11px; padding:3px 8px;" title="Optionale Plato's Keys ComfyUI-Nodes installieren">📥 Nodes installieren</button>
-            <button type="button" class="btn-action" id="btnOpenPlatoKeySettings" style="font-size:11px; padding:3px 8px;" title="Plato's Key .safetensors von Hugging Face herunterladen">⬇️ Keys laden</button>
+          <div class="field-collapsible-body">
+            <select id="selPlatoKey" title="Optional: Kleineren Text-Encoder per Plato's Key auf das Zielmodell projizieren">
+              <option value="">Aus (Standard Text-Encoder)</option>
+            </select>
+            <div id="platoKeyActions" style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
+              <button type="button" class="btn-action" id="btnInstallPlatoNodes" style="display:none; font-size:11px; padding:3px 8px;" title="Optionale Plato's Keys ComfyUI-Nodes installieren">📥 Nodes installieren</button>
+              <button type="button" class="btn-action" id="btnOpenPlatoKeySettings" style="font-size:11px; padding:3px 8px;" title="Plato's Key .safetensors von Hugging Face herunterladen">⬇️ Keys laden</button>
+            </div>
           </div>
         </div>
       </section>
@@ -3253,7 +3258,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=1.87"></script>
+  <script src="/app.js?v=1.88"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=5"></script>
   <script src="/video_module.js?v=1.00"></script>

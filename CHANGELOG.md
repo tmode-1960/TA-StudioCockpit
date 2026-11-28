@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.88] – 2026-11-28
+### Collapsible Plato's Key (Opt-in) Section
+- **Collapsible Plato's Key (`#platoKeyGroup`):** Made the **🔑 Plato's Key (Opt-in)** subsection inside **Model Preset** collapsible via `.field-collapsible` with the standard `▾` arrow next to the status badge (`web/index.html`, `web/app.js`), collapsed by default.
+
 ## [v1.87] – 2026-11-28
 ### Clean ComfyUI Restart (Windows Native & WSL)
 - **Prefer In-Place Reboot & Graceful Stop Fallback (`server.py`):** Updated `handle_restart_comfy()` and `_stop_comfy_on_port()` to try ComfyUI-Manager's in-place `/api/manager/reboot` endpoint first (works seamlessly on both Windows native and WSL without leaving dead terminal tabs), and otherwise send a graceful `SIGTERM` / `taskkill` with a settle delay before relaunching via `handle_launch_comfy()`.
