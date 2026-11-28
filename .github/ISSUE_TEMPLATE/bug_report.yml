@@ -1,0 +1,89 @@
+name: Bug Report
+description: Report a bug or unexpected behavior in thomo.ART StudioCockpit
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: StudioCockpit Version
+      description: Which version are you running? (e.g. `v1.94`, `StudioCockpit.exe`, or Python source)
+      placeholder: "v1.94 (StudioCockpit.exe)"
+    validations:
+      required: true
+
+  - type: input
+    id: windows
+    attributes:
+      label: Windows Version / Build
+      description: e.g. Windows 11 24H2, Windows 10 22H2
+      placeholder: "Windows 11 24H2"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: comfyui
+    attributes:
+      label: ComfyUI Setup
+      description: How is ComfyUI running on your system?
+      options:
+        - Windows Portable
+        - Native Windows
+        - WSL2
+        - Remote / Network
+        - Not using ComfyUI (Standalone)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Affected Module / Modul
+      description: Which StudioCockpit module is affected?
+      options:
+        - Image Studio
+        - Gallery
+        - DiscordGIF
+        - VideoMaker
+        - MusicMaker
+        - Updater / Settings / General
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description / Beschreibung
+      description: A clear and concise description of what the bug is.
+      placeholder: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce / Schritte zur Reproduktion
+      description: How can we reproduce the issue?
+      placeholder: |
+        1. Open Image Studio / VideoMaker ...
+        2. Click on '...'
+        3. See error
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior / Erwartetes Verhalten
+      description: What did you expect to happen instead?
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console Output / Logs (optional)
+      description: Paste any relevant output from `start_console.bat`, the terminal, or ComfyUI console (remove personal paths or API keys).
+      render: text
+    validations:
+      required: false

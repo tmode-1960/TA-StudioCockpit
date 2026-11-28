@@ -1,0 +1,43 @@
+name: Feature Request
+description: Suggest an idea, workflow, or improvement for thomo.ART StudioCockpit
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: module
+    attributes:
+      label: Affected Module / Modul
+      description: Which module does your idea belong to?
+      options:
+        - Image Studio
+        - Gallery
+        - DiscordGIF
+        - VideoMaker
+        - MusicMaker
+        - UI / Settings / General
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary / Zusammenfassung
+      description: A clear and concise description of the feature or improvement you'd like to see.
+    validations:
+      required: true
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use Case / Anwendungsfall
+      description: How would this help your workflow or what problem does it solve?
+    validations:
+      required: false
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution / Vorschlag (optional)
+      description: If you have a specific UI idea, ComfyUI node/workflow, or implementation in mind, describe it here.
+    validations:
+      required: false
