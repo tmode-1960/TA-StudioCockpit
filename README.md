@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.84 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.85 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -139,6 +139,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.85:** Fixed `updateModelSelection()` (`web/app.js`) so model quick-pills only use fuzzy family matching when no exact pill match exists, preventing both `Krea2-Turbo` and `Krea2-Turbo (Qwen3.5-9B PK)` from highlighting at the same time.
 * **v1.84:** Added a pre-flight encoder compatibility check in `handle_generate()` and runtime `PlatoKey` dimension-error translation (`server.py`) to catch mismatched `clip_name_1` / `plato_key` combinations before or during ComfyUI execution.
 * **v1.83:** Updated `StudioCockpit.spec` to bundle `workflows/TA-FLEXMOD-LLM_v2.93.json` in the standalone `.exe` (fixing `[Errno 2] ... TA-FLEXMOD-LLM_v2.93.json` in PyInstaller builds).
 * **v1.82:** Fixed `handle_plato_keys()` (`server.py`) via `_extract_combo_options()` to support ComfyUI V3 `["COMBO", {"options": [...]}]` `/object_info` schemas used by `ComfyUI-PlatoKeys` (`plato_keys.Load`).

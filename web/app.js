@@ -3475,12 +3475,19 @@
     // Normalize string for robust comparison (e.g. ZImage (BF16) matches ZImage (BF16) or Z-Image)
     const normVal = val.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-    modelQuickPills.querySelectorAll(".pill-btn").forEach(b => {
+    const pillBtns = Array.from(modelQuickPills.querySelectorAll(".pill-btn"));
+    const hasExactPillMatch = pillBtns.some(b => {
+      const pModel = b.getAttribute("data-model") || "";
+      const normP = pModel.toLowerCase().replace(/[^a-z0-9]/g, "");
+      return (pModel === val) || (normVal.length > 0 && normP === normVal);
+    });
+
+    pillBtns.forEach(b => {
       const pModel = b.getAttribute("data-model") || "";
       const normP = pModel.toLowerCase().replace(/[^a-z0-9]/g, "");
 
       let isMatch = (pModel === val) || (normVal.length > 0 && normP === normVal);
-      if (!isMatch && normVal.length > 2) {
+      if (!hasExactPillMatch && !isMatch && normVal.length > 2) {
         if (normVal.includes("zimage") && normP.includes("zimage")) isMatch = true;
         else if (normVal.includes("minimax") && normP.includes("minimax")) isMatch = true;
         else if (normVal.includes("flux") && normP.includes("flux")) isMatch = true;

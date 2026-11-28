@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.85] – 2026-11-28
+### Model Quick-Pill Highlight Fix
+- **Exact-First Pill Matching (`web/app.js`):** Updated `updateModelSelection()` so fuzzy family matching (`krea`, `qwen`, `flux`, etc.) only runs when no quick-pill matches the selected preset exactly, preventing two pills (e.g. `Krea2-Turbo` and `Krea2-Turbo (Qwen3.5-9B PK)`) from being highlighted simultaneously.
+
 ## [v1.84] – 2026-11-28
 ### Plato's Keys Pre-Flight Validation & Error Translation
 - **Encoder Mismatch Pre-Flight Check (`server.py`):** `handle_generate()` now verifies that the active preset's `clip_name_1` matches the donor encoder expected by the selected `plato_key` (e.g. `Qwen 3.5 9B/4B/2B/0.8B`, `Gemma 4`, `Qwen3-VL 4B`) before queuing the workflow.
