@@ -2,6 +2,11 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.84] – 2026-11-28
+### Plato's Keys Pre-Flight Validation & Error Translation
+- **Encoder Mismatch Pre-Flight Check (`server.py`):** `handle_generate()` now verifies that the active preset's `clip_name_1` matches the donor encoder expected by the selected `plato_key` (e.g. `Qwen 3.5 9B/4B/2B/0.8B`, `Gemma 4`, `Qwen3-VL 4B`) before queuing the workflow.
+- **Runtime Error Translation (`server.py`):** Translates ComfyUI `Multi-layer PlatoKey expects ...` / `PlatosKey` dimension errors into a clear, actionable message.
+
 ## [v1.83] – 2026-11-28
 ### PyInstaller Bundle Fix (`TA-FLEXMOD-LLM_v2.93.json`)
 - **Fixed `.exe` Workflow Bundle (`StudioCockpit.spec`):** Updated `datas` in `StudioCockpit.spec` from `TA-FLEXMOD-LLM_v2.92.json` to `TA-FLEXMOD-LLM_v2.93.json` so the standalone `.exe` bundles the active workflow.

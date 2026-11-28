@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.83"
+APP_VERSION = "1.84"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -3136,6 +3136,32 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                     }, status=400)
                     return
 
+            if pk_val and matched_p is not None:
+                c1_raw = str(matched_p.get("clip_name_1") or "").strip()
+                c1_norm = re.sub(r"[^a-z0-9]", "", c1_raw.lower())
+                pk_name = pk_val.split(":", 1)[1] if ":" in pk_val else pk_val
+                pk_norm = re.sub(r"[^a-z0-9]", "", pk_name.lower().split("_to_")[0])
+                expected_rules = [
+                    ("qwen359b", ("qwen359b",), "Qwen 3.5 9B"),
+                    ("qwen354b", ("qwen354b",), "Qwen 3.5 4B"),
+                    ("qwen352b", ("qwen352b",), "Qwen 3.5 2B"),
+                    ("qwen3508b", ("qwen3508b",), "Qwen 3.5 0.8B"),
+                    ("gemma4e4b", ("gemma4e4b",), "Gemma 4 E4B"),
+                    ("gemma4e2b", ("gemma4e2b",), "Gemma 4 E2B"),
+                    ("qwen3vl4b", ("qwen3vl4b",), "Qwen3-VL 4B"),
+                ]
+                for key_tok, req_toks, label in expected_rules:
+                    if key_tok in pk_norm and c1_norm and not any(rt in c1_norm for rt in req_toks):
+                        self.send_json({
+                            "error": (
+                                f"Plato's Key '{pk_name}' erwartet einen {label} Text-Encoder, im Preset "
+                                f"'{matched_p.get('name')}' ist aber '{c1_raw}' eingestellt. "
+                                f"Bitte passendes PlatoKey-Preset wählen oder Plato's Key auf 'Aus' stellen."
+                            )
+                        }, status=400)
+                        return
+                        break
+
             self._sanitize_smart_llm_nodes(prompt_dict)
             prompt_id = client.queue_prompt(prompt_dict, workflow=wf_data)
             if not prompt_id:
@@ -3253,6 +3279,13 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                                         )
                                     else:
                                         err_msg = f"Fehler in Node '{node_type}': {err_msg}"
+                                elif "platokey expects" in err_msg.lower() or "platoskey" in node_type.lower() or "plato_keys" in node_type.lower():
+                                    sel_model = params.get("model_preset", "")
+                                    err_msg = (
+                                        f"Plato's Key passt nicht zum Text-Encoder von Preset '{sel_model}'! "
+                                        f"Bitte prüfe clip_name_1 & clip_type im Model Preset Editor oder stelle Plato's Key auf 'Aus'. "
+                                        f"(Details: {err_msg})"
+                                    )
                                 with ACTIVE_JOBS_LOCK:
                                     if pid in ACTIVE_JOBS:
                                         ACTIVE_JOBS[pid]["status"] = "error"
