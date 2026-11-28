@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.82] – 2026-11-28
+### ComfyUI V3 `COMBO` Parsing Fix for Plato's Keys
+- **Fixed `plato_keys.Load` Key Discovery (`server.py`):** Added `_extract_combo_options()` to parse both ComfyUI V1 (`[[...], {...}]`) and ComfyUI V3 (`["COMBO", {"options": [...]}]`) `/object_info` schemas so `ComfyUI-PlatoKeys` keys appear in `#selPlatoKey`.
+
 ## [v1.81] – 2026-11-28
 ### Krea2 Preset Naming Freedom with Plato's Keys
 - **No `clip_type` Override for Donor Encoders (`server.py`):** `_seed_or_repair_presets()` now only enforces `clip_type = "krea2"` on Krea2 presets that actually use a `Qwen3-VL` encoder, and `handle_generate()` skips the `krea2` `clip_type` check when a `plato_key` is active — so users can freely name Plato's Keys presets (e.g. `Krea2-Turbo (Qwen3.5-9B PK)`).

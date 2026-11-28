@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.81"
+APP_VERSION = "1.82"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -1975,6 +1975,22 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             return f"{comfy_root.rstrip('/')}/models/{target_subdir}"
         return os.path.normpath(os.path.join(comfy_root, "models", target_subdir)) if comfy_root else ""
 
+    @staticmethod
+    def _extract_combo_options(spec) -> list[str]:
+        """Extract option strings from either ComfyUI V1 (list) or V3 ('COMBO', {'options': [...]}) input specs."""
+        raw_opts = []
+        if isinstance(spec, list) and spec:
+            if isinstance(spec[0], list):
+                raw_opts = spec[0]
+            elif spec[0] == "COMBO" and len(spec) > 1 and isinstance(spec[1], dict):
+                opts = spec[1].get("options", [])
+                if isinstance(opts, list):
+                    raw_opts = opts
+        return [
+            str(k) for k in raw_opts
+            if isinstance(k, str) and k.strip() and not k.strip().startswith("(")
+        ]
+
     def handle_plato_keys(self):
         """Query ComfyUI for installed Plato's Keys custom nodes and available .safetensors keys."""
         cfg = load_config()
@@ -1989,12 +2005,7 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             if isinstance(h3_info, dict) and "PlatosKeyPatchCLIP" in h3_info:
                 h3_installed = True
                 req = h3_info["PlatosKeyPatchCLIP"].get("input", {}).get("required", {})
-                raw_opts = req.get("key_file", [[]])[0]
-                if isinstance(raw_opts, list):
-                    h3_keys = [
-                        str(k) for k in raw_opts
-                        if isinstance(k, str) and k.strip() and not k.strip().startswith("(")
-                    ]
+                h3_keys = self._extract_combo_options(req.get("key_file"))
         except Exception:
             pass
 
@@ -2003,12 +2014,7 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             if isinstance(nynxz_info, dict) and "plato_keys.Load" in nynxz_info:
                 nynxz_installed = True
                 req = nynxz_info["plato_keys.Load"].get("input", {}).get("required", {})
-                raw_opts = req.get("key_name", [[]])[0]
-                if isinstance(raw_opts, list):
-                    nynxz_keys = [
-                        str(k) for k in raw_opts
-                        if isinstance(k, str) and k.strip() and not k.strip().startswith("(")
-                    ]
+                nynxz_keys = self._extract_combo_options(req.get("key_name"))
         except Exception:
             pass
 

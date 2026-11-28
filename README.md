@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.81 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.82 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -139,6 +139,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.82:** Fixed `handle_plato_keys()` (`server.py`) via `_extract_combo_options()` to support ComfyUI V3 `["COMBO", {"options": [...]}]` `/object_info` schemas used by `ComfyUI-PlatoKeys` (`plato_keys.Load`).
 * **v1.81:** Fixed `_seed_or_repair_presets()` and `handle_generate()` (`server.py`) so Krea2 presets using Plato's Keys donor encoders (e.g. `Qwen 3.5` with `clip_type = qwen_image`) are no longer overwritten to `clip_type = krea2`, allowing any preset name.
 * **v1.80:** Added `POST /api/comfy/restart` (`server.py`) and prominent amber restart banners with a 1-click **`🔄 ComfyUI jetzt neu starten`** button (`web/index.html`, `web/app.js`) after Plato's Key downloads and custom node installations, auto-refreshing presets and keys once ComfyUI is back online.
 * **v1.79:** Fixed WSL temp-path conversion (`_to_wsl_path`) in `handle_plato_key_download()` and added `extra_model_paths.yaml` + `extra_models_dir` resolution/auto-registration for `clip_projections` and `plato_keys` on both native Windows and WSL (`server.py`).
