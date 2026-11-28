@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.92] – 2026-11-28
+### Preset Editor Scrolling & Card Layout Fix
+- **Prevent Card Squishing & Enable Scrolling (`web/style.css`):** Added `flex-shrink: 0` to `.pe-card` and `.pe-footer`, and `flex: 1 1 0; min-height: 0; overflow-y: auto;` to `.pe-scroll-list` so expanding a Model Preset card keeps all cards full-height and scrolls smoothly.
+
 ## [v1.91] – 2026-11-28
 ### Native Themed Preset Editors & Permanent Default-Preset Deletion
 - **Native Model & Sampler Preset Editors (`web/index.html`, `web/style.css`, `web/app.js`):** Replaced the ComfyUI `iframe` preset editors with native StudioCockpit modals (`#nativeModelPresetEditor`, `#nativeSamplerPresetEditor`) that talk directly to `/ta_model_presets/*` and `/ta_sampler_presets/*`, matching every Cockpit theme, supporting drag-and-drop reordering, and using the centered `#cockpitConfirmModal`.
