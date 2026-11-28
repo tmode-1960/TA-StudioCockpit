@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.77"
+APP_VERSION = "1.78"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -1879,15 +1879,34 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
 
         paths = self._resolve_comfy_paths(cfg)
         comfy_root = paths.get("comfy_root", "")
+        is_wsl = bool(paths.get("is_wsl"))
         h3_set = {k.replace("\\", "/") for k in h3_keys}
         nynxz_set = {k.replace("\\", "/") for k in nynxz_keys}
+
+        wsl_found_ids: set[str] = set()
+        if is_wsl and comfy_root.startswith("/"):
+            try:
+                import shlex
+                checks = " && ".join(
+                    f'(test -f {shlex.quote(comfy_root.rstrip("/") + "/models/" + it["target_subdir"] + "/" + it["filename"].replace(chr(92), "/"))} && echo {shlex.quote(it["id"])} || true)'
+                    for it in PLATO_KEY_CATALOG
+                )
+                chk = subprocess.run(
+                    ["wsl", "bash", "-c", checks],
+                    capture_output=True, text=True, timeout=4,
+                    creationflags=_NO_WINDOW_FLAGS,
+                )
+                if chk.returncode == 0 and chk.stdout:
+                    wsl_found_ids = {ln.strip() for ln in chk.stdout.splitlines() if ln.strip()}
+            except Exception:
+                pass
 
         catalog_out = []
         for item in PLATO_KEY_CATALOG:
             fn = item["filename"].replace("\\", "/")
             in_comfy = (fn in h3_set) if item["pack"] == "h3" else (fn in nynxz_set)
-            on_disk = False
-            if comfy_root and os.path.isdir(comfy_root):
+            on_disk = item["id"] in wsl_found_ids
+            if not on_disk and not is_wsl and comfy_root and os.path.isdir(comfy_root):
                 on_disk = os.path.isfile(os.path.join(comfy_root, "models", item["target_subdir"], *fn.split("/")))
             catalog_out.append({
                 "id": item["id"],
@@ -1907,7 +1926,7 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             "paths": {
                 "comfy_root": comfy_root,
                 "is_remote": bool(paths.get("is_remote")),
-                "is_wsl": bool(paths.get("is_wsl")),
+                "is_wsl": is_wsl,
             },
         })
 
@@ -1941,18 +1960,39 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         comfy_root = paths.get("comfy_root", "")
-        if not comfy_root or not os.path.isdir(comfy_root):
+        is_wsl = bool(paths.get("is_wsl"))
+        dir_ok = bool(comfy_root) and (
+            (is_wsl and comfy_root.startswith("/")) or os.path.isdir(comfy_root)
+        )
+        if not dir_ok:
             self.send_json({
                 "code": "NO_COMFY_DIR",
                 "error": "Der ComfyUI-Ordner konnte nicht automatisch gefunden werden. Bitte in den Settings unter 'ComfyUI-Startbefehl / Pfad' konfigurieren."
             }, status=400)
             return
 
-        target_base = os.path.normpath(os.path.join(comfy_root, "models", item["target_subdir"]))
-        dest_path = os.path.normpath(os.path.join(target_base, *item["filename"].split("/")))
-        if not _is_path_within(target_base, dest_path):
+        rel_fn = item["filename"].replace("\\", "/").lstrip("/")
+        if ".." in rel_fn.split("/"):
             self.send_json({"error": "Ungültiger Zielpfad."}, status=400)
             return
+
+        if is_wsl and comfy_root.startswith("/"):
+            import posixpath
+            wsl_base = posixpath.normpath(posixpath.join(comfy_root.rstrip("/"), "models", item["target_subdir"]))
+            wsl_dest = posixpath.normpath(posixpath.join(wsl_base, rel_fn))
+            if not (wsl_dest == wsl_base or wsl_dest.startswith(wsl_base + "/")):
+                self.send_json({"error": "Ungültiger Zielpfad."}, status=400)
+                return
+            dest_path = wsl_dest
+            win_tmp_dir = os.path.join(DATA_ROOT, "data")
+            tmp_path = os.path.join(win_tmp_dir, f"_plato_dl_{os.getpid()}.tmp")
+        else:
+            target_base = os.path.normpath(os.path.join(comfy_root, "models", item["target_subdir"]))
+            dest_path = os.path.normpath(os.path.join(target_base, *rel_fn.split("/")))
+            if not _is_path_within(target_base, dest_path):
+                self.send_json({"error": "Ungültiger Zielpfad."}, status=400)
+                return
+            tmp_path = dest_path + ".tmp"
 
         with PLATO_DOWNLOAD_LOCK:
             PLATO_DOWNLOAD_JOB.update({
@@ -1965,9 +2005,8 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             })
 
         def _worker():
-            tmp_path = dest_path + ".tmp"
             try:
-                os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                os.makedirs(os.path.dirname(tmp_path), exist_ok=True)
                 req = urllib.request.Request(item["url"], headers={"User-Agent": "tA-StudioCockpit"})
                 with urllib.request.urlopen(req, timeout=60.0) as resp:
                     total = int(resp.headers.get("Content-Length") or 0)
@@ -1983,7 +2022,27 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                             downloaded += len(chunk)
                             with PLATO_DOWNLOAD_LOCK:
                                 PLATO_DOWNLOAD_JOB["downloaded_bytes"] = downloaded
-                os.replace(tmp_path, dest_path)
+                if is_wsl and comfy_root.startswith("/"):
+                    import posixpath, shlex
+                    wp = subprocess.run(
+                        ["wsl", "wslpath", "-u", tmp_path],
+                        capture_output=True, text=True, timeout=10,
+                        creationflags=_NO_WINDOW_FLAGS,
+                    )
+                    if wp.returncode != 0 or not wp.stdout.strip():
+                        raise RuntimeError(wp.stderr.strip() or "wslpath conversion failed")
+                    wsl_src = wp.stdout.strip()
+                    wsl_dir = posixpath.dirname(dest_path)
+                    mv_cmd = f"mkdir -p {shlex.quote(wsl_dir)} && mv -f {shlex.quote(wsl_src)} {shlex.quote(dest_path)}"
+                    mv = subprocess.run(
+                        ["wsl", "bash", "-c", mv_cmd],
+                        capture_output=True, text=True, timeout=30,
+                        creationflags=_NO_WINDOW_FLAGS,
+                    )
+                    if mv.returncode != 0:
+                        raise RuntimeError(mv.stderr.strip() or "WSL move failed")
+                else:
+                    os.replace(tmp_path, dest_path)
                 with PLATO_DOWNLOAD_LOCK:
                     PLATO_DOWNLOAD_JOB["status"] = "done"
             except Exception as exc:

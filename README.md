@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.77 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.78 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -139,6 +139,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.78:** Added WSL Linux-path support (`wslpath -u` + `wsl bash`) to `handle_plato_keys()` and `handle_plato_key_download()` (`server.py`) so the Plato's Keys downloader works identically under both native Windows and WSL ComfyUI.
 * **v1.77:** Added 1-click optional node installation (`ComfyUI-H3-Text-Encoders`, `ComfyUI-PlatoKeys`) and a Hugging Face `.safetensors` key downloader (`POST /api/plato_keys/download`) in both the Model Preset card (`#cardModel`) and ComfyUI Settings (`server.py`, `web/index.html`, `web/app.js`).
 * **v1.76:** Added opt-in **Plato's Keys** support via `TA-FLEXMOD-LLM_v2.93.json` (`PlatosKeyPatchCLIP` & `plato_keys.PatchCLIP` bypassed by default via `MODE_BYPASS`), `GET /api/plato_keys` discovery + pre-flight validation (`server.py`, `comfy_client.py`), and `#selPlatoKey` in Image Studio (`web/index.html`, `web/app.js`) with zero breaking changes for existing setups.
 * **v1.74:** Fixed a WinForms/WebView2 UI thread deadlock in `on_closing()` (`server.py`) by dispatching `window.__requestCloseConfirm()` asynchronously via `threading.Timer` so the themed close confirmation modal remains fully clickable.

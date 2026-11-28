@@ -2,6 +2,10 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.78] – 2026-11-28
+### WSL + Native Windows Support for Plato's Keys Downloader
+- **WSL Key Downloader & Disk Check (`server.py`):** Updated `handle_plato_keys()` and `handle_plato_key_download()` to support both native Windows ComfyUI directories and WSL Linux paths (via `wslpath -u` and `wsl bash -c`), fixing the false `NO_COMFY_DIR` error when ComfyUI runs in WSL.
+
 ## [v1.77] – 2026-11-28
 ### Plato's Keys Auto-Installer & Hugging Face Key Downloader
 - **Optional Node Packs (`server.py`):** Added `OPTIONAL_NODE_PACKS` (`ComfyUI-H3-Text-Encoders`, `ComfyUI-PlatoKeys`) with `required: False` so they never trigger startup missing-node popups while remaining 1-click installable via `POST /api/install_nodes`.
