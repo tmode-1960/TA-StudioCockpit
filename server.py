@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.90"
+APP_VERSION = "1.91"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -199,6 +199,8 @@ def load_config() -> dict:
         "ollama_url": OLLAMA_URL,
         "language": "en",
         "confirm_close": True,
+        "deleted_default_model_presets": [],
+        "deleted_default_sampler_presets": [],
     }
     if os.path.isfile(CONFIG_PATH):
         try:
@@ -341,6 +343,7 @@ ALLOWED_CONFIG_KEYS = {
     "comfy_url", "comfy_launch_cmd", "extra_models_dir", "output_dir", "video_output_dir", "music_output_dir",
     "lms_url", "ollama_url",
     "language", "theme_base", "theme_accent", "theme_custom_accent", "confirm_close",
+    "deleted_default_model_presets", "deleted_default_sampler_presets",
     "custom_res_presets", "ui_state", "comfy_dir", "last_i2i_dir", "window",
     "llm_provider", "ollama_model", "gemini_model",
 }
@@ -1472,6 +1475,34 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             self.forward_to_comfy("POST", path[len("/proxy/comfy/"):], parsed.query, post_body)
             return
         elif path.startswith("/ta_model_presets/") or path.startswith("/ta_sampler_presets/"):
+            try:
+                if path == "/ta_model_presets/save" and post_body:
+                    payload = json.loads(post_body.decode("utf-8"))
+                    if isinstance(payload, dict) and isinstance(payload.get("presets"), list):
+                        kept = {str(p.get("name", "")).strip().lower() for p in payload["presets"] if isinstance(p, dict)}
+                        deleted_defaults = [
+                            dm["name"] for dm in DEFAULT_MODEL_PRESETS
+                            if dm["name"].strip().lower() not in kept
+                        ]
+                        save_config({"deleted_default_model_presets": deleted_defaults})
+                elif path == "/ta_sampler_presets/delete" and post_body:
+                    payload = json.loads(post_body.decode("utf-8"))
+                    del_name = str(payload.get("name", "") or "").strip() if isinstance(payload, dict) else ""
+                    if del_name:
+                        cfg_cur = load_config()
+                        cur_del = list(cfg_cur.get("deleted_default_sampler_presets") or [])
+                        if del_name.lower() in {k.lower() for k in DEFAULT_SAMPLER_PRESETS} and del_name.lower() not in {x.lower() for x in cur_del}:
+                            cur_del.append(del_name)
+                            save_config({"deleted_default_sampler_presets": cur_del})
+                elif path == "/ta_sampler_presets/save" and post_body:
+                    payload = json.loads(post_body.decode("utf-8"))
+                    save_name = str(payload.get("name", "") or "").strip().lower() if isinstance(payload, dict) else ""
+                    if save_name:
+                        cfg_cur = load_config()
+                        cur_del = [x for x in (cfg_cur.get("deleted_default_sampler_presets") or []) if str(x).strip().lower() != save_name]
+                        save_config({"deleted_default_sampler_presets": cur_del})
+            except Exception:
+                pass
             self.forward_to_comfy("POST", path, parsed.query, post_body)
             return
         elif discord_gif.handle_post(self, path, parsed, post_body):
@@ -1812,12 +1843,17 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         models_dirty = False
         warnings: list[str] = []
 
+        cfg_presets = load_config()
+        deleted_model_names = {str(x).strip().lower() for x in (cfg_presets.get("deleted_default_model_presets") or [])}
+        deleted_sampler_names = {str(x).strip().lower() for x in (cfg_presets.get("deleted_default_sampler_presets") or [])}
+
         existing_model_names = {
             str(m.get("name", "")).strip().lower()
             for m in models_list if isinstance(m, dict)
         }
         for dm in DEFAULT_MODEL_PRESETS:
-            if dm["name"].strip().lower() in existing_model_names:
+            dm_low = dm["name"].strip().lower()
+            if dm_low in existing_model_names or dm_low in deleted_model_names:
                 continue
             if self._is_preset_installed(dm, installed_paths, installed_basenames):
                 models_list.append(dict(dm))
@@ -1825,7 +1861,8 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
 
         existing_sampler_names = {k.strip().lower() for k in samplers_dict}
         for s_name, s_data in DEFAULT_SAMPLER_PRESETS.items():
-            if s_name.strip().lower() in existing_sampler_names:
+            s_low = s_name.strip().lower()
+            if s_low in existing_sampler_names or s_low in deleted_sampler_names:
                 continue
             try:
                 self._post_comfy_json(

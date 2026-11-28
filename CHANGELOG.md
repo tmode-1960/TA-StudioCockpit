@@ -2,6 +2,11 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.91] – 2026-11-28
+### Native Themed Preset Editors & Permanent Default-Preset Deletion
+- **Native Model & Sampler Preset Editors (`web/index.html`, `web/style.css`, `web/app.js`):** Replaced the ComfyUI `iframe` preset editors with native StudioCockpit modals (`#nativeModelPresetEditor`, `#nativeSamplerPresetEditor`) that talk directly to `/ta_model_presets/*` and `/ta_sampler_presets/*`, matching every Cockpit theme, supporting drag-and-drop reordering, and using the centered `#cockpitConfirmModal`.
+- **Remember Deleted Default Presets (`server.py`):** Tracked deleted default presets (`deleted_default_model_presets`, `deleted_default_sampler_presets` in `config.json`) so `_seed_or_repair_presets()` does not re-add intentionally deleted presets (like `KROMOSS`) on restart.
+
 ## [v1.90] – 2026-11-28
 ### Model Preset Help Updated for Plato's Key
 - **Localized Help (`help_model_html` DE/EN):** Added an explanation of **🔑 Plato's Key (Opt-in)** (VRAM-saving smaller text-encoder projection, downloading keys/nodes, and matching the model encoder) to the **Model Preset** `?` help box in `web/app.js`.

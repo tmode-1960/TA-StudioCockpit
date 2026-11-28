@@ -53,6 +53,25 @@
       restart_comfy_confirm_btn: "Neu starten",
       preset_confirm_title: "Preset-Bestätigung",
       btn_confirm_ok: "OK",
+      pe_model_hint: "Änderungen werden in ta_model_presets.json gespeichert.",
+      pe_add_model: "+ Preset hinzufügen",
+      pe_save_all: "💾 Speichern",
+      pe_sampler_hint: "Änderungen gelten beim nächsten ComfyUI-Run sofort.",
+      pe_add_sampler: "+ Sampler-Preset hinzufügen",
+      pe_col_name: "Name",
+      pe_col_steps: "Steps",
+      pe_col_start: "Start",
+      pe_col_end: "End",
+      pe_col_sampler: "Sampler",
+      pe_col_scheduler: "Scheduler",
+      pe_col_actions: "Aktionen",
+      pe_remove: "🗑️ Entfernen",
+      pe_saved: "Presets gespeichert!",
+      pe_deleted: "Preset entfernt.",
+      pe_delete_model_q: "Model-Preset \"{name}\" wirklich entfernen?",
+      pe_delete_sampler_q: "Sampler-Preset \"{name}\" wirklich entfernen?",
+      pe_new_model_name: "Neues Model Preset",
+      pe_new_sampler_name: "Neues Sampler Preset",
       btn_launch_comfy_opening: "⏳ Öffne Terminal…",
       btn_launch_comfy_tab: "⏳ Neuer Tab geöffnet…",
       btn_launch_comfy_started: "⏳ Terminal gestartet…",
@@ -687,6 +706,25 @@
       restart_comfy_confirm_btn: "Restart",
       preset_confirm_title: "Confirm Action",
       btn_confirm_ok: "OK",
+      pe_model_hint: "Changes are saved to ta_model_presets.json.",
+      pe_add_model: "+ Add Preset",
+      pe_save_all: "💾 Save",
+      pe_sampler_hint: "Changes take effect immediately on the next ComfyUI run.",
+      pe_add_sampler: "+ Add Sampler Preset",
+      pe_col_name: "Name",
+      pe_col_steps: "Steps",
+      pe_col_start: "Start",
+      pe_col_end: "End",
+      pe_col_sampler: "Sampler",
+      pe_col_scheduler: "Scheduler",
+      pe_col_actions: "Actions",
+      pe_remove: "🗑️ Remove",
+      pe_saved: "Presets saved!",
+      pe_deleted: "Preset removed.",
+      pe_delete_model_q: "Really remove model preset \"{name}\"?",
+      pe_delete_sampler_q: "Really remove sampler preset \"{name}\"?",
+      pe_new_model_name: "New Model Preset",
+      pe_new_sampler_name: "New Sampler Preset",
       btn_launch_comfy_opening: "⏳ Opening terminal…",
       btn_launch_comfy_tab: "⏳ New tab opened…",
       btn_launch_comfy_started: "⏳ Terminal started…",
@@ -7982,38 +8020,476 @@
     });
   }
 
-  // Preset Editor Modals
+  // Native Preset Editor Modals (Model & Sampler)
   const presetEditorOfflineNotice = document.getElementById("presetEditorOfflineNotice");
   const btnLaunchComfyFromPreset = document.getElementById("btnLaunchComfyFromPreset");
   const btnRetryPresetEditor = document.getElementById("btnRetryPresetEditor");
+  const nativeModelPresetEditor = document.getElementById("nativeModelPresetEditor");
+  const nativeSamplerPresetEditor = document.getElementById("nativeSamplerPresetEditor");
+  const modelPresetListEl = document.getElementById("modelPresetList");
+  const samplerPresetListEl = document.getElementById("samplerPresetList");
+  const btnAddModelPreset = document.getElementById("btnAddModelPreset");
+  const btnSaveModelPresets = document.getElementById("btnSaveModelPresets");
+  const btnAddSamplerPreset = document.getElementById("btnAddSamplerPreset");
 
-  function showPresetEditorContent(online) {
-    if (online) {
-      if (presetEditorOfflineNotice) presetEditorOfflineNotice.style.display = "none";
-      if (presetEditorIframe) {
-        presetEditorIframe.style.display = "block";
-        presetEditorIframe.src = currentPresetEditorUrl;
+  let currentPresetEditorKind = "model"; // "model" | "sampler"
+  let peModelOptions = { models: [], clips: [], vaes: [], clip_types: [] };
+  let peModelPresets = [];
+  let peSamplerOptions = { samplers: [], schedulers: [] };
+  let peSamplerEntries = []; // [{ name, data }]
+
+  function makeSelectOptions(list, currentVal, includeEmpty = false) {
+    const frag = document.createDocumentFragment();
+    if (includeEmpty) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "—";
+      frag.appendChild(opt);
+    }
+    const vals = Array.isArray(list) ? list : [];
+    const cur = String(currentVal ?? "");
+    let found = cur === "" && includeEmpty;
+    vals.forEach((v) => {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      if (v === cur) { opt.selected = true; found = true; }
+      frag.appendChild(opt);
+    });
+    if (cur && !found) {
+      const opt = document.createElement("option");
+      opt.value = cur;
+      opt.textContent = cur;
+      opt.selected = true;
+      frag.prepend(opt);
+    }
+    return frag;
+  }
+
+  function renderNativeModelPresets() {
+    if (!modelPresetListEl) return;
+    modelPresetListEl.innerHTML = "";
+    peModelPresets.forEach((p, idx) => {
+      const card = document.createElement("div");
+      card.className = "pe-card" + (p._expanded ? "" : " collapsed");
+      card.draggable = true;
+
+      const hdr = document.createElement("div");
+      hdr.className = "pe-card-hdr";
+      const drag = document.createElement("span");
+      drag.className = "pe-drag";
+      drag.textContent = "⠿";
+      const title = document.createElement("span");
+      title.className = "pe-card-title";
+      title.textContent = p.name || "(Unnamed)";
+      const badge = document.createElement("span");
+      badge.className = "pe-type-badge";
+      badge.textContent = String(p.model_file || "").startsWith("[C]") ? "CKPT" : "DIFF";
+      const arrow = document.createElement("span");
+      arrow.style.cssText = "color:var(--mute); font-size:14px;";
+      arrow.textContent = "▾";
+      hdr.append(drag, title, badge, arrow);
+      hdr.addEventListener("click", () => {
+        p._expanded = !p._expanded;
+        card.classList.toggle("collapsed", !p._expanded);
+      });
+
+      card.addEventListener("dragstart", (e) => {
+        card.classList.add("is-dragging");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", String(idx));
+      });
+      card.addEventListener("dragend", () => card.classList.remove("is-dragging"));
+      card.addEventListener("dragover", (e) => e.preventDefault());
+      card.addEventListener("drop", (e) => {
+        e.preventDefault();
+        const fromIdx = parseInt(e.dataTransfer.getData("text/plain"), 10);
+        if (!Number.isNaN(fromIdx) && fromIdx !== idx) {
+          const [moved] = peModelPresets.splice(fromIdx, 1);
+          peModelPresets.splice(idx, 0, moved);
+          renderNativeModelPresets();
+        }
+      });
+
+      const body = document.createElement("div");
+      body.className = "pe-card-body";
+
+      const mkField = (lblText, el) => {
+        const fg = document.createElement("div");
+        fg.className = "field-group";
+        const lb = document.createElement("label");
+        lb.className = "field-label";
+        lb.textContent = lblText;
+        fg.append(lb, el);
+        return fg;
+      };
+
+      const inpName = document.createElement("input");
+      inpName.type = "text";
+      inpName.value = p.name || "";
+      inpName.addEventListener("input", () => { p.name = inpName.value; title.textContent = p.name || "(Unnamed)"; });
+
+      const selModel = document.createElement("select");
+      selModel.appendChild(makeSelectOptions(peModelOptions.models, p.model_file, true));
+      selModel.addEventListener("change", () => {
+        p.model_file = selModel.value;
+        badge.textContent = String(p.model_file || "").startsWith("[C]") ? "CKPT" : "DIFF";
+      });
+
+      const selClip1 = document.createElement("select");
+      selClip1.appendChild(makeSelectOptions(peModelOptions.clips, p.clip_name_1, true));
+      selClip1.addEventListener("change", () => { p.clip_name_1 = selClip1.value; });
+
+      const selClip2 = document.createElement("select");
+      selClip2.appendChild(makeSelectOptions(peModelOptions.clips, p.clip_name_2, true));
+      selClip2.addEventListener("change", () => { p.clip_name_2 = selClip2.value; });
+
+      const selClipType = document.createElement("select");
+      selClipType.appendChild(makeSelectOptions(peModelOptions.clip_types, p.clip_type || "auto", false));
+      selClipType.addEventListener("change", () => { p.clip_type = selClipType.value; });
+
+      const selClipDev = document.createElement("select");
+      selClipDev.appendChild(makeSelectOptions(["default", "cpu"], p.clip_device || "default", false));
+      selClipDev.addEventListener("change", () => { p.clip_device = selClipDev.value; });
+
+      const selVae = document.createElement("select");
+      selVae.appendChild(makeSelectOptions(peModelOptions.vaes, p.vae_name, true));
+      selVae.addEventListener("change", () => { p.vae_name = selVae.value; });
+
+      const selDtype = document.createElement("select");
+      selDtype.appendChild(makeSelectOptions(["auto", "default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"], p.weight_dtype || "auto", false));
+      selDtype.addEventListener("change", () => { p.weight_dtype = selDtype.value; });
+
+      const inpShift = document.createElement("input");
+      inpShift.type = "text";
+      inpShift.placeholder = "z. B. 3.0 (leer = aus)";
+      inpShift.value = p.shift !== undefined && p.shift !== null ? String(p.shift) : "";
+      inpShift.addEventListener("input", () => { p.shift = inpShift.value; });
+
+      const row1 = document.createElement("div");
+      row1.className = "pe-grid-2";
+      row1.append(mkField("Preset Name", inpName), mkField("Model File", selModel));
+
+      const row2 = document.createElement("div");
+      row2.className = "pe-grid-2";
+      row2.append(mkField("CLIP 1", selClip1), mkField("CLIP 2", selClip2));
+
+      const row3 = document.createElement("div");
+      row3.className = "pe-grid-2";
+      row3.append(mkField("CLIP Type", selClipType), mkField("CLIP Device", selClipDev));
+
+      const row4 = document.createElement("div");
+      row4.className = "pe-grid-2";
+      row4.append(mkField("VAE", selVae), mkField("Weight Dtype", selDtype));
+
+      const row5 = document.createElement("div");
+      row5.className = "pe-grid-2";
+      row5.append(mkField("Shift (ModelSamplingAuraFlow)", inpShift));
+
+      const actions = document.createElement("div");
+      actions.className = "pe-card-actions";
+      const btnDel = document.createElement("button");
+      btnDel.type = "button";
+      btnDel.className = "btn-action pe-btn-danger";
+      btnDel.style.cssText = "padding:5px 11px; font-size:12px;";
+      btnDel.textContent = t("pe_remove", "🗑️ Entfernen");
+      btnDel.addEventListener("click", async () => {
+        const ok = await showCockpitConfirm({
+          icon: "🗑️",
+          title: t("preset_confirm_title", "Preset-Bestätigung"),
+          message: t("pe_delete_model_q", 'Model-Preset "{name}" wirklich entfernen?').replace("{name}", p.name || ""),
+          confirmText: t("btn_confirm_ok", "OK"),
+          danger: true,
+        });
+        if (!ok) return;
+        peModelPresets.splice(idx, 1);
+        await saveNativeModelPresets();
+        renderNativeModelPresets();
+      });
+      actions.appendChild(btnDel);
+
+      body.append(row1, row2, row3, row4, row5, actions);
+      card.append(hdr, body);
+      modelPresetListEl.appendChild(card);
+    });
+  }
+
+  async function saveNativeModelPresets() {
+    const cleanPresets = peModelPresets.map((p) => {
+      const copy = { ...p };
+      delete copy._expanded;
+      return copy;
+    });
+    const res = await fetch("/ta_model_presets/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ presets: cleanPresets }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    showToast(t("pe_saved", "Presets gespeichert!"), "success", 2500);
+    await refreshPresetsFromComfy();
+  }
+
+  async function loadNativeModelEditor() {
+    const [optRes, listRes] = await Promise.all([
+      fetch("/ta_model_presets/options"),
+      fetch("/ta_model_presets/list"),
+    ]);
+    if (!optRes.ok || !listRes.ok) throw new Error("ComfyUI offline");
+    peModelOptions = await optRes.json();
+    const listData = await listRes.json();
+    const arr = Array.isArray(listData) ? listData : (listData.presets || []);
+    peModelPresets = arr.map((p) => ({ ...p, _expanded: false }));
+    renderNativeModelPresets();
+  }
+
+  function renderNativeSamplerPresets() {
+    if (!samplerPresetListEl) return;
+    samplerPresetListEl.innerHTML = "";
+    peSamplerEntries.forEach((entry, idx) => {
+      const tr = document.createElement("tr");
+      tr.draggable = true;
+      tr.addEventListener("dragstart", (e) => {
+        tr.classList.add("is-dragging");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", String(idx));
+      });
+      tr.addEventListener("dragend", () => tr.classList.remove("is-dragging"));
+      tr.addEventListener("dragover", (e) => e.preventDefault());
+      tr.addEventListener("drop", async (e) => {
+        e.preventDefault();
+        const fromIdx = parseInt(e.dataTransfer.getData("text/plain"), 10);
+        if (!Number.isNaN(fromIdx) && fromIdx !== idx) {
+          const [moved] = peSamplerEntries.splice(fromIdx, 1);
+          peSamplerEntries.splice(idx, 0, moved);
+          renderNativeSamplerPresets();
+          try {
+            await fetch("/ta_sampler_presets/reorder", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ order: peSamplerEntries.map((x) => x.name) }),
+            });
+            await refreshPresetsFromComfy();
+          } catch (err) {}
+        }
+      });
+
+      const tdDrag = document.createElement("td");
+      tdDrag.innerHTML = '<span class="pe-drag">⠿</span>';
+
+      const inpName = document.createElement("input");
+      inpName.type = "text";
+      inpName.value = entry.name;
+
+      const inpSteps = document.createElement("input");
+      inpSteps.type = "number";
+      inpSteps.min = "1";
+      inpSteps.value = entry.data.steps ?? 20;
+
+      const inpCfg = document.createElement("input");
+      inpCfg.type = "number";
+      inpCfg.step = "0.1";
+      inpCfg.value = entry.data.cfg ?? 1.0;
+
+      const inpStart = document.createElement("input");
+      inpStart.type = "number";
+      inpStart.value = entry.data.start_at_step ?? 0;
+
+      const inpEnd = document.createElement("input");
+      inpEnd.type = "number";
+      inpEnd.value = entry.data.end_at_step ?? 9999;
+
+      const selSampler = document.createElement("select");
+      selSampler.appendChild(makeSelectOptions(peSamplerOptions.samplers, entry.data.sampler_name || "euler", false));
+
+      const selSched = document.createElement("select");
+      selSched.appendChild(makeSelectOptions(peSamplerOptions.schedulers, entry.data.scheduler || "normal", false));
+
+      const tdActions = document.createElement("td");
+      const wrapAct = document.createElement("div");
+      wrapAct.className = "pe-row-actions";
+
+      const btnSave = document.createElement("button");
+      btnSave.type = "button";
+      btnSave.className = "btn-action";
+      btnSave.style.cssText = "padding:4px 9px; font-size:12px; background:var(--accent); border-color:var(--accent); color:#fff;";
+      btnSave.textContent = "💾";
+      btnSave.title = t("pe_save_all", "Speichern");
+      btnSave.addEventListener("click", async () => {
+        const newName = inpName.value.trim();
+        if (!newName) return;
+        const payload = {
+          steps: parseInt(inpSteps.value, 10) || 20,
+          cfg: parseFloat(inpCfg.value) || 1.0,
+          start_at_step: parseInt(inpStart.value, 10) || 0,
+          end_at_step: parseInt(inpEnd.value, 10) || 9999,
+          sampler_name: selSampler.value,
+          scheduler: selSched.value,
+        };
+        try {
+          if (entry.name && entry.name !== newName) {
+            await fetch("/ta_sampler_presets/delete", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name: entry.name }),
+            });
+          }
+          const res = await fetch("/ta_sampler_presets/save", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: newName, data: payload }),
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          entry.name = newName;
+          entry.data = payload;
+          showToast(t("pe_saved", "Presets gespeichert!"), "success", 2000);
+          await refreshPresetsFromComfy();
+        } catch (err) {
+          showToast(t("toast_network_error", "Netzwerkfehler: ") + err.message, "error");
+        }
+      });
+
+      const btnDel = document.createElement("button");
+      btnDel.type = "button";
+      btnDel.className = "btn-action pe-btn-danger";
+      btnDel.style.cssText = "padding:4px 9px; font-size:12px;";
+      btnDel.textContent = "🗑️";
+      btnDel.title = t("pe_remove", "Entfernen");
+      btnDel.addEventListener("click", async () => {
+        const ok = await showCockpitConfirm({
+          icon: "🗑️",
+          title: t("preset_confirm_title", "Preset-Bestätigung"),
+          message: t("pe_delete_sampler_q", 'Sampler-Preset "{name}" wirklich entfernen?').replace("{name}", entry.name),
+          confirmText: t("btn_confirm_ok", "OK"),
+          danger: true,
+        });
+        if (!ok) return;
+        try {
+          if (entry.name) {
+            await fetch("/ta_sampler_presets/delete", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name: entry.name }),
+            });
+          }
+          peSamplerEntries.splice(idx, 1);
+          renderNativeSamplerPresets();
+          showToast(t("pe_deleted", "Preset entfernt."), "info", 2000);
+          await refreshPresetsFromComfy();
+        } catch (err) {
+          showToast(t("toast_network_error", "Netzwerkfehler: ") + err.message, "error");
+        }
+      });
+
+      wrapAct.append(btnSave, btnDel);
+      tdActions.appendChild(wrapAct);
+
+      [inpName, inpSteps, inpCfg, inpStart, inpEnd, selSampler, selSched].forEach((ctrl, cIdx) => {
+        const td = document.createElement("td");
+        td.appendChild(ctrl);
+        if (cIdx === 0) tr.append(tdDrag, td);
+        else tr.appendChild(td);
+      });
+      tr.appendChild(tdActions);
+      samplerPresetListEl.appendChild(tr);
+    });
+  }
+
+  async function loadNativeSamplerEditor() {
+    const [optRes, listRes] = await Promise.all([
+      fetch("/ta_sampler_presets/options"),
+      fetch("/ta_sampler_presets/list"),
+    ]);
+    if (!optRes.ok || !listRes.ok) throw new Error("ComfyUI offline");
+    peSamplerOptions = await optRes.json();
+    const listObj = await listRes.json();
+    peSamplerEntries = Object.entries(listObj || {}).map(([name, data]) => ({ name, data: { ...data } }));
+    renderNativeSamplerPresets();
+  }
+
+  async function showPresetEditorContent(online) {
+    if (nativeModelPresetEditor) nativeModelPresetEditor.style.display = "none";
+    if (nativeSamplerPresetEditor) nativeSamplerPresetEditor.style.display = "none";
+    if (!online) {
+      if (presetEditorOfflineNotice) presetEditorOfflineNotice.style.display = "flex";
+      return;
+    }
+    if (presetEditorOfflineNotice) presetEditorOfflineNotice.style.display = "none";
+    try {
+      if (currentPresetEditorKind === "sampler") {
+        if (nativeSamplerPresetEditor) nativeSamplerPresetEditor.style.display = "flex";
+        await loadNativeSamplerEditor();
+      } else {
+        if (nativeModelPresetEditor) nativeModelPresetEditor.style.display = "flex";
+        await loadNativeModelEditor();
       }
-    } else {
-      if (presetEditorIframe) {
-        presetEditorIframe.src = "";
-        presetEditorIframe.style.display = "none";
-      }
+    } catch (e) {
+      if (nativeModelPresetEditor) nativeModelPresetEditor.style.display = "none";
+      if (nativeSamplerPresetEditor) nativeSamplerPresetEditor.style.display = "none";
       if (presetEditorOfflineNotice) presetEditorOfflineNotice.style.display = "flex";
     }
   }
 
-  function openPresetEditor(url, titleKey, titleFallback) {
+  function openPresetEditor(kind, url, titleKey, titleFallback) {
+    currentPresetEditorKind = kind;
     currentPresetEditorUrl = url;
     presetEditorModalTitle.setAttribute("data-i18n", titleKey);
     presetEditorModalTitle.textContent = t(titleKey, titleFallback);
-    showPresetEditorContent(isComfyOnline);
     presetEditorModal.style.display = "flex";
+    showPresetEditorContent(isComfyOnline);
   }
+
+  btnAddModelPreset?.addEventListener("click", () => {
+    peModelPresets.push({
+      name: t("pe_new_model_name", "Neues Model Preset"),
+      model_file: peModelOptions.models[0] || "",
+      clip_name_1: peModelOptions.clips[0] || "",
+      clip_name_2: "",
+      clip_type: peModelOptions.clip_types[0] || "auto",
+      clip_device: "default",
+      vae_name: peModelOptions.vaes[0] || "",
+      weight_dtype: "auto",
+      shift: "",
+      _expanded: true,
+    });
+    renderNativeModelPresets();
+    if (modelPresetListEl) modelPresetListEl.scrollTop = modelPresetListEl.scrollHeight;
+  });
+
+  btnSaveModelPresets?.addEventListener("click", async () => {
+    try {
+      await saveNativeModelPresets();
+    } catch (err) {
+      showToast(t("toast_network_error", "Netzwerkfehler: ") + err.message, "error");
+    }
+  });
+
+  btnAddSamplerPreset?.addEventListener("click", () => {
+    const baseName = t("pe_new_sampler_name", "Neues Sampler Preset");
+    let candidate = baseName;
+    let n = 2;
+    const existing = new Set(peSamplerEntries.map((x) => x.name.toLowerCase()));
+    while (existing.has(candidate.toLowerCase())) {
+      candidate = `${baseName} ${n++}`;
+    }
+    peSamplerEntries.push({
+      name: candidate,
+      data: {
+        steps: 20,
+        cfg: 1.0,
+        start_at_step: 0,
+        end_at_step: 9999,
+        sampler_name: peSamplerOptions.samplers[0] || "euler",
+        scheduler: peSamplerOptions.schedulers[0] || "normal",
+      },
+    });
+    renderNativeSamplerPresets();
+  });
 
   if (btnEditModelPresets) {
     btnEditModelPresets.addEventListener("click", () => {
       openPresetEditor(
+        "model",
         `/proxy/comfy/ta_model_presets/ui`,
         "preset_modal_title_model",
         "🧠 TA Model Preset Editor (Neues Preset anlegen & verwalten)"
@@ -8024,6 +8500,7 @@
   if (btnEditSamplerPresets) {
     btnEditSamplerPresets.addEventListener("click", () => {
       openPresetEditor(
+        "sampler",
         `/proxy/comfy/ta_sampler_presets/ui`,
         "preset_modal_title_sampler",
         "⚡ TA Sampler Preset Editor (Neues Preset anlegen & verwalten)"

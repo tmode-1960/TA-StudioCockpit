@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v1.90 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.91 (FLEXMOD Edition)</title>
   <link rel="icon" type="image/png" href="/logo.png?v=1.45">
   <link rel="icon" href="/favicon.ico?v=1.45">
   <script>
@@ -2808,12 +2808,53 @@
           <button class="modal-close" id="btnClosePresetEditor">✕</button>
         </div>
       </div>
-      <div class="modal-body" style="padding:0; height:600px; position:relative;">
-        <iframe id="presetEditorIframe" src="" style="width:100%; height:100%; border:none; background:#171a23;"></iframe>
-        <div id="presetEditorOfflineNotice" style="display:none; position:absolute; inset:0; background:#171a23; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:32px; gap:14px;">
+      <div class="modal-body" style="padding:0; height:640px; max-height:78vh; position:relative; display:flex; flex-direction:column;">
+        <iframe id="presetEditorIframe" src="" style="display:none;"></iframe>
+
+        <!-- Native Model Preset Editor -->
+        <div id="nativeModelPresetEditor" style="display:none; flex:1; flex-direction:column; min-height:0;">
+          <div id="modelPresetList" class="pe-scroll-list"></div>
+          <div class="pe-footer">
+            <span class="field-hint" style="font-size:11.5px; color:var(--mute);" data-i18n="pe_model_hint">Änderungen werden in ta_model_presets.json gespeichert.</span>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button type="button" class="btn-action" id="btnAddModelPreset" data-i18n="pe_add_model">+ Preset hinzufügen</button>
+              <button type="button" class="btn-action" id="btnSaveModelPresets" style="background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; padding:7px 16px;" data-i18n="pe_save_all">💾 Speichern</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Native Sampler Preset Editor -->
+        <div id="nativeSamplerPresetEditor" style="display:none; flex:1; flex-direction:column; min-height:0;">
+          <div class="pe-scroll-list">
+            <table class="pe-sampler-table">
+              <thead>
+                <tr>
+                  <th style="width:26px;"></th>
+                  <th data-i18n="pe_col_name">Name</th>
+                  <th style="width:74px;" data-i18n="pe_col_steps">Steps</th>
+                  <th style="width:70px;">CFG</th>
+                  <th style="width:74px;" data-i18n="pe_col_start">Start</th>
+                  <th style="width:74px;" data-i18n="pe_col_end">End</th>
+                  <th data-i18n="pe_col_sampler">Sampler</th>
+                  <th data-i18n="pe_col_scheduler">Scheduler</th>
+                  <th style="width:94px; text-align:right;" data-i18n="pe_col_actions">Aktionen</th>
+                </tr>
+              </thead>
+              <tbody id="samplerPresetList"></tbody>
+            </table>
+          </div>
+          <div class="pe-footer">
+            <span class="field-hint" style="font-size:11.5px; color:var(--mute);" data-i18n="pe_sampler_hint">Änderungen gelten beim nächsten ComfyUI-Run sofort.</span>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button type="button" class="btn-action" id="btnAddSamplerPreset" style="background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; padding:7px 16px;" data-i18n="pe_add_sampler">+ Sampler-Preset hinzufügen</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="presetEditorOfflineNotice" style="display:none; position:absolute; inset:0; background:var(--panel); flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:32px; gap:14px;">
           <div style="font-size:36px;">⚡</div>
-          <h4 data-i18n="preset_editor_offline_title" style="margin:0; font-size:17px; color:#f1f5f9;">ComfyUI ist nicht gestartet</h4>
-          <p data-i18n="preset_editor_offline_desc" style="margin:0; max-width:440px; font-size:13.5px; line-height:1.5; color:#94a3b8;">
+          <h4 data-i18n="preset_editor_offline_title" style="margin:0; font-size:17px; color:var(--text-strong, var(--text));">ComfyUI ist nicht gestartet</h4>
+          <p data-i18n="preset_editor_offline_desc" style="margin:0; max-width:440px; font-size:13.5px; line-height:1.5; color:var(--mute);">
             Der Preset-Editor wird direkt von ComfyUI bereitgestellt. Bitte starte zuerst ComfyUI, um Presets anzulegen oder zu bearbeiten.
           </p>
           <div style="display:flex; gap:10px; margin-top:6px;">
@@ -3258,7 +3299,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=1.90"></script>
+  <script src="/app.js?v=1.91"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=5"></script>
   <script src="/video_module.js?v=1.00"></script>

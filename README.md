@@ -1,4 +1,4 @@
-# thomo.ART StudioCockpit (v1.90 - FLEXMOD Edition)
+# thomo.ART StudioCockpit (v1.91 - FLEXMOD Edition)
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
@@ -139,6 +139,7 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 
 ## 📝 Recent Changes (Changelog)
 
+* **v1.91:** Replaced the `iframe` Model & Sampler Preset Editors with native theme-aware StudioCockpit modals (`web/index.html`, `web/style.css`, `web/app.js`), and persisted deleted default presets (`deleted_default_model_presets`, `deleted_default_sampler_presets` in `server.py`) so deleted presets like `KROMOSS` stay deleted across restarts.
 * **v1.90:** Updated the **Model Preset** `?` help box (`help_model_html` in `web/app.js`, DE & EN) to explain **🔑 Plato's Key (Opt-in)**.
 * **v1.89:** Removed the `-90deg` rotation on `.card.collapsible.collapsed` and `.field-collapsible.collapsed` (`web/style.css`) so all collapsible sections consistently display the downward `▾` arrow.
 * **v1.88:** Made the **🔑 Plato's Key (Opt-in)** subsection inside **Model Preset** collapsible with the standard `▾` arrow (`#platoKeyGroup` in `web/index.html`, `web/app.js`), collapsed by default.

@@ -5498,6 +5498,145 @@ input[type="range"] {
   overflow: hidden;
   background: var(--bg);
 }
+
+/* Native Preset Editors */
+.pe-scroll-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg);
+}
+.pe-footer {
+  padding: 12px 18px;
+  border-top: 1px solid var(--line);
+  background: var(--panel2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.pe-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.pe-card.is-dragging {
+  opacity: 0.55;
+  border-color: var(--accent);
+}
+.pe-card-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--panel2);
+  cursor: pointer;
+  user-select: none;
+}
+.pe-card-hdr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.pe-drag {
+  color: var(--mute);
+  cursor: grab;
+  font-size: 14px;
+  line-height: 1;
+}
+.pe-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-strong, var(--text));
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pe-type-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+  border: 1px solid var(--line);
+  color: var(--accent);
+  background: rgba(139, 92, 246, 0.1);
+}
+.pe-card-body {
+  padding: 14px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pe-card.collapsed .pe-card-body {
+  display: none;
+}
+.pe-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 680px) {
+  .pe-grid-2 { grid-template-columns: 1fr; }
+}
+.pe-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+.pe-sampler-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.pe-sampler-table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--mute);
+  padding: 6px 8px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.pe-sampler-table td {
+  padding: 7px 6px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.pe-sampler-table tr.is-dragging {
+  opacity: 0.55;
+  background: var(--panel2);
+}
+.pe-sampler-table input,
+.pe-sampler-table select {
+  width: 100%;
+  padding: 5px 8px;
+  font-size: 12.5px;
+}
+.pe-row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+  width: 100%;
+}
+.pe-btn-danger {
+  background: rgba(255, 93, 108, 0.14);
+  border-color: rgba(255, 93, 108, 0.45);
+  color: #ff8a95;
+}
+.pe-btn-danger:hover {
+  background: #ff5d6c;
+  border-color: #ff5d6c;
+  color: #fff;
+}
 #musicMakerFrame {
   width: 100%;
   height: 100%;
