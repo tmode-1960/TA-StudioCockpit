@@ -3,90 +3,20 @@
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
 ## [v1.94] – 2026-11-28
-### Sampler Preset Editor Cleanup
-- **Removed Redundant Restart Button (`web/index.html`, `web/app.js`):** Removed `#btnRestartComfyFromSamplerPreset` from the Sampler Preset Editor footer since sampler preset changes apply immediately on the next run without restarting ComfyUI (keeping the restart button in the Model Preset Editor).
-
-## [v1.93] – 2026-11-28
-### Preset Editor Save Hints & In-Editor ComfyUI Restart
-- **Explicit Save & Restart Hints (`web/index.html`, `web/app.js`):** Updated `pe_model_hint` and `pe_sampler_hint` (DE & EN) to state the target JSON files (`ta_model_presets.json` / `ta_sampler_presets.json`) and when a ComfyUI restart is needed.
-- **Restart ComfyUI in Both Preset Editors:** Added `🔄 ComfyUI neu starten` / `🔄 Restart ComfyUI` buttons (`#btnRestartComfyFromModelPreset`, `#btnRestartComfyFromSamplerPreset`) sharing `restartComfyWithConfirm()` with the main toolbar button.
-
-## [v1.92] – 2026-11-28
-### Preset Editor Scrolling & Card Layout Fix
-- **Prevent Card Squishing & Enable Scrolling (`web/style.css`):** Added `flex-shrink: 0` to `.pe-card` and `.pe-footer`, and `flex: 1 1 0; min-height: 0; overflow-y: auto;` to `.pe-scroll-list` so expanding a Model Preset card keeps all cards full-height and scrolls smoothly.
-
-## [v1.91] – 2026-11-28
-### Native Themed Preset Editors & Permanent Default-Preset Deletion
-- **Native Model & Sampler Preset Editors (`web/index.html`, `web/style.css`, `web/app.js`):** Replaced the ComfyUI `iframe` preset editors with native StudioCockpit modals (`#nativeModelPresetEditor`, `#nativeSamplerPresetEditor`) that talk directly to `/ta_model_presets/*` and `/ta_sampler_presets/*`, matching every Cockpit theme, supporting drag-and-drop reordering, and using the centered `#cockpitConfirmModal`.
-- **Remember Deleted Default Presets (`server.py`):** Tracked deleted default presets (`deleted_default_model_presets`, `deleted_default_sampler_presets` in `config.json`) so `_seed_or_repair_presets()` does not re-add intentionally deleted presets (like `KROMOSS`) on restart.
-
-## [v1.90] – 2026-11-28
-### Model Preset Help Updated for Plato's Key
-- **Localized Help (`help_model_html` DE/EN):** Added an explanation of **🔑 Plato's Key (Opt-in)** (VRAM-saving smaller text-encoder projection, downloading keys/nodes, and matching the model encoder) to the **Model Preset** `?` help box in `web/app.js`.
-
-## [v1.89] – 2026-11-28
-### Consistent Collapsible Arrows
-- **Unified Downward Arrows (`▾`):** Removed the `-90deg` rotation on `.card.collapsible.collapsed` and `.field-collapsible.collapsed` in `web/style.css` so all collapsible sections (LoRA Stack, Fine-Tuning & Finish, Plato's Key, Delimiter) consistently display the downward `▾` arrow.
-
-## [v1.88] – 2026-11-28
-### Collapsible Plato's Key (Opt-in) Section
-- **Collapsible Plato's Key (`#platoKeyGroup`):** Made the **🔑 Plato's Key (Opt-in)** subsection inside **Model Preset** collapsible via `.field-collapsible` with the standard `▾` arrow next to the status badge (`web/index.html`, `web/app.js`), collapsed by default.
-
-## [v1.87] – 2026-11-28
-### Clean ComfyUI Restart (Windows Native & WSL)
-- **Prefer In-Place Reboot & Graceful Stop Fallback (`server.py`):** Updated `handle_restart_comfy()` and `_stop_comfy_on_port()` to try ComfyUI-Manager's in-place `/api/manager/reboot` endpoint first (works seamlessly on both Windows native and WSL without leaving dead terminal tabs), and otherwise send a graceful `SIGTERM` / `taskkill` with a settle delay before relaunching via `handle_launch_comfy()`.
-
-## [v1.86] – 2026-11-28
-### Restart ComfyUI Button & Themed Preset Confirm Modal
-- **Restart ComfyUI Button (`#btnRestartComfy`):** Added a **Restart ComfyUI** button next to **ComfyUI running** (`web/index.html`, `web/app.js`, `POST /api/restart_comfy` in `server.py`) that is visible and active while ComfyUI is running, shows a themed confirmation dialog, stops the running ComfyUI process on its port (Windows/WSL), and relaunches it.
-- **Themed Preset Editor Confirm Dialog (`#cockpitConfirmModal`):** Replaced the browser-native `window.confirm()` popup inside the TA Model Preset Editor iframe (`web/app.js`, `web/index.html`) with a centered, themed in-app confirmation modal.
-
-## [v1.85] – 2026-11-28
-### Model Quick-Pill Highlight Fix
-- **Exact-First Pill Matching (`web/app.js`):** Updated `updateModelSelection()` so fuzzy family matching (`krea`, `qwen`, `flux`, etc.) only runs when no quick-pill matches the selected preset exactly, preventing two pills (e.g. `Krea2-Turbo` and `Krea2-Turbo (Qwen3.5-9B PK)`) from being highlighted simultaneously.
-
-## [v1.84] – 2026-11-28
-### Plato's Keys Pre-Flight Validation & Error Translation
-- **Encoder Mismatch Pre-Flight Check (`server.py`):** `handle_generate()` now verifies that the active preset's `clip_name_1` matches the donor encoder expected by the selected `plato_key` (e.g. `Qwen 3.5 9B/4B/2B/0.8B`, `Gemma 4`, `Qwen3-VL 4B`) before queuing the workflow.
-- **Runtime Error Translation (`server.py`):** Translates ComfyUI `Multi-layer PlatoKey expects ...` / `PlatosKey` dimension errors into a clear, actionable message.
-
-## [v1.83] – 2026-11-28
-### PyInstaller Bundle Fix (`TA-FLEXMOD-LLM_v2.93.json`)
-- **Fixed `.exe` Workflow Bundle (`StudioCockpit.spec`):** Updated `datas` in `StudioCockpit.spec` from `TA-FLEXMOD-LLM_v2.92.json` to `TA-FLEXMOD-LLM_v2.93.json` so the standalone `.exe` bundles the active workflow.
-
-## [v1.82] – 2026-11-28
-### ComfyUI V3 `COMBO` Parsing Fix for Plato's Keys
-- **Fixed `plato_keys.Load` Key Discovery (`server.py`):** Added `_extract_combo_options()` to parse both ComfyUI V1 (`[[...], {...}]`) and ComfyUI V3 (`["COMBO", {"options": [...]}]`) `/object_info` schemas so `ComfyUI-PlatoKeys` keys appear in `#selPlatoKey`.
-
-## [v1.81] – 2026-11-28
-### Krea2 Preset Naming Freedom with Plato's Keys
-- **No `clip_type` Override for Donor Encoders (`server.py`):** `_seed_or_repair_presets()` now only enforces `clip_type = "krea2"` on Krea2 presets that actually use a `Qwen3-VL` encoder, and `handle_generate()` skips the `krea2` `clip_type` check when a `plato_key` is active — so users can freely name Plato's Keys presets (e.g. `Krea2-Turbo (Qwen3.5-9B PK)`).
-
-## [v1.80] – 2026-11-28
-### In-App ComfyUI Restart Banner & 1-Click Reboot
-- **ComfyUI Restart Endpoint (`server.py`):** Added `POST /api/comfy/restart` and `GET /api/comfy/restart_status` to trigger a ComfyUI reboot via ComfyUI-Manager (`/manager/reboot` / `/manager/restart`) and wait until ComfyUI is back online.
-- **Prominent Restart Banners (`web/index.html`, `web/app.js`):** Added amber warning banners (`#platoRestartBanner`, `#nodesRestartBanner`) with a 1-click **`🔄 ComfyUI jetzt neu starten`** button after key downloads and custom node installations, automatically refreshing presets and Plato's Keys once ComfyUI reconnects.
-
-## [v1.79] – 2026-11-28
-### `extra_model_paths.yaml` Support & WSL Path Fix
-- **Fixed WSL Temp-Path Conversion (`server.py`):** Replaced `wsl wslpath -u` with `self._to_wsl_path(tmp_path)` in `handle_plato_key_download()` so Windows backslashes are never stripped by WSL shell argument parsing.
-- **`extra_model_paths.yaml` Integration (`server.py`):** Added `_resolve_plato_target_dir()` supporting `extra_models_dir` and ComfyUI's own `extra_model_paths.yaml` on both native Windows and WSL, automatically adding `clip_projections` / `plato_keys` entries if missing and including them in `studio_extra_model_paths.yaml`.
-
-## [v1.78] – 2026-11-28
-### WSL + Native Windows Support for Plato's Keys Downloader
-- **WSL Key Downloader & Disk Check (`server.py`):** Updated `handle_plato_keys()` and `handle_plato_key_download()` to support both native Windows ComfyUI directories and WSL Linux paths (via `wslpath -u` and `wsl bash -c`), fixing the false `NO_COMFY_DIR` error when ComfyUI runs in WSL.
-
-## [v1.77] – 2026-11-28
-### Plato's Keys Auto-Installer & Hugging Face Key Downloader
-- **Optional Node Packs (`server.py`):** Added `OPTIONAL_NODE_PACKS` (`ComfyUI-H3-Text-Encoders`, `ComfyUI-PlatoKeys`) with `required: False` so they never trigger startup missing-node popups while remaining 1-click installable via `POST /api/install_nodes`.
-- **Key Downloader (`server.py`):** Added `PLATO_KEY_CATALOG`, `POST /api/plato_keys/download`, and `GET /api/plato_keys/download_status` with path-safety validation and progress tracking to download `.safetensors` keys from Hugging Face directly into `ComfyUI/models/clip_projections/` or `ComfyUI/models/plato_keys/`.
-- **UI Integration (`web/index.html`, `web/app.js`):** Added contextual **Nodes installieren** / **Keys laden** actions directly under `🔑 Plato's Key (Opt-in)` in `#cardModel` as well as a dedicated **Plato's Keys** management & downloader section in Settings.
-
-## [v1.76] – 2026-11-28
 ### Opt-In Plato's Keys Support (`TA-FLEXMOD-LLM v2.93`)
-- **Workflow `TA-FLEXMOD-LLM_v2.93.json`:** Added opt-in `PlatosKeyPatchCLIP` (`ComfyUI-H3-Text-Encoders`) and `plato_keys.Load` / `plato_keys.PatchCLIP` (`ComfyUI-PlatoKeys`) nodes behind `TAModelPreset` (`2079`), bypassed (`MODE_BYPASS`) by default so users without Plato's Keys nodes experience zero breaking changes.
-- **Backend & API (`comfy_client.py`, `server.py`):** Added `plato_key` routing in `build_flexmod_api_prompt()`, `GET /api/plato_keys` to discover installed keys and nodes from ComfyUI, and pre-flight node validation in `/api/generate`.
-- **Image Studio UI (`web/index.html`, `web/app.js`):** Added an opt-in **Plato's Key** selector (`#selPlatoKey`) and status badge in `#cardModel`, persisted across restarts.
+- **Workflow & `.exe` Bundle (`workflows/TA-FLEXMOD-LLM_v2.93.json`, `StudioCockpit.spec`):** Added opt-in `PlatosKeyPatchCLIP` (`ComfyUI-H3-Text-Encoders`) and `plato_keys.Load` / `plato_keys.PatchCLIP` (`ComfyUI-PlatoKeys`) nodes behind `TAModelPreset` (`2079`), bypassed (`MODE_BYPASS`) by default so existing setups experience zero breaking changes.
+- **Discovery, Routing & Validation (`comfy_client.py`, `server.py`):** Added `plato_key` routing in `build_flexmod_api_prompt()`, `GET /api/plato_keys` (supporting both ComfyUI V1 and V3 `COMBO` `/object_info` schemas), pre-flight node & encoder compatibility checks (`clip_name_1` vs. donor encoder), runtime `PlatoKey` dimension-error translation, and Krea2 preset naming freedom when using donor encoders.
+- **1-Click Node Installer & Key Downloader (`server.py`):** Added `OPTIONAL_NODE_PACKS` (`ComfyUI-H3-Text-Encoders`, `ComfyUI-PlatoKeys`) and a Hugging Face `.safetensors` key downloader (`POST /api/plato_keys/download`, `GET /api/plato_keys/download_status`) supporting both native Windows and WSL paths, `extra_models_dir`, and `extra_model_paths.yaml` (`clip_projections` / `plato_keys`).
+- **UI & Localized Help (`web/index.html`, `web/app.js`):** Added the collapsible **🔑 Plato's Key (Opt-in)** selector (`#platoKeyGroup`, `#selPlatoKey`), contextual **Nodes installieren** / **Keys laden** actions, a **Plato's Keys** management section in Settings, amber ComfyUI restart banners after installs/downloads, and DE/EN `?` help documentation (`help_model_html`).
+
+### Native Themed Preset Editors
+- **Native Model & Sampler Preset Editors (`web/index.html`, `web/style.css`, `web/app.js`):** Replaced the ComfyUI `iframe` preset editors with native theme-aware modals (`#nativeModelPresetEditor`, `#nativeSamplerPresetEditor`) communicating directly with `/ta_model_presets/*` and `/ta_sampler_presets/*`, supporting drag-and-drop reordering, centered themed confirmation dialogs (`#cockpitConfirmModal`), explicit `ta_model_presets.json` / `ta_sampler_presets.json` save/restart hints, proper card scrolling (`.pe-scroll-list`), and an in-editor **Restart ComfyUI** button in the Model Preset Editor.
+- **Permanent Default-Preset Deletion (`server.py`):** Tracked deleted default presets (`deleted_default_model_presets`, `deleted_default_sampler_presets` in `config.json`) so `_seed_or_repair_presets()` does not re-add intentionally deleted presets (like `KROMOSS`) on restart.
+
+### ComfyUI Restart & UI Polish
+- **ComfyUI Restart Button & Reboot Endpoints (`server.py`, `web/index.html`, `web/app.js`):** Added `#btnRestartComfy` (`POST /api/restart_comfy`) next to **ComfyUI running** as well as `POST /api/comfy/restart` + `GET /api/comfy/restart_status`, preferring ComfyUI-Manager's in-place `/api/manager/reboot` endpoint first and falling back to graceful `SIGTERM`/`taskkill` + relaunch on both Windows native and WSL.
+- **Model Quick-Pill Highlight Fix (`web/app.js`):** Updated `updateModelSelection()` so fuzzy family matching only runs when no quick-pill matches the selected preset exactly.
+- **Unified Collapsible Arrows (`web/style.css`):** Removed the `-90deg` rotation on collapsed `.card.collapsible` and `.field-collapsible` headers so all collapsible sections consistently display the downward `▾` arrow.
 
 ## [v1.74] – 2026-11-27
 ### Close Confirmation Modal UI Freeze Fix
