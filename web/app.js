@@ -2115,6 +2115,8 @@
   const selModelPreset = document.getElementById("selModelPreset");
   const modelQuickPills = document.getElementById("modelQuickPills");
   const modelArchBadge = document.getElementById("modelArchBadge");
+  const selPlatoKey = document.getElementById("selPlatoKey");
+  const platoKeyBadge = document.getElementById("platoKeyBadge");
 
   const selSamplerPreset = document.getElementById("selSamplerPreset");
   const samplerDetailsBadge = document.getElementById("samplerDetailsBadge");
@@ -5139,6 +5141,7 @@
     return {
       updated_at: Date.now(),
       model_preset: selModelPreset.value,
+      plato_key: selPlatoKey ? selPlatoKey.value : "",
       sampler_preset: selSamplerPreset.value,
       prompt: txtPrompt ? txtPrompt.value : "",
       additional_prompt: txtAdditionalPrompt ? txtAdditionalPrompt.value : "",
@@ -5289,6 +5292,12 @@
         if (loose) selModelPreset.value = loose.value;
       }
       updateModelSelection(selModelPreset.value, false);
+    }
+    if (selPlatoKey && typeof s.plato_key === "string") {
+      selPlatoKey.dataset.pendingValue = s.plato_key;
+      const pkOpt = Array.from(selPlatoKey.options).find(o => o.value === s.plato_key);
+      if (pkOpt) selPlatoKey.value = pkOpt.value;
+      updatePlatoKeyBadge();
     }
 
     if (s.sampler_preset) {
@@ -8139,8 +8148,77 @@
     modelQuickPills.style.display = availableOpts.length > 0 ? "" : "none";
   }
 
+  function updatePlatoKeyBadge() {
+    if (!platoKeyBadge || !selPlatoKey) return;
+    const val = selPlatoKey.value || "";
+    if (!val) {
+      platoKeyBadge.textContent = "Aus";
+    } else if (val.startsWith("h3:")) {
+      platoKeyBadge.textContent = "H3 Key";
+    } else if (val.startsWith("nynxz:")) {
+      platoKeyBadge.textContent = "PlatoKey";
+    } else {
+      platoKeyBadge.textContent = "Aktiv";
+    }
+  }
+
+  if (selPlatoKey) {
+    selPlatoKey.addEventListener("change", () => {
+      selPlatoKey.dataset.pendingValue = selPlatoKey.value;
+      updatePlatoKeyBadge();
+      scheduleSave();
+    });
+  }
+
+  async function refreshPlatoKeysFromComfy(preferredKey = null) {
+    if (!selPlatoKey) return;
+    const target = preferredKey !== null ? preferredKey : (selPlatoKey.dataset.pendingValue ?? selPlatoKey.value ?? "");
+    try {
+      const res = await fetch("/api/plato_keys");
+      if (!res.ok) return;
+      const data = await res.json();
+      const h3Keys = Array.isArray(data.h3_keys) ? data.h3_keys : [];
+      const nynxzKeys = Array.isArray(data.nynxz_keys) ? data.nynxz_keys : [];
+
+      selPlatoKey.innerHTML = '<option value="">Aus (Standard Text-Encoder)</option>';
+      if (h3Keys.length > 0) {
+        const grp = document.createElement("optgroup");
+        grp.label = "MiniMax H3 (ComfyUI-H3-Text-Encoders)";
+        h3Keys.forEach(k => {
+          const opt = document.createElement("option");
+          opt.value = `h3:${k}`;
+          opt.textContent = k;
+          if (opt.value === target) opt.selected = true;
+          grp.appendChild(opt);
+        });
+        selPlatoKey.appendChild(grp);
+      }
+      if (nynxzKeys.length > 0) {
+        const grp = document.createElement("optgroup");
+        grp.label = "PlatoKeys (ComfyUI-PlatoKeys)";
+        nynxzKeys.forEach(k => {
+          const opt = document.createElement("option");
+          opt.value = `nynxz:${k}`;
+          opt.textContent = k;
+          if (opt.value === target) opt.selected = true;
+          grp.appendChild(opt);
+        });
+        selPlatoKey.appendChild(grp);
+      }
+      if (target && !Array.from(selPlatoKey.options).some(o => o.value === target)) {
+        const opt = document.createElement("option");
+        opt.value = target;
+        opt.textContent = `${target} (nicht gefunden)`;
+        opt.selected = true;
+        selPlatoKey.appendChild(opt);
+      }
+      updatePlatoKeyBadge();
+    } catch (e) {}
+  }
+
   // Dynamic Preset Fetcher via server (/api/presets filters to installed ComfyUI models)
   async function refreshPresetsFromComfy(preferredModel = null, preferredSampler = null) {
+    refreshPlatoKeysFromComfy();
     const targetModel = preferredModel || selModelPreset.value;
     const targetSampler = preferredSampler || selSamplerPreset.value;
 

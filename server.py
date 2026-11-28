@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.74"
+APP_VERSION = "1.76"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -58,9 +58,9 @@ else:
 BASE_DIR = DATA_ROOT
 WEB_DIR = os.path.join(BUNDLE_DIR, "web")
 CONFIG_PATH = os.path.join(DATA_ROOT, "data", "config.json")
-WORKFLOW_PATH = os.path.join(BUNDLE_DIR, "workflows", "TA-FLEXMOD-LLM_v2.92.json")
-WORKFLOW_VERSION = "v2.92"
-WORKFLOW_NAME = "TA-FLEXMOD-LLM v2.92"
+WORKFLOW_PATH = os.path.join(BUNDLE_DIR, "workflows", "TA-FLEXMOD-LLM_v2.93.json")
+WORKFLOW_VERSION = "v2.93"
+WORKFLOW_NAME = "TA-FLEXMOD-LLM v2.93"
 
 # In-memory job state
 ACTIVE_JOBS: dict[str, dict] = {}
@@ -1231,6 +1231,9 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         elif path == "/api/presets":
             self.handle_presets()
             return
+        elif path == "/api/plato_keys":
+            self.handle_plato_keys()
+            return
         elif path == "/api/llm_models":
             self.handle_llm_models()
             return
@@ -1732,6 +1735,50 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                 warnings.append(f"Model-Presets konnten nicht gespeichert werden: {exc}")
 
         return models_list, samplers_dict, warnings
+
+    def handle_plato_keys(self):
+        """Query ComfyUI for installed Plato's Keys custom nodes and available .safetensors keys."""
+        cfg = load_config()
+        comfy_url = cfg.get("comfy_url", COMFY_URL).rstrip("/")
+        h3_installed = False
+        h3_keys: list[str] = []
+        nynxz_installed = False
+        nynxz_keys: list[str] = []
+
+        try:
+            h3_info = self._fetch_comfy_json(f"{comfy_url}/object_info/PlatosKeyPatchCLIP", timeout=2.5)
+            if isinstance(h3_info, dict) and "PlatosKeyPatchCLIP" in h3_info:
+                h3_installed = True
+                req = h3_info["PlatosKeyPatchCLIP"].get("input", {}).get("required", {})
+                raw_opts = req.get("key_file", [[]])[0]
+                if isinstance(raw_opts, list):
+                    h3_keys = [
+                        str(k) for k in raw_opts
+                        if isinstance(k, str) and k.strip() and not k.strip().startswith("(")
+                    ]
+        except Exception:
+            pass
+
+        try:
+            nynxz_info = self._fetch_comfy_json(f"{comfy_url}/object_info/plato_keys.Load", timeout=2.5)
+            if isinstance(nynxz_info, dict) and "plato_keys.Load" in nynxz_info:
+                nynxz_installed = True
+                req = nynxz_info["plato_keys.Load"].get("input", {}).get("required", {})
+                raw_opts = req.get("key_name", [[]])[0]
+                if isinstance(raw_opts, list):
+                    nynxz_keys = [
+                        str(k) for k in raw_opts
+                        if isinstance(k, str) and k.strip() and not k.strip().startswith("(")
+                    ]
+        except Exception:
+            pass
+
+        self.send_json({
+            "h3_installed": h3_installed,
+            "h3_keys": sorted(h3_keys),
+            "nynxz_installed": nynxz_installed,
+            "nynxz_keys": sorted(nynxz_keys),
+        })
 
     def handle_presets(self):
         cfg = load_config()
@@ -2280,6 +2327,7 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                 kitchen_enable=bool(params.get("kitchen_enable", True)),
                 loras=params.get("loras", []),
                 sampler_cfg=resolved_sampler_cfg,
+                plato_key=str(params.get("plato_key", "") or "").strip(),
             )
 
             with open(WORKFLOW_PATH, "r", encoding="utf-8") as wf_f:
@@ -2575,6 +2623,22 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
                             return
                 except Exception:
                     pass
+
+            pk_val = str(params.get("plato_key", "") or "").strip()
+            if pk_val.startswith("h3:"):
+                h3_info = self._fetch_comfy_json(f"{comfy_url_base}/object_info/PlatosKeyPatchCLIP", timeout=2.5)
+                if not (isinstance(h3_info, dict) and "PlatosKeyPatchCLIP" in h3_info):
+                    self.send_json({
+                        "error": "Plato's Key (H3) ist gewählt, aber die ComfyUI Custom Node 'ComfyUI-H3-Text-Encoders' (PlatosKeyPatchCLIP) ist nicht installiert."
+                    }, status=400)
+                    return
+            elif pk_val.startswith("nynxz:"):
+                nynxz_info = self._fetch_comfy_json(f"{comfy_url_base}/object_info/plato_keys.PatchCLIP", timeout=2.5)
+                if not (isinstance(nynxz_info, dict) and "plato_keys.PatchCLIP" in nynxz_info):
+                    self.send_json({
+                        "error": "Plato's Key (Nynxz) ist gewählt, aber die ComfyUI Custom Node 'ComfyUI-PlatoKeys' (plato_keys.PatchCLIP) ist nicht installiert."
+                    }, status=400)
+                    return
 
             self._sanitize_smart_llm_nodes(prompt_dict)
             prompt_id = client.queue_prompt(prompt_dict, workflow=wf_data)

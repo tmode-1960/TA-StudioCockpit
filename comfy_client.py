@@ -407,6 +407,7 @@ def build_flexmod_api_prompt(
     kitchen_enable: bool = True,
     loras: list[dict] | None = None,
     sampler_cfg: float | None = None,
+    plato_key: str = "",
 ) -> dict:
     with open(wf_path, "r", encoding="utf-8") as f:
         wf = json.load(f)
@@ -844,6 +845,24 @@ def build_flexmod_api_prompt(
     }
 
     converter = EclipseWorkflowConverter(wf)
+    # Opt-in Plato's Keys (nodes 2139 = H3 PlatosKeyPatchCLIP, 2140/2141 = Nynxz plato_keys.Load/PatchCLIP).
+    # Both stay bypassed (mode=4) by default so users without PlatoKeys nodes are unaffected.
+    pk_val = str(plato_key or "").strip()
+    if pk_val.startswith("h3:"):
+        h3_file = pk_val[3:].strip()
+        if h3_file and 2139 in converter.top.nodes:
+            converter.top.nodes[2139]["mode"] = 0
+            overrides["2139"] = {
+                "key_file": h3_file,
+                "strength": 1.0,
+                "inject_token0_sink": True,
+            }
+    elif pk_val.startswith("nynxz:"):
+        nynxz_name = pk_val[6:].strip()
+        if nynxz_name and 2140 in converter.top.nodes and 2141 in converter.top.nodes:
+            converter.top.nodes[2140]["mode"] = 0
+            converter.top.nodes[2141]["mode"] = 0
+            overrides["2140"] = {"key_name": nynxz_name}
     # Bypass image-overlay switch (2134) when disabled or no logo file is set,
     # so LoadImage (2131) is not emitted into the API prompt and cannot fail validation.
     if not (overlay_img_enabled and overlay_img_file) and 2134 in converter.top.nodes:

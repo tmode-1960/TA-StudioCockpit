@@ -2,6 +2,12 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.76] – 2026-11-28
+### Opt-In Plato's Keys Support (`TA-FLEXMOD-LLM v2.93`)
+- **Workflow `TA-FLEXMOD-LLM_v2.93.json`:** Added opt-in `PlatosKeyPatchCLIP` (`ComfyUI-H3-Text-Encoders`) and `plato_keys.Load` / `plato_keys.PatchCLIP` (`ComfyUI-PlatoKeys`) nodes behind `TAModelPreset` (`2079`), bypassed (`MODE_BYPASS`) by default so users without Plato's Keys nodes experience zero breaking changes.
+- **Backend & API (`comfy_client.py`, `server.py`):** Added `plato_key` routing in `build_flexmod_api_prompt()`, `GET /api/plato_keys` to discover installed keys and nodes from ComfyUI, and pre-flight node validation in `/api/generate`.
+- **Image Studio UI (`web/index.html`, `web/app.js`):** Added an opt-in **Plato's Key** selector (`#selPlatoKey`) and status badge in `#cardModel`, persisted across restarts.
+
 ## [v1.74] – 2026-11-27
 ### Close Confirmation Modal UI Freeze Fix
 - **Non-Blocking `on_closing()` Dispatch:** Dispatched `window.evaluate_js("window.__requestCloseConfirm ...")` via `threading.Timer(0.01, ...)` in `server.py` so `on_closing()` returns `False` immediately without deadlocking the WinForms/WebView2 UI thread, keeping the themed close confirmation modal responsive.
