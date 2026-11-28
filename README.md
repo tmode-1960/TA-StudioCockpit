@@ -2,6 +2,8 @@
 
 An all-in-one Windows desktop & web studio for AI image generation, media management, animated Discord GIFs, AI video production, and AI music creation — powered by **ComfyUI** and **TA-FLEXMOD-LLM** in the signature **thomo.ART** Studio UI design.
 
+> **💬 Feedback & Community:** Have an idea, question, or bug report? Join **[GitHub Discussions](https://github.com/tmode-1960/TA-StudioCockpit/discussions)** or open an **[Issue](https://github.com/tmode-1960/TA-StudioCockpit/issues/new/choose)** — StudioCockpit is actively developed and early user feedback directly shapes new features!
+
 ![thomo.ART StudioCockpit](assets/screenshot.jpg)
 
 ---
@@ -194,6 +196,16 @@ An all-in-one Windows desktop & web studio for AI image generation, media manage
 </details>
 
 👉 Full history: [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## 💬 Feedback, Feature Requests & Bug Reports
+
+StudioCockpit is actively developed — your feedback, workflow ideas, and bug reports help decide what gets built next!
+
+* **💡 Ideas, Questions & Showcases:** Start a thread in **[GitHub Discussions](https://github.com/tmode-1960/TA-StudioCockpit/discussions)** to share feedback, ask setup questions, or show what you created.
+* **✨ Feature Requests:** Have a concrete feature or ComfyUI workflow in mind? Open a **[Feature Request](https://github.com/tmode-1960/TA-StudioCockpit/issues/new?template=feature_request.md)**.
+* **🐛 Bug Reports:** Found a bug or unexpected behavior? Submit a **[Bug Report](https://github.com/tmode-1960/TA-StudioCockpit/issues/new?template=bug_report.md)** (console logs and module info help us fix it fast).
 
 ---
 
