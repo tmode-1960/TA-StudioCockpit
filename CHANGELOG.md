@@ -2,6 +2,12 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.77] – 2026-11-28
+### Plato's Keys Auto-Installer & Hugging Face Key Downloader
+- **Optional Node Packs (`server.py`):** Added `OPTIONAL_NODE_PACKS` (`ComfyUI-H3-Text-Encoders`, `ComfyUI-PlatoKeys`) with `required: False` so they never trigger startup missing-node popups while remaining 1-click installable via `POST /api/install_nodes`.
+- **Key Downloader (`server.py`):** Added `PLATO_KEY_CATALOG`, `POST /api/plato_keys/download`, and `GET /api/plato_keys/download_status` with path-safety validation and progress tracking to download `.safetensors` keys from Hugging Face directly into `ComfyUI/models/clip_projections/` or `ComfyUI/models/plato_keys/`.
+- **UI Integration (`web/index.html`, `web/app.js`):** Added contextual **Nodes installieren** / **Keys laden** actions directly under `🔑 Plato's Key (Opt-in)` in `#cardModel` as well as a dedicated **Plato's Keys** management & downloader section in Settings.
+
 ## [v1.76] – 2026-11-28
 ### Opt-In Plato's Keys Support (`TA-FLEXMOD-LLM v2.93`)
 - **Workflow `TA-FLEXMOD-LLM_v2.93.json`:** Added opt-in `PlatosKeyPatchCLIP` (`ComfyUI-H3-Text-Encoders`) and `plato_keys.Load` / `plato_keys.PatchCLIP` (`ComfyUI-PlatoKeys`) nodes behind `TAModelPreset` (`2079`), bypassed (`MODE_BYPASS`) by default so users without Plato's Keys nodes experience zero breaking changes.

@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.76"
+APP_VERSION = "1.77"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -520,6 +520,104 @@ NODE_INSTALL_JOB: dict = {
     "total": 0,
     "logs": [],
     "results": {},
+    "error": "",
+}
+
+OPTIONAL_NODE_PACKS = [
+    {
+        "id": "ComfyUI-H3-Text-Encoders",
+        "name": "ComfyUI-H3-Text-Encoders",
+        "repo": "https://github.com/alisson-anjos/ComfyUI-H3-Text-Encoders",
+        "required": False,
+        "description_de": "Optional für Plato's Keys mit MiniMax H3 (Qwen 3.5 / Gemma 4 statt 32B-Encoder)",
+        "description_en": "Optional for Plato's Keys with MiniMax H3 (Qwen 3.5 / Gemma 4 instead of 32B encoder)",
+        "nodes": ["PlatosKeyPatchCLIP"],
+    },
+    {
+        "id": "ComfyUI-PlatoKeys",
+        "name": "ComfyUI-PlatoKeys",
+        "repo": "https://github.com/Nynxz/ComfyUI-PlatoKeys",
+        "required": False,
+        "description_de": "Optional für Plato's Keys mit Krea 2, MOSS-Image & Z-Image",
+        "description_en": "Optional for Plato's Keys with Krea 2, MOSS-Image & Z-Image",
+        "nodes": ["plato_keys.Load", "plato_keys.PatchCLIP"],
+    },
+]
+
+PLATO_KEY_CATALOG = [
+    {
+        "id": "h3_qwen35_9b",
+        "pack": "h3",
+        "label": "MiniMax H3 ← Qwen 3.5 9B (pk_lora, empfohlen)",
+        "target_subdir": "clip_projections",
+        "filename": "minimax_h3_32b_pk_lora_qwen3.5_9b.safetensors",
+        "url": "https://huggingface.co/Alissonerdx/TE-PK-Minimax-H3/resolve/main/qwen3.5/minimax_h3_32b_pk_lora_qwen3.5_9b.safetensors",
+    },
+    {
+        "id": "h3_qwen35_4b",
+        "pack": "h3",
+        "label": "MiniMax H3 ← Qwen 3.5 4B (pk_lora)",
+        "target_subdir": "clip_projections",
+        "filename": "minimax_h3_32b_pk_lora_qwen3.5_4b.safetensors",
+        "url": "https://huggingface.co/Alissonerdx/TE-PK-Minimax-H3/resolve/main/qwen3.5/minimax_h3_32b_pk_lora_qwen3.5_4b.safetensors",
+    },
+    {
+        "id": "h3_qwen35_2b",
+        "pack": "h3",
+        "label": "MiniMax H3 ← Qwen 3.5 2B (pk_lora, Low-VRAM)",
+        "target_subdir": "clip_projections",
+        "filename": "minimax_h3_32b_pk_lora_qwen3.5_2b.safetensors",
+        "url": "https://huggingface.co/Alissonerdx/TE-PK-Minimax-H3/resolve/main/qwen3.5/minimax_h3_32b_pk_lora_qwen3.5_2b.safetensors",
+    },
+    {
+        "id": "h3_gemma4_e4b",
+        "pack": "h3",
+        "label": "MiniMax H3 ← Gemma 4 E4B (pk_lora)",
+        "target_subdir": "clip_projections",
+        "filename": "minimax_h3_32b_pk_lora_gemma4_e4b.safetensors",
+        "url": "https://huggingface.co/Alissonerdx/TE-PK-Minimax-H3/resolve/main/gemma4/minimax_h3_32b_pk_lora_gemma4_e4b.safetensors",
+    },
+    {
+        "id": "nynxz_krea2_2b",
+        "pack": "nynxz",
+        "label": "Krea 2 ← Qwen 3.5 2B (schneller / kleiner)",
+        "target_subdir": "plato_keys",
+        "filename": "krea2/qwen35_2b_to_qwen3vl_4b_krea2_ridge.safetensors",
+        "url": "https://huggingface.co/nynxz/PlatoKeys/resolve/main/krea2/qwen35_2b_to_qwen3vl_4b_krea2_ridge.safetensors",
+    },
+    {
+        "id": "nynxz_krea2_9b",
+        "pack": "nynxz",
+        "label": "Krea 2 ← Qwen 3.5 9B (stärkerer Encoder)",
+        "target_subdir": "plato_keys",
+        "filename": "krea2/qwen35_9b_to_qwen3vl_4b_krea2_ridge.safetensors",
+        "url": "https://huggingface.co/nynxz/PlatoKeys/resolve/main/krea2/qwen35_9b_to_qwen3vl_4b_krea2_ridge.safetensors",
+    },
+    {
+        "id": "nynxz_moss_2b",
+        "pack": "nynxz",
+        "label": "MOSS-Image ← Qwen 3.5 2B (statt 9B)",
+        "target_subdir": "plato_keys",
+        "filename": "moss_image/qwen35_2b_to_qwen35_9b_moss_image_ridge.safetensors",
+        "url": "https://huggingface.co/nynxz/PlatoKeys/resolve/main/moss_image/qwen35_2b_to_qwen35_9b_moss_image_ridge.safetensors",
+    },
+    {
+        "id": "nynxz_zimage_vl4b",
+        "pack": "nynxz",
+        "label": "Z-Image ← Qwen3-VL 4B (Vision-Support)",
+        "target_subdir": "plato_keys",
+        "filename": "z_image/qwen3vl_4b_to_zimage_qwen3_4b_ridge.safetensors",
+        "url": "https://huggingface.co/nynxz/PlatoKeys/resolve/main/z_image/qwen3vl_4b_to_zimage_qwen3_4b_ridge.safetensors",
+    },
+]
+
+PLATO_DOWNLOAD_LOCK = threading.Lock()
+PLATO_DOWNLOAD_JOB: dict = {
+    "status": "idle",
+    "id": "",
+    "filename": "",
+    "downloaded_bytes": 0,
+    "total_bytes": 0,
     "error": "",
 }
 
@@ -1234,6 +1332,9 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         elif path == "/api/plato_keys":
             self.handle_plato_keys()
             return
+        elif path == "/api/plato_keys/download_status":
+            self.handle_plato_key_download_status()
+            return
         elif path == "/api/llm_models":
             self.handle_llm_models()
             return
@@ -1341,6 +1442,9 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             return
         elif path == "/api/install_nodes":
             self.handle_install_nodes(post_body)
+            return
+        elif path == "/api/plato_keys/download":
+            self.handle_plato_key_download(post_body)
             return
         elif path == "/api/bg_remove":
             self.handle_bg_remove(post_body)
@@ -1773,12 +1877,127 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
         except Exception:
             pass
 
+        paths = self._resolve_comfy_paths(cfg)
+        comfy_root = paths.get("comfy_root", "")
+        h3_set = {k.replace("\\", "/") for k in h3_keys}
+        nynxz_set = {k.replace("\\", "/") for k in nynxz_keys}
+
+        catalog_out = []
+        for item in PLATO_KEY_CATALOG:
+            fn = item["filename"].replace("\\", "/")
+            in_comfy = (fn in h3_set) if item["pack"] == "h3" else (fn in nynxz_set)
+            on_disk = False
+            if comfy_root and os.path.isdir(comfy_root):
+                on_disk = os.path.isfile(os.path.join(comfy_root, "models", item["target_subdir"], *fn.split("/")))
+            catalog_out.append({
+                "id": item["id"],
+                "pack": item["pack"],
+                "label": item["label"],
+                "filename": fn,
+                "target_subdir": item["target_subdir"],
+                "installed": bool(in_comfy or on_disk),
+            })
+
         self.send_json({
             "h3_installed": h3_installed,
             "h3_keys": sorted(h3_keys),
             "nynxz_installed": nynxz_installed,
             "nynxz_keys": sorted(nynxz_keys),
+            "catalog": catalog_out,
+            "paths": {
+                "comfy_root": comfy_root,
+                "is_remote": bool(paths.get("is_remote")),
+                "is_wsl": bool(paths.get("is_wsl")),
+            },
         })
+
+    def handle_plato_key_download_status(self):
+        with PLATO_DOWNLOAD_LOCK:
+            self.send_json(dict(PLATO_DOWNLOAD_JOB))
+
+    def handle_plato_key_download(self, post_body: bytes | None):
+        with PLATO_DOWNLOAD_LOCK:
+            if PLATO_DOWNLOAD_JOB.get("status") == "running":
+                self.send_json({"error": "Ein Key-Download läuft bereits."}, status=409)
+                return
+
+        payload = {}
+        if post_body:
+            try:
+                payload = json.loads(post_body.decode("utf-8"))
+            except Exception:
+                pass
+
+        key_id = str(payload.get("id", "")).strip()
+        item = next((c for c in PLATO_KEY_CATALOG if c["id"] == key_id), None)
+        if not item:
+            self.send_json({"error": "Unbekannter Plato's Key."}, status=400)
+            return
+
+        cfg = load_config()
+        paths = self._resolve_comfy_paths(cfg)
+        if paths.get("is_remote"):
+            self.send_json({"error": "ComfyUI läuft auf einem Remote-Rechner. Bitte Key dort manuell ablegen."}, status=400)
+            return
+
+        comfy_root = paths.get("comfy_root", "")
+        if not comfy_root or not os.path.isdir(comfy_root):
+            self.send_json({
+                "code": "NO_COMFY_DIR",
+                "error": "Der ComfyUI-Ordner konnte nicht automatisch gefunden werden. Bitte in den Settings unter 'ComfyUI-Startbefehl / Pfad' konfigurieren."
+            }, status=400)
+            return
+
+        target_base = os.path.normpath(os.path.join(comfy_root, "models", item["target_subdir"]))
+        dest_path = os.path.normpath(os.path.join(target_base, *item["filename"].split("/")))
+        if not _is_path_within(target_base, dest_path):
+            self.send_json({"error": "Ungültiger Zielpfad."}, status=400)
+            return
+
+        with PLATO_DOWNLOAD_LOCK:
+            PLATO_DOWNLOAD_JOB.update({
+                "status": "running",
+                "id": item["id"],
+                "filename": item["filename"],
+                "downloaded_bytes": 0,
+                "total_bytes": 0,
+                "error": "",
+            })
+
+        def _worker():
+            tmp_path = dest_path + ".tmp"
+            try:
+                os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                req = urllib.request.Request(item["url"], headers={"User-Agent": "tA-StudioCockpit"})
+                with urllib.request.urlopen(req, timeout=60.0) as resp:
+                    total = int(resp.headers.get("Content-Length") or 0)
+                    with PLATO_DOWNLOAD_LOCK:
+                        PLATO_DOWNLOAD_JOB["total_bytes"] = total
+                    downloaded = 0
+                    with open(tmp_path, "wb") as out_f:
+                        while True:
+                            chunk = resp.read(262144)
+                            if not chunk:
+                                break
+                            out_f.write(chunk)
+                            downloaded += len(chunk)
+                            with PLATO_DOWNLOAD_LOCK:
+                                PLATO_DOWNLOAD_JOB["downloaded_bytes"] = downloaded
+                os.replace(tmp_path, dest_path)
+                with PLATO_DOWNLOAD_LOCK:
+                    PLATO_DOWNLOAD_JOB["status"] = "done"
+            except Exception as exc:
+                try:
+                    if os.path.isfile(tmp_path):
+                        os.remove(tmp_path)
+                except Exception:
+                    pass
+                with PLATO_DOWNLOAD_LOCK:
+                    PLATO_DOWNLOAD_JOB["status"] = "error"
+                    PLATO_DOWNLOAD_JOB["error"] = str(exc)
+
+        threading.Thread(target=_worker, daemon=True).start()
+        self.send_json({"ok": True, "status": "running", "filename": item["filename"]})
 
     def handle_presets(self):
         cfg = load_config()
@@ -4426,7 +4645,7 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             save_config({"comfy_dir": override_dir})
 
         requested_ids = payload.get("pack_ids")
-        pack_map = {p["id"]: p for p in REQUIRED_NODE_PACKS}
+        pack_map = {p["id"]: p for p in (REQUIRED_NODE_PACKS + OPTIONAL_NODE_PACKS)}
         if isinstance(requested_ids, list) and requested_ids:
             packs_to_install = [pack_map[pid] for pid in requested_ids if pid in pack_map]
         else:

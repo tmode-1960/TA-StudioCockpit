@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v1.76 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.77 (FLEXMOD Edition)</title>
   <link rel="icon" type="image/png" href="/logo.png?v=1.45">
   <link rel="icon" href="/favicon.ico?v=1.45">
   <script>
@@ -156,6 +156,10 @@
           <select id="selPlatoKey" title="Optional: Kleineren Text-Encoder per Plato's Key auf das Zielmodell projizieren">
             <option value="">Aus (Standard Text-Encoder)</option>
           </select>
+          <div id="platoKeyActions" style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
+            <button type="button" class="btn-action" id="btnInstallPlatoNodes" style="display:none; font-size:11px; padding:3px 8px;" title="Optionale Plato's Keys ComfyUI-Nodes installieren">📥 Nodes installieren</button>
+            <button type="button" class="btn-action" id="btnOpenPlatoKeySettings" style="font-size:11px; padding:3px 8px;" title="Plato's Key .safetensors von Hugging Face herunterladen">⬇️ Keys laden</button>
+          </div>
         </div>
       </section>
 
@@ -2579,6 +2583,33 @@
             </div>
             <span class="field-hint" style="font-size:11px; color:var(--mute); margin-top:2px;" data-i18n="settings_extra_models_hint">Optional: Ordner auf einer anderen Festplatte (mit Unterordnern wie checkpoints, loras, unet, vae). Wird beim Start über '⚡ ComfyUI starten' separat per --extra-model-paths-config übergeben, ohne deine bestehende extra_model_paths.yaml zu überschreiben.</span>
           </div>
+          <div class="cloud-keys-subsection" id="settingsPlatoKeysSection" style="margin-top:12px;">
+            <div class="cloud-keys-subtitle">🔑 Plato's Keys – Optionale ComfyUI-Nodes &amp; Key-Downloader</div>
+            <div style="display:flex; flex-direction:column; gap:6px; margin-top:6px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px;">
+                <span><strong>ComfyUI-H3-Text-Encoders</strong> <span style="color:var(--mute);">(MiniMax H3)</span></span>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span class="value-badge" id="platoH3NodeBadge">Prüfe…</span>
+                  <button type="button" class="btn-action" id="btnInstallH3Node" style="padding:4px 10px; font-size:11px;">📥 Installieren</button>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px;">
+                <span><strong>ComfyUI-PlatoKeys</strong> <span style="color:var(--mute);">(Krea 2 / MOSS / Z-Image)</span></span>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span class="value-badge" id="platoNynxzNodeBadge">Prüfe…</span>
+                  <button type="button" class="btn-action" id="btnInstallNynxzNode" style="padding:4px 10px; font-size:11px;">📥 Installieren</button>
+                </div>
+              </div>
+            </div>
+            <div class="field-group" style="margin-top:10px;">
+              <label class="field-label" style="font-size:11px;">Plato's Key (.safetensors) von Hugging Face herunterladen</label>
+              <div class="settings-conn-row">
+                <select id="selPlatoCatalogKey" style="flex:1;"></select>
+                <button type="button" class="btn-action" id="btnDownloadPlatoKey" style="padding:7px 12px; font-size:12px; white-space:nowrap;">⬇️ Herunterladen</button>
+              </div>
+              <span id="platoDownloadStatus" style="font-size:11px; color:var(--mute); margin-top:3px; display:block;"></span>
+            </div>
+          </div>
         </div>
 
         <!-- 3. TASmartLLM -->
@@ -3193,7 +3224,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=1.76"></script>
+  <script src="/app.js?v=1.77"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=5"></script>
   <script src="/video_module.js?v=1.00"></script>

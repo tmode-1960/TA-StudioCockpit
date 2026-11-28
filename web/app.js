@@ -2117,6 +2117,17 @@
   const modelArchBadge = document.getElementById("modelArchBadge");
   const selPlatoKey = document.getElementById("selPlatoKey");
   const platoKeyBadge = document.getElementById("platoKeyBadge");
+  const btnInstallPlatoNodes = document.getElementById("btnInstallPlatoNodes");
+  const btnOpenPlatoKeySettings = document.getElementById("btnOpenPlatoKeySettings");
+  const settingsPlatoKeysSection = document.getElementById("settingsPlatoKeysSection");
+  const platoH3NodeBadge = document.getElementById("platoH3NodeBadge");
+  const platoNynxzNodeBadge = document.getElementById("platoNynxzNodeBadge");
+  const btnInstallH3Node = document.getElementById("btnInstallH3Node");
+  const btnInstallNynxzNode = document.getElementById("btnInstallNynxzNode");
+  const selPlatoCatalogKey = document.getElementById("selPlatoCatalogKey");
+  const btnDownloadPlatoKey = document.getElementById("btnDownloadPlatoKey");
+  const platoDownloadStatus = document.getElementById("platoDownloadStatus");
+  let lastPlatoKeysMeta = { h3_installed: false, nynxz_installed: false, catalog: [], paths: {} };
 
   const selSamplerPreset = document.getElementById("selSamplerPreset");
   const samplerDetailsBadge = document.getElementById("samplerDetailsBadge");
@@ -7579,6 +7590,7 @@
     if (inpComfyUrl) inpComfyUrl.value = getComfyUrl();
     if (connTestResult) connTestResult.textContent = "";
     settingsModal.style.display = "flex";
+    refreshPlatoKeysFromComfy();
     if (focusLaunchCmd && inpComfyLaunchCmd) {
       setTimeout(() => {
         inpComfyLaunchCmd.focus();
@@ -8171,15 +8183,42 @@
   }
 
   async function refreshPlatoKeysFromComfy(preferredKey = null) {
-    if (!selPlatoKey) return;
-    const target = preferredKey !== null ? preferredKey : (selPlatoKey.dataset.pendingValue ?? selPlatoKey.value ?? "");
+    const target = preferredKey !== null ? preferredKey : (selPlatoKey ? (selPlatoKey.dataset.pendingValue ?? selPlatoKey.value ?? "") : "");
     try {
       const res = await fetch("/api/plato_keys");
       if (!res.ok) return;
       const data = await res.json();
+      lastPlatoKeysMeta = data;
       const h3Keys = Array.isArray(data.h3_keys) ? data.h3_keys : [];
       const nynxzKeys = Array.isArray(data.nynxz_keys) ? data.nynxz_keys : [];
+      const h3Inst = Boolean(data.h3_installed);
+      const nynxzInst = Boolean(data.nynxz_installed);
 
+      if (btnInstallPlatoNodes) {
+        btnInstallPlatoNodes.style.display = (!h3Inst || !nynxzInst) ? "" : "none";
+      }
+      if (platoH3NodeBadge) {
+        platoH3NodeBadge.textContent = h3Inst ? "✓ Installiert" : "Fehlt";
+      }
+      if (platoNynxzNodeBadge) {
+        platoNynxzNodeBadge.textContent = nynxzInst ? "✓ Installiert" : "Fehlt";
+      }
+      if (btnInstallH3Node) btnInstallH3Node.style.display = h3Inst ? "none" : "";
+      if (btnInstallNynxzNode) btnInstallNynxzNode.style.display = nynxzInst ? "none" : "";
+
+      if (selPlatoCatalogKey && Array.isArray(data.catalog)) {
+        const prevCat = selPlatoCatalogKey.value;
+        selPlatoCatalogKey.innerHTML = "";
+        data.catalog.forEach(item => {
+          const opt = document.createElement("option");
+          opt.value = item.id;
+          opt.textContent = item.installed ? `✓ ${item.label}` : item.label;
+          if (item.id === prevCat) opt.selected = true;
+          selPlatoCatalogKey.appendChild(opt);
+        });
+      }
+
+      if (!selPlatoKey) return;
       selPlatoKey.innerHTML = '<option value="">Aus (Standard Text-Encoder)</option>';
       if (h3Keys.length > 0) {
         const grp = document.createElement("optgroup");
@@ -8214,6 +8253,124 @@
       }
       updatePlatoKeyBadge();
     } catch (e) {}
+  }
+
+  function openOptionalPlatoNodeInstaller(packIds) {
+    if (!missingNodesModal || !missingNodesList) return;
+    const packs = [
+      {
+        id: "ComfyUI-H3-Text-Encoders",
+        name: "ComfyUI-H3-Text-Encoders",
+        repo: "https://github.com/alisson-anjos/ComfyUI-H3-Text-Encoders",
+        description_de: "Optional für Plato's Keys mit MiniMax H3 (Qwen 3.5 / Gemma 4)",
+        missing_nodes: ["PlatosKeyPatchCLIP"],
+        installed: Boolean(lastPlatoKeysMeta.h3_installed),
+      },
+      {
+        id: "ComfyUI-PlatoKeys",
+        name: "ComfyUI-PlatoKeys",
+        repo: "https://github.com/Nynxz/ComfyUI-PlatoKeys",
+        description_de: "Optional für Plato's Keys mit Krea 2, MOSS-Image & Z-Image",
+        missing_nodes: ["plato_keys.Load", "plato_keys.PatchCLIP"],
+        installed: Boolean(lastPlatoKeysMeta.nynxz_installed),
+      },
+    ].filter(p => !packIds || packIds.includes(p.id));
+
+    if (missingNodesDesc) {
+      missingNodesDesc.textContent = "Installiere die gewünschten optionalen Plato's-Keys-Erweiterungen in dein ComfyUI-Verzeichnis (danach ComfyUI neu starten):";
+    }
+    const paths = lastPlatoKeysMeta.paths || {};
+    if (missingNodesDirGroup) missingNodesDirGroup.style.display = "block";
+    if (inpMissingNodesComfyDir && paths.comfy_root && !inpMissingNodesComfyDir.value) {
+      inpMissingNodesComfyDir.value = paths.comfy_root;
+    }
+    missingNodesList.innerHTML = packs.map(pack => `
+      <label class="missing-node-item">
+        <input type="checkbox" value="${escapeHtml(pack.id)}" ${pack.installed ? "" : "checked"}>
+        <div class="missing-node-meta">
+          <div class="missing-node-title">${escapeHtml(pack.name)} ${pack.installed ? "(bereits installiert)" : ""}</div>
+          <div class="missing-node-desc">${escapeHtml(pack.description_de)}</div>
+          <div class="missing-node-badges">${pack.missing_nodes.map(n => `<span class="missing-node-badge">${escapeHtml(n)}</span>`).join("")}</div>
+        </div>
+      </label>
+    `).join("");
+    if (installNodesProgressWrap) installNodesProgressWrap.style.display = "none";
+    if (installNodesLog) installNodesLog.textContent = "";
+    if (btnInstallMissingNodes) {
+      btnInstallMissingNodes.style.display = "";
+      btnInstallMissingNodes.disabled = Boolean(paths.is_remote);
+    }
+    missingNodesModal.style.display = "flex";
+  }
+
+  if (btnInstallPlatoNodes) {
+    btnInstallPlatoNodes.addEventListener("click", () => {
+      const toInstall = [];
+      if (!lastPlatoKeysMeta.h3_installed) toInstall.push("ComfyUI-H3-Text-Encoders");
+      if (!lastPlatoKeysMeta.nynxz_installed) toInstall.push("ComfyUI-PlatoKeys");
+      openOptionalPlatoNodeInstaller(toInstall.length ? toInstall : null);
+    });
+  }
+  if (btnInstallH3Node) {
+    btnInstallH3Node.addEventListener("click", () => openOptionalPlatoNodeInstaller(["ComfyUI-H3-Text-Encoders"]));
+  }
+  if (btnInstallNynxzNode) {
+    btnInstallNynxzNode.addEventListener("click", () => openOptionalPlatoNodeInstaller(["ComfyUI-PlatoKeys"]));
+  }
+  if (btnOpenPlatoKeySettings) {
+    btnOpenPlatoKeySettings.addEventListener("click", () => {
+      if (typeof openSettingsModal === "function") {
+        openSettingsModal(false);
+        setTimeout(() => {
+          if (settingsPlatoKeysSection) settingsPlatoKeysSection.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 80);
+      }
+    });
+  }
+  if (btnDownloadPlatoKey && selPlatoCatalogKey) {
+    btnDownloadPlatoKey.addEventListener("click", async () => {
+      const keyId = selPlatoCatalogKey.value;
+      if (!keyId) return;
+      btnDownloadPlatoKey.disabled = true;
+      if (platoDownloadStatus) platoDownloadStatus.textContent = "Starte Download…";
+      try {
+        const res = await fetch("/api/plato_keys/download", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: keyId }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          if (platoDownloadStatus) platoDownloadStatus.textContent = data.error || "Download fehlgeschlagen.";
+          btnDownloadPlatoKey.disabled = false;
+          return;
+        }
+        const poll = setInterval(async () => {
+          try {
+            const sr = await fetch("/api/plato_keys/download_status");
+            const st = await sr.json();
+            if (st.status === "running") {
+              const mb = ((st.downloaded_bytes || 0) / 1048576).toFixed(1);
+              const tot = st.total_bytes ? ` / ${(st.total_bytes / 1048576).toFixed(1)} MB` : " MB";
+              if (platoDownloadStatus) platoDownloadStatus.textContent = `Lade ${st.filename}: ${mb}${tot}…`;
+            } else if (st.status === "done") {
+              clearInterval(poll);
+              btnDownloadPlatoKey.disabled = false;
+              if (platoDownloadStatus) platoDownloadStatus.textContent = `✓ Gespeichert: ${st.filename} (ComfyUI ggf. neu laden)`;
+              showToast(`Plato's Key '${st.filename}' heruntergeladen.`, "success");
+              refreshPlatoKeysFromComfy();
+            } else if (st.status === "error") {
+              clearInterval(poll);
+              btnDownloadPlatoKey.disabled = false;
+              if (platoDownloadStatus) platoDownloadStatus.textContent = `✖ Fehler: ${st.error || "Unbekannt"}`;
+            }
+          } catch (e) {}
+        }, 500);
+      } catch (e) {
+        if (platoDownloadStatus) platoDownloadStatus.textContent = "Netzwerkfehler beim Starten des Downloads.";
+        btnDownloadPlatoKey.disabled = false;
+      }
+    });
   }
 
   // Dynamic Preset Fetcher via server (/api/presets filters to installed ComfyUI models)
