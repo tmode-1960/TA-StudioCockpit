@@ -40,7 +40,7 @@ import comfy_client
 from comfy_client import ComfyClient, build_flexmod_api_prompt, KNOWN_LORA_TRIGGERS
 from modules import discord_gif, gallery_indexer, music_maker, updater, video_maker
 
-APP_VERSION = "1.85"
+APP_VERSION = "1.86"
 BIND_HOST = "127.0.0.1"
 PORT = 8095
 COMFY_URL = "http://127.0.0.1:8188"
@@ -1449,6 +1449,9 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             return
         elif path == "/api/launch_comfy":
             self.handle_launch_comfy(post_body)
+            return
+        elif path == "/api/restart_comfy":
+            self.handle_restart_comfy(post_body)
             return
         elif path == "/api/comfy/restart":
             self.handle_comfy_restart()
@@ -5075,6 +5078,79 @@ class StudioHandler(http.server.SimpleHTTPRequestHandler):
             yf.write("\n".join(lines))
         cli_yaml = self._to_wsl_path(host_yaml) if is_wsl else host_yaml
         return (host_yaml, cli_yaml)
+
+    def _stop_comfy_on_port(self, port: int, is_wsl: bool = False) -> None:
+        """Stoppt einen laufenden ComfyUI-Prozess auf dem konfigurierten Port."""
+        if sys.platform == "win32" and is_wsl:
+            try:
+                subprocess.run(
+                    ["wsl", "bash", "-lc", f"fuser -k {port}/tcp >/dev/null 2>&1 || pkill -f 'main\\.py.*{port}' || pkill -f 'ComfyUI/main\\.py' || true"],
+                    timeout=6,
+                    capture_output=True,
+                )
+            except Exception:
+                pass
+        elif sys.platform == "win32":
+            pids: set[int] = set()
+            try:
+                out = subprocess.check_output(["netstat", "-ano", "-p", "TCP"], text=True, errors="replace", timeout=5)
+                needle = f":{port}"
+                my_pid = os.getpid()
+                for line in out.splitlines():
+                    parts = line.split()
+                    if len(parts) >= 5 and parts[0].upper() == "TCP" and parts[3].upper() == "LISTENING":
+                        if parts[1].endswith(needle):
+                            try:
+                                pid = int(parts[4])
+                                if pid > 0 and pid != my_pid:
+                                    pids.add(pid)
+                            except ValueError:
+                                pass
+            except Exception:
+                pass
+            for pid in pids:
+                try:
+                    subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], timeout=6, capture_output=True)
+                except Exception:
+                    pass
+        deadline = time.time() + 3.0
+        while time.time() < deadline:
+            try:
+                with socket.create_connection(("127.0.0.1", port), timeout=0.3):
+                    time.sleep(0.25)
+            except OSError:
+                break
+
+    def handle_restart_comfy(self, post_body: bytes = b""):
+        cfg = load_config()
+        cmd = cfg.get("comfy_launch_cmd", DEFAULT_LAUNCH_CMD).strip()
+        if not cmd and post_body:
+            try:
+                body = json.loads(post_body.decode("utf-8"))
+                cmd = str(body.get("comfy_launch_cmd", "")).strip()
+            except Exception:
+                pass
+
+        parsed_comfy = urllib.parse.urlparse(COMFY_URL)
+        port = parsed_comfy.port or (443 if parsed_comfy.scheme == "https" else 80)
+
+        if not cmd:
+            # Fallback: ComfyUI-Manager reboot endpoint if available
+            for mgr_path in ("/api/manager/reboot", "/manager/reboot"):
+                try:
+                    req = urllib.request.Request(f"{COMFY_URL.rstrip('/')}{mgr_path}", method="GET")
+                    with urllib.request.urlopen(req, timeout=4) as resp:
+                        if 200 <= resp.status < 300:
+                            self.send_json({"status": "launched", "method": "manager_reboot"})
+                            return
+                except Exception:
+                    pass
+            self.handle_launch_comfy(post_body)
+            return
+
+        is_wsl = cmd.startswith("wsl") or "~/" in cmd or ".sh" in cmd
+        self._stop_comfy_on_port(port, is_wsl=is_wsl)
+        self.handle_launch_comfy(post_body)
 
     def handle_launch_comfy(self, post_body: bytes = b""):
         cfg = load_config()

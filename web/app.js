@@ -45,6 +45,14 @@
       comfy_disconnected: "ComfyUI getrennt",
       btn_launch_comfy: "⚡ ComfyUI starten",
       btn_launch_comfy_running: "✓ ComfyUI läuft",
+      btn_restart_comfy: "🔄 ComfyUI neu starten",
+      btn_restart_comfy_title: "Laufendes ComfyUI stoppen und neu starten",
+      btn_restart_comfy_restarting: "⏳ Neustart…",
+      restart_comfy_modal_title: "ComfyUI neu starten?",
+      restart_comfy_modal_desc: "Möchtest du ComfyUI wirklich neu starten? Laufende Generierungen werden dadurch unterbrochen.",
+      restart_comfy_confirm_btn: "Neu starten",
+      preset_confirm_title: "Preset-Bestätigung",
+      btn_confirm_ok: "OK",
       btn_launch_comfy_opening: "⏳ Öffne Terminal…",
       btn_launch_comfy_tab: "⏳ Neuer Tab geöffnet…",
       btn_launch_comfy_started: "⏳ Terminal gestartet…",
@@ -670,6 +678,14 @@
       comfy_disconnected: "ComfyUI disconnected",
       btn_launch_comfy: "⚡ Launch ComfyUI",
       btn_launch_comfy_running: "✓ ComfyUI running",
+      btn_restart_comfy: "🔄 Restart ComfyUI",
+      btn_restart_comfy_title: "Stop and restart running ComfyUI",
+      btn_restart_comfy_restarting: "⏳ Restarting…",
+      restart_comfy_modal_title: "Restart ComfyUI?",
+      restart_comfy_modal_desc: "Do you really want to restart ComfyUI? Any running generations will be interrupted.",
+      restart_comfy_confirm_btn: "Restart",
+      preset_confirm_title: "Confirm Action",
+      btn_confirm_ok: "OK",
       btn_launch_comfy_opening: "⏳ Opening terminal…",
       btn_launch_comfy_tab: "⏳ New tab opened…",
       btn_launch_comfy_started: "⏳ Terminal started…",
@@ -3312,6 +3328,7 @@
 
   // Settings & preset editor elements
   const btnLaunchComfy = document.getElementById("btnLaunchComfy");
+  const btnRestartComfy = document.getElementById("btnRestartComfy");
   const comfyOfflineModal = document.getElementById("comfyOfflineModal");
   const btnCloseComfyOfflineModal = document.getElementById("btnCloseComfyOfflineModal");
   const btnCancelComfyOffline = document.getElementById("btnCancelComfyOffline");
@@ -7084,6 +7101,11 @@
       btnLaunchComfy.disabled = true;
       btnLaunchComfy.textContent = t("btn_launch_comfy_running", "✓ ComfyUI läuft");
       btnLaunchComfy.title = t("btn_launch_comfy_running_title", "ComfyUI ist verbunden und läuft");
+      if (btnRestartComfy) {
+        btnRestartComfy.style.display = "inline-flex";
+        btnRestartComfy.disabled = false;
+        btnRestartComfy.textContent = t("btn_restart_comfy", "🔄 ComfyUI neu starten");
+      }
       const presetOffline = document.getElementById("presetEditorOfflineNotice");
       if (presetEditorModal && presetEditorModal.style.display === "flex" && presetOffline && presetOffline.style.display !== "none" && currentPresetEditorUrl) {
         presetOffline.style.display = "none";
@@ -7098,6 +7120,9 @@
       btnLaunchComfy.disabled = false;
       btnLaunchComfy.textContent = t("btn_launch_comfy", "⚡ ComfyUI starten");
       btnLaunchComfy.title = t("btn_launch_comfy_title", "ComfyUI im Terminal-Fenster starten");
+      if (btnRestartComfy) {
+        btnRestartComfy.style.display = "none";
+      }
     }
   }
 
@@ -7559,6 +7584,122 @@
     });
   }
 
+  // Reusable Generic Themed Confirm Modal (centered, matches active theme)
+  function showCockpitConfirm({ icon = "❓", title = "Bestätigung", message = "", confirmText = null, cancelText = null, danger = false } = {}) {
+    const modal = document.getElementById("cockpitConfirmModal");
+    const elIcon = document.getElementById("cockpitConfirmIcon");
+    const elTitle = document.getElementById("cockpitConfirmTitle");
+    const elMsg = document.getElementById("cockpitConfirmMessage");
+    const btnOk = document.getElementById("btnOkCockpitConfirm");
+    const btnCancel = document.getElementById("btnCancelCockpitConfirm");
+    const btnClose = document.getElementById("btnCloseCockpitConfirm");
+    if (!modal || !btnOk || !btnCancel) {
+      return Promise.resolve(window.confirm(message || title));
+    }
+    if (elIcon) elIcon.textContent = icon;
+    if (elTitle) elTitle.textContent = title;
+    if (elMsg) elMsg.textContent = message;
+    btnOk.textContent = confirmText || t("btn_confirm_ok", "OK");
+    btnCancel.textContent = cancelText || t("btn_cancel", "Abbrechen");
+    btnOk.style.background = danger ? "var(--danger, #ef4444)" : "var(--accent)";
+    btnOk.style.borderColor = danger ? "var(--danger, #ef4444)" : "var(--accent)";
+    modal.style.display = "flex";
+    btnCancel.focus();
+
+    return new Promise((resolve) => {
+      const cleanup = (res) => {
+        modal.style.display = "none";
+        btnOk.removeEventListener("click", onOk);
+        btnCancel.removeEventListener("click", onCancel);
+        btnClose?.removeEventListener("click", onCancel);
+        modal.removeEventListener("click", onBackdrop);
+        document.removeEventListener("keydown", onKey, true);
+        resolve(res);
+      };
+      const onOk = () => cleanup(true);
+      const onCancel = () => cleanup(false);
+      const onBackdrop = (e) => { if (e.target === modal) cleanup(false); };
+      const onKey = (e) => {
+        if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); cleanup(false); }
+        else if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); cleanup(document.activeElement === btnOk); }
+      };
+      btnOk.addEventListener("click", onOk);
+      btnCancel.addEventListener("click", onCancel);
+      btnClose?.addEventListener("click", onCancel);
+      modal.addEventListener("click", onBackdrop);
+      document.addEventListener("keydown", onKey, true);
+    });
+  }
+
+  // ComfyUI Restart Button Handler
+  if (btnRestartComfy) {
+    btnRestartComfy.addEventListener("click", async () => {
+      const confirmed = await showCockpitConfirm({
+        icon: "🔄",
+        title: t("restart_comfy_modal_title", "ComfyUI neu starten?"),
+        message: t("restart_comfy_modal_desc", "Möchtest du ComfyUI wirklich neu starten? Laufende Generierungen werden dadurch unterbrochen."),
+        confirmText: t("restart_comfy_confirm_btn", "Neu starten"),
+      });
+      if (!confirmed) return;
+
+      btnRestartComfy.disabled = true;
+      btnRestartComfy.textContent = t("btn_restart_comfy_restarting", "⏳ Neustart…");
+      try {
+        const launchCmdVal = inpComfyLaunchCmd ? inpComfyLaunchCmd.value.trim() : "";
+        const res = await fetch("/api/restart_comfy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ comfy_launch_cmd: launchCmdVal })
+        });
+        const data = await res.json();
+        if (data.status === "launched") {
+          if (btnLaunchComfy) {
+            btnLaunchComfy.classList.remove("is-online");
+            btnLaunchComfy.classList.add("is-offline");
+            btnLaunchComfy.textContent = t("btn_restart_comfy_restarting", "⏳ Neustart…");
+          }
+          let tries = 0;
+          let sawOffline = false;
+          const pollRestart = setInterval(async () => {
+            tries++;
+            try {
+              const s = await fetch("/api/status");
+              if (s.ok) {
+                const d = await s.json();
+                if (!d.online) sawOffline = true;
+                if (d.online && (sawOffline || tries >= 3)) {
+                  clearInterval(pollRestart);
+                  updateLaunchButtonState(true);
+                  checkComfyStatus();
+                  await refreshPresetsFromComfy();
+                  await loadLLMModelsFromComfy();
+                }
+              }
+            } catch (err) {}
+            if (tries > 60) {
+              clearInterval(pollRestart);
+              btnRestartComfy.disabled = false;
+              btnRestartComfy.textContent = t("btn_restart_comfy", "🔄 ComfyUI neu starten");
+            }
+          }, 2000);
+        } else {
+          if (data.code === "NO_LAUNCH_CMD") {
+            openSettingsModal({ focusLaunchCmd: true, launchAfterSave: false });
+            showToast(t("toast_launch_missing", "Bitte trage zuerst deine ComfyUI-Startdatei (z. B. run_nvidia_gpu.bat) ein und speichere."), "info", 6000);
+          } else {
+            showToast(t("toast_launch_error", "Fehler beim Starten von ComfyUI: ") + (data.error || t("err_unknown", "Unbekannter Fehler")), "error", 6000);
+          }
+          btnRestartComfy.disabled = false;
+          btnRestartComfy.textContent = t("btn_restart_comfy", "🔄 ComfyUI neu starten");
+        }
+      } catch (e) {
+        showToast(t("toast_network_error", "Netzwerkfehler: ") + e.message, "error", 5000);
+        btnRestartComfy.disabled = false;
+        btnRestartComfy.textContent = t("btn_restart_comfy", "🔄 ComfyUI neu starten");
+      }
+    });
+  }
+
   // 11. Settings & Preset Editors Management
   function getComfyUrl() {
     return localStorage.getItem("tAStudio.comfyUrl") || "http://127.0.0.1:8188";
@@ -7803,6 +7944,36 @@
           }
         `;
         doc.head.appendChild(style);
+
+        // Replace browser-native window.confirm inside Preset Editor iframe with centered themed modal
+        const win = presetEditorIframe.contentWindow;
+        if (win && !win.__cockpitConfirmHooked) {
+          win.__cockpitConfirmHooked = true;
+          let lastIframeClickTarget = null;
+          doc.addEventListener("click", (ev) => {
+            lastIframeClickTarget = (ev.target && ev.target.closest)
+              ? (ev.target.closest("button, [role='button'], a") || ev.target)
+              : ev.target;
+          }, true);
+          const origConfirm = win.confirm.bind(win);
+          win.confirm = (msg) => {
+            if (win.__cockpitConfirmBypass) return true;
+            const targetEl = lastIframeClickTarget;
+            if (!targetEl) return origConfirm(msg);
+            showCockpitConfirm({
+              icon: "🗑️",
+              title: t("preset_confirm_title", "Preset-Bestätigung"),
+              message: String(msg || ""),
+              confirmText: t("btn_confirm_ok", "OK"),
+              danger: true,
+            }).then((ok) => {
+              if (!ok) return;
+              win.__cockpitConfirmBypass = true;
+              try { targetEl.click(); } finally { win.__cockpitConfirmBypass = false; }
+            });
+            return false;
+          };
+        }
       } catch (e) {
         console.warn("Could not style preset editor iframe:", e);
       }

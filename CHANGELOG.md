@@ -2,6 +2,11 @@
 
 All notable changes to **thomo.ART StudioCockpit** are documented in this file.
 
+## [v1.86] – 2026-11-28
+### Restart ComfyUI Button & Themed Preset Confirm Modal
+- **Restart ComfyUI Button (`#btnRestartComfy`):** Added a **Restart ComfyUI** button next to **ComfyUI running** (`web/index.html`, `web/app.js`, `POST /api/restart_comfy` in `server.py`) that is visible and active while ComfyUI is running, shows a themed confirmation dialog, stops the running ComfyUI process on its port (Windows/WSL), and relaunches it.
+- **Themed Preset Editor Confirm Dialog (`#cockpitConfirmModal`):** Replaced the browser-native `window.confirm()` popup inside the TA Model Preset Editor iframe (`web/app.js`, `web/index.html`) with a centered, themed in-app confirmation modal.
+
 ## [v1.85] – 2026-11-28
 ### Model Quick-Pill Highlight Fix
 - **Exact-First Pill Matching (`web/app.js`):** Updated `updateModelSelection()` so fuzzy family matching (`krea`, `qwen`, `flux`, etc.) only runs when no quick-pill matches the selected preset exactly, preventing two pills (e.g. `Krea2-Turbo` and `Krea2-Turbo (Qwen3.5-9B PK)`) from being highlighted simultaneously.

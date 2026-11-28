@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>thomo.ART StudioCockpit v1.85 (FLEXMOD Edition)</title>
+  <title>thomo.ART StudioCockpit v1.86 (FLEXMOD Edition)</title>
   <link rel="icon" type="image/png" href="/logo.png?v=1.45">
   <link rel="icon" href="/favicon.ico?v=1.45">
   <script>
@@ -62,6 +62,7 @@
     </div>
 
     <button class="btn-action btn-launch-comfy is-offline" id="btnLaunchComfy" title="ComfyUI im Terminal-Fenster starten" data-i18n-title="btn_launch_comfy_title" data-i18n="btn_launch_comfy">⚡ ComfyUI starten</button>
+    <button class="btn-action" id="btnRestartComfy" style="display:none; padding: 5px 10px; font-size: 12px;" title="ComfyUI neu starten" data-i18n-title="btn_restart_comfy_title" data-i18n="btn_restart_comfy">🔄 Restart ComfyUI</button>
 
     <button class="btn-action" id="btnReloadApp" title="Oberfläche neu laden (F5)" data-i18n-title="btn_reload_title" style="padding: 5px 10px; font-size: 12px;" data-i18n="btn_reload_app">🔄 App neu laden</button>
     <div class="theme-picker-wrap" id="themePickerWrap">
@@ -2864,6 +2865,26 @@
     </div>
   </div>
 
+  <!-- Generic Themed Confirm Modal (ComfyUI Restart, Preset Editor, etc.) -->
+  <div class="modal-overlay" id="cockpitConfirmModal" style="display:none; z-index: 12500;">
+    <div class="modal-card" style="width: 430px; max-width: 92vw;">
+      <div class="modal-header">
+        <h3 style="display: flex; align-items: center; gap: 8px;">
+          <span id="cockpitConfirmIcon" style="color: var(--accent);">❓</span>
+          <span id="cockpitConfirmTitle">Bestätigung</span>
+        </h3>
+        <button class="modal-close" id="btnCloseCockpitConfirm">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="cockpitConfirmMessage" style="color: var(--text); font-size: 13px; line-height: 1.5; margin: 0; white-space: pre-line;"></p>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 12px 18px; border-top: 1px solid var(--line); background: var(--panel2);">
+        <button type="button" class="btn-action" id="btnCancelCockpitConfirm" style="padding: 7px 14px; font-size: 13px;" data-i18n="btn_cancel">Abbrechen</button>
+        <button type="button" class="btn-action" id="btnOkCockpitConfirm" style="background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; padding: 7px 16px; font-size: 13px;" data-i18n="btn_confirm_ok">OK</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Missing Custom Nodes Modal -->
   <div class="modal-overlay" id="missingNodesModal" style="display:none;">
     <div class="modal-card" style="width: 580px; max-width: 94vw;">
@@ -3232,7 +3253,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/app.js?v=1.85"></script>
+  <script src="/app.js?v=1.86"></script>
   <script src="/gif_module.js?v=0.79"></script>
   <script src="/gallery_module.js?v=5"></script>
   <script src="/video_module.js?v=1.00"></script>
